@@ -1,4 +1,5 @@
 import { Heart, Share2 } from "lucide-react";
+import logo from '../../../assets/images/logo.jpeg'
 
 const Footer = () => {
     return (
@@ -7,10 +8,10 @@ const Footer = () => {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-10">
                     <div className="md:col-span-6 space-y-4">
                         <div className="flex items-center space-x-2">
-                            <div className="w-6 h-6 bg-white rounded-md flex items-center justify-center">
-                                <div className="w-3 h-3 bg-[#3A0303] rounded-sm transform rotate-45"></div>
+                            <div className="w-6 h-6 rounded-md flex items-center justify-center">
+                                <img className="rounded-md" src={logo} alt="" />
                             </div>
-                            <span className="font-bold text-xl tracking-wider text-white uppercase font-sans">
+                            <span className="font-bold text-xl tracking-wider text-white uppercase">
                                 Bibah
                             </span>
                         </div>
