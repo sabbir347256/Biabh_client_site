@@ -8,6 +8,7 @@ import Root from "./Components/Pages/Root/Root";
 import AuthContext from "./Components/AuthProvider/AuthContext";
 import Login from "./Components/Pages/Authentication/Login/Login";
 import SignUp from "./Components/Pages/Authentication/SignUp/SignUp";
+import HomeRoot from "./Components/Pages/HomePages/HomeRoot";
 
 
 const queryClient = new QueryClient();
@@ -17,7 +18,10 @@ const router = createBrowserRouter([
     path: "/",
     element: <Root></Root>,
     children: [
-
+      {
+        path : "/",
+        element : <HomeRoot></HomeRoot>
+      }
     ]
   },
   {

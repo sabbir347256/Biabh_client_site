@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 
 
 @plugin "daisyui";
@@ -6,11 +7,21 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
+/* body {
   font-family: "Inter Tight", sans-serif;
+} */
+
+body{
+  font-family: "Open Sans", sans-serif;
 }
 
-.globalBg{
-  background-color: #FDF8F8;
+body {
+  /* background-color: #FDF8F8; */
+  background-color: #ffffff;
 }
 
+@layer utilities {
+  .app-container {
+    @apply max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}
