@@ -9,6 +9,7 @@ import AuthContext from "./Components/AuthProvider/AuthContext";
 import Login from "./Components/Pages/Authentication/Login/Login";
 import SignUp from "./Components/Pages/Authentication/SignUp/SignUp";
 import HomeRoot from "./Components/Pages/HomePages/HomeRoot";
+import UserProfile from "./Components/Pages/userAdmin&AgentProfile/userProfileSection/UserProfile";
 
 
 const queryClient = new QueryClient();
@@ -21,6 +22,10 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <HomeRoot></HomeRoot>
+      },
+      {
+        path: "/user-profile",
+        element: <UserProfile></UserProfile>
       },
       {
         path: "/login",

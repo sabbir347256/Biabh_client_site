@@ -1,14 +1,136 @@
 import { useForm } from "react-hook-form";
 // import Button from "../../utilies/Button";
 import { Camera, CheckCircle, Globe, MapPin, Phone, Star, User } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+
+const API_BASE_URL = "https://bdapis.vercel.app/geo/v2.0";
 
 const SignUp = () => {
-    const { register, handleSubmit } = useForm();
+
+    const { register, handleSubmit, watch, setValue } = useForm({
+        defaultValues: {
+            currentCountry: "Bangladesh",
+            permanentCountry: "Bangladesh"
+        }
+    });
     const [previewImage, setPreviewImage] = useState(null);
 
+    const [divisions, setDivisions] = useState([]);
+
+    const [currentDistricts, setCurrentDistricts] = useState([]);
+    const [currentUpazilas, setCurrentUpazilas] = useState([]);
+
+    // Permanent Address States
+    const [permanentDistricts, setPermanentDistricts] = useState([]);
+    const [permanentUpazilas, setPermanentUpazilas] = useState([]);
+
+    const watchedCurrentDivision = watch("currentDivision");
+    const watchedCurrentDistrict = watch("currentDistrict");
+
+    const watchedPermanentDivision = watch("permanentDivision");
+    const watchedPermanentDistrict = watch("permanentDistrict");
+
+    useEffect(() => {
+        const fetchDivisions = async () => {
+            try {
+                const response = await axios.get(`${API_BASE_URL}/divisions`);
+                const divisionsData = response.data?.data || response.data;
+                if (Array.isArray(divisionsData)) {
+                    setDivisions(divisionsData);
+                }
+            } catch (error) {
+                console.error("Error fetching divisions:", error);
+            }
+        };
+        fetchDivisions();
+    }, []);
+
+    useEffect(() => {
+        if (!watchedCurrentDivision) {
+            setCurrentDistricts([]);
+            setCurrentUpazilas([]);
+            return;
+        }
+
+        const fetchCurrentDistricts = async () => {
+            try {
+                const response = await axios.get(`${API_BASE_URL}/districts/${watchedCurrentDivision}`);
+                const districtsData = response.data?.data || response.data;
+                setCurrentDistricts(Array.isArray(districtsData) ? districtsData : []);
+                setCurrentUpazilas([]);
+                setValue("currentDistrict", "");
+                setValue("currentThana", "");
+            } catch (error) {
+                console.error("Error fetching current districts:", error);
+            }
+        };
+        fetchCurrentDistricts();
+    }, [watchedCurrentDivision, setValue]);
+
+    useEffect(() => {
+        if (!watchedCurrentDistrict) {
+            setCurrentUpazilas([]);
+            return;
+        }
+
+        const fetchCurrentUpazilas = async () => {
+            try {
+                const response = await axios.get(`${API_BASE_URL}/upazilas/${watchedCurrentDistrict}`);
+                const upazilasData = response.data?.data || response.data;
+                setCurrentUpazilas(Array.isArray(upazilasData) ? upazilasData : []);
+                setValue("currentThana", "");
+            } catch (error) {
+                console.error("Error fetching current upazilas:", error);
+            }
+        };
+        fetchCurrentUpazilas();
+    }, [watchedCurrentDistrict, setValue]);
+
+
+    useEffect(() => {
+        if (!watchedPermanentDivision) {
+            setPermanentDistricts([]);
+            setPermanentUpazilas([]);
+            return;
+        }
+
+        const fetchPermanentDistricts = async () => {
+            try {
+                const response = await axios.get(`${API_BASE_URL}/districts/${watchedPermanentDivision}`);
+                const districtsData = response.data?.data || response.data;
+                setPermanentDistricts(Array.isArray(districtsData) ? districtsData : []);
+                setPermanentUpazilas([]);
+                setValue("permanentDistrict", "");
+                setValue("permanentThana", "");
+            } catch (error) {
+                console.error("Error fetching permanent districts:", error);
+            }
+        };
+        fetchPermanentDistricts();
+    }, [watchedPermanentDivision, setValue]);
+
+    useEffect(() => {
+        if (!watchedPermanentDistrict) {
+            setPermanentUpazilas([]);
+            return;
+        }
+
+        const fetchPermanentUpazilas = async () => {
+            try {
+                const response = await axios.get(`${API_BASE_URL}/upazilas/${watchedPermanentDistrict}`);
+                const upazilasData = response.data?.data || response.data;
+                setPermanentUpazilas(Array.isArray(upazilasData) ? upazilasData : []);
+                setValue("permanentThana", "");
+            } catch (error) {
+                console.error("Error fetching permanent upazilas:", error);
+            }
+        };
+        fetchPermanentUpazilas();
+    }, [watchedPermanentDistrict, setValue]);
+
     const onSubmit = (data) => {
-        console.log(data);
+        console.log("Form Submitted Data:", data);
     };
 
     const handleImageChange = (e) => {
@@ -165,41 +287,95 @@ const SignUp = () => {
 
                         <section className="space-y-6">
                             <div className="flex items-center gap-4 pb-3 border-b border-red-50">
-                               
                                 <div className="flex items-center gap-2">
                                     <MapPin size={18} className="text-[#C20E0E]" />
                                     <h2 className="text-xl font-bold text-gray-900">Current Residence</h2>
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
-                                {['Country', 'Division / State', 'District', 'Thana'].map((label) => (
-                                    <div key={label} className="space-y-1.5">
-                                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">{label}</label>
-                                        <select className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] transition-all duration-200 cursor-pointer appearance-none">
-                                            <option>Select {label}</option>
-                                        </select>
-                                    </div>
-                                ))}
+                                <div className="space-y-1.5">
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Country</label>
+                                    <select {...register("currentCountry")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50">
+                                        <option value="Bangladesh">Bangladesh</option>
+                                    </select>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Division / State</label>
+                                    <select {...register("currentDivision")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer">
+                                        <option value="">Select Division</option>
+                                        {divisions.map((div) => (
+                                            <option key={div._id || div.id} value={div.id}>{div.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">District</label>
+                                    <select disabled={!watchedCurrentDivision} {...register("currentDistrict")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer disabled:opacity-50">
+                                        <option value="">Select District</option>
+                                        {currentDistricts.map((dist) => (
+                                            <option key={dist._id || dist.id} value={dist.id}>{dist.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Thana</label>
+                                    <select disabled={!watchedCurrentDistrict} {...register("currentThana")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer disabled:opacity-50">
+                                        <option value="">Select Thana</option>
+                                        {currentUpazilas.map((upz) => (
+                                            <option key={upz._id || upz.id} value={upz.name}>{upz.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
                         </section>
 
                         <section className="space-y-6">
                             <div className="flex items-center gap-4 pb-3 border-b border-red-50">
-                               
                                 <div className="flex items-center gap-2">
                                     <Globe size={18} className="text-[#C20E0E]" />
                                     <h2 className="text-xl font-bold text-gray-900">Permanent Address</h2>
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
-                                {['Country', 'Division', 'District', 'Thana'].map((label) => (
-                                    <div key={label} className="space-y-1.5">
-                                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">{label}</label>
-                                        <select className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] transition-all duration-200 cursor-pointer appearance-none">
-                                            <option>Select {label}</option>
-                                        </select>
-                                    </div>
-                                ))}
+                                <div className="space-y-1.5">
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Country</label>
+                                    <select {...register("permanentCountry")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50">
+                                        <option value="Bangladesh">Bangladesh</option>
+                                    </select>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Division</label>
+                                    <select {...register("permanentDivision")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer">
+                                        <option value="">Select Division</option>
+                                        {divisions.map((div) => (
+                                            <option key={div._id || div.id} value={div.id}>{div.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">District</label>
+                                    <select disabled={!watchedPermanentDivision} {...register("permanentDistrict")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer disabled:opacity-50">
+                                        <option value="">Select District</option>
+                                        {permanentDistricts.map((dist) => (
+                                            <option key={dist._id || dist.id} value={dist.id}>{dist.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Thana</label>
+                                    <select disabled={!watchedPermanentDistrict} {...register("permanentThana")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer disabled:opacity-50">
+                                        <option value="">Select Thana</option>
+                                        {permanentUpazilas.map((upz) => (
+                                            <option key={upz._id || upz.id} value={upz.name}>{upz.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
                         </section>
 
