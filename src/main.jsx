@@ -11,6 +11,7 @@ import SignUp from "./Components/Pages/Authentication/SignUp/SignUp";
 import HomeRoot from "./Components/Pages/HomePages/HomeRoot";
 import UserProfile from "./Components/Pages/userAdmin&AgentProfile/userProfileSection/UserProfile";
 import Underconstraction from "./Components/Pages/Shared/Underconstraction";
+import ProfileDetails from "./Components/Pages/SpecifiqProfile/ProfileDetails";
 
 
 const queryClient = new QueryClient();
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
       {
         path: "/user-profile",
         element: <UserProfile></UserProfile>
+      },
+      {
+        path: "/:fullName/:id",
+        element: <ProfileDetails></ProfileDetails>
       },
       {
         path: "/login",

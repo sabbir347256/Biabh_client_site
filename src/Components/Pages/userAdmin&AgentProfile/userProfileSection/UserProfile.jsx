@@ -2,9 +2,12 @@ import { useState, useEffect, useContext } from 'react';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import {
-    User, Briefcase, GraduationCap, Moon, Heart, Home,
+    User, Briefcase, GraduationCap, Heart, Home,
     MapPin, Edit2, CheckCircle2,
-    Upload, X, ShieldCheck, Lock, HeartHandshake, Camera, Unlock
+    Upload, X, ShieldCheck, Lock, Camera, Unlock,
+    Phone,
+    Mail,
+    Globe
 } from 'lucide-react';
 import { AuthProvider } from '../../../AuthProvider/CreateContext';
 import config from '../../utilies/envconfig';
@@ -23,7 +26,7 @@ const UserProfile = () => {
         header: false,
         personal: false,
         professional: false,
-        religious: false,
+        contact: false,
         family: false,
         expectations: false
     });
@@ -35,35 +38,24 @@ const UserProfile = () => {
 
     const [nidUploaded, setNidUploaded] = useState(false);
 
-    const { register, handleSubmit, watch, reset } = useForm();
+    const { register, handleSubmit, watch, reset,setValue } = useForm();
     const watchedValues = watch();
     console.log(watchedValues)
 
     useEffect(() => {
         const fetchProfileData = async () => {
             try {
-                const response = await axios.get(`${config?.backendUrl}/user/profile`);
-                const profileData = response.data;
-
-                reset(profileData);
-                if (profileData.coverImage) setImages(prev => ({ ...prev, cover: profileData.coverImage }));
-                if (profileData.avatarImage) setImages(prev => ({ ...prev, avatar: profileData.avatarImage }));
-                if (profileData.nidStatus) setNidUploaded(profileData.nidStatus === 'verified' || profileData.nidStatus === 'pending');
-                if (profileData.isUnlocked !== undefined) {
-                    setIsProfileLocked(!profileData.isUnlocked);
-                }
-
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching profile data:", error);
                 if (profileUser) {
                     reset(profileUser);
                     if (profileUser.coverImage) setImages(prev => ({ ...prev, cover: profileUser.coverImage }));
-                    if (profileUser.avatarImage) setImages(prev => ({ ...prev, avatar: profileUser.avatarImage }));
+                    if (profileUser.profileImage) setImages(prev => ({ ...prev, avatar: profileUser.profileImage }));
                     if (profileUser.nidStatus) setNidUploaded(profileUser.nidStatus === 'verified' || profileUser.nidStatus === 'pending');
                     setIsProfileLocked(profileUser.isLocked !== undefined ? profileUser.isLocked : true);
                 }
                 setLoading(false);
+            } catch (error) {
+                console.error("Error fetching profile data:", error);
+
             }
         };
 
@@ -142,6 +134,115 @@ const UserProfile = () => {
             console.error("Error unlocking profile:", error);
         }
     };
+
+
+
+    const [divisions, setDivisions] = useState([]);
+    const [currentDistricts, setCurrentDistricts] = useState([]);
+    const [currentUpazilas, setCurrentUpazilas] = useState([]);
+    const [permanentDistricts, setPermanentDistricts] = useState([]);
+    const [permanentUpazilas, setPermanentUpazilas] = useState([]);
+
+    const watchedCurrentDivision = watch("currentDivision");
+    const watchedCurrentDistrict = watch("currentDistrict");
+    const watchedPermanentDivision = watch("permanentDivision");
+    const watchedPermanentDistrict = watch("permanentDistrict");
+
+    useEffect(() => {
+        const fetchDivisions = async () => {
+            try {
+                const response = await axios.get(`${config.geoApiUrl}/divisions`);
+                const divisionsData = response.data?.data || response.data;
+                if (Array.isArray(divisionsData)) {
+                    setDivisions(divisionsData);
+                }
+            } catch (error) {
+                console.error("Error fetching divisions:", error);
+            }
+        };
+        fetchDivisions();
+    }, []);
+
+    useEffect(() => {
+        if (!watchedCurrentDivision) {
+            setCurrentDistricts([]);
+            setCurrentUpazilas([]);
+            return;
+        }
+        const fetchCurrentDistricts = async () => {
+            try {
+                const response = await axios.get(`${config.geoApiUrl}/districts/${watchedCurrentDivision}`);
+                const districtsData = response.data?.data || response.data;
+                setCurrentDistricts(Array.isArray(districtsData) ? districtsData : []);
+                setCurrentUpazilas([]);
+                setValue("currentDistrict", "");
+                setValue("currentThana", "");
+            } catch (error) {
+                console.error("Error fetching current districts:", error);
+            }
+        };
+        fetchCurrentDistricts();
+    }, [watchedCurrentDivision, setValue]);
+
+    useEffect(() => {
+        if (!watchedCurrentDistrict) {
+            setCurrentUpazilas([]);
+            return;
+        }
+        const fetchCurrentUpazilas = async () => {
+            try {
+                const response = await axios.get(`${config.geoApiUrl}/upazilas/${watchedCurrentDistrict}`);
+                const upazilasData = response.data?.data || response.data;
+                setCurrentUpazilas(Array.isArray(upazilasData) ? upazilasData : []);
+                setValue("currentThana", "");
+            } catch (error) {
+                console.error("Error fetching current upazilas:", error);
+            }
+        };
+        fetchCurrentUpazilas();
+    }, [watchedCurrentDistrict, setValue]);
+
+    useEffect(() => {
+        if (!watchedPermanentDivision) {
+            setPermanentDistricts([]);
+            setPermanentUpazilas([]);
+            return;
+        }
+        const fetchPermanentDistricts = async () => {
+            try {
+                const response = await axios.get(`${config.geoApiUrl}/districts/${watchedPermanentDivision}`);
+                const districtsData = response.data?.data || response.data;
+                setPermanentDistricts(Array.isArray(districtsData) ? districtsData : []);
+                setPermanentUpazilas([]);
+                setValue("permanentDistrict", "");
+                setValue("permanentThana", "");
+            } catch (error) {
+                console.error("Error fetching permanent districts:", error);
+            }
+        };
+        fetchPermanentDistricts();
+    }, [watchedPermanentDivision, setValue]);
+
+    useEffect(() => {
+        if (!watchedPermanentDistrict) {
+            setPermanentUpazilas([]);
+            return;
+        }
+        const fetchPermanentUpazilas = async () => {
+            try {
+                const response = await axios.get(`${config.geoApiUrl}/upazilas/${watchedPermanentDistrict}`);
+                const upazilasData = response.data?.data || response.data;
+                setPermanentUpazilas(Array.isArray(upazilasData) ? upazilasData : []);
+                setValue("permanentThana", "");
+            } catch (error) {
+                console.error("Error fetching permanent upazilas:", error);
+            }
+        };
+        fetchPermanentUpazilas();
+    }, [watchedPermanentDistrict, setValue]);
+
+
+
 
     if (loading) {
         return (
@@ -255,7 +356,7 @@ const UserProfile = () => {
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Home District</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.homeDistrict || 'Not Set'}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.currentDistrict || 'Not Set'}</p>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Marital Status</label>
@@ -314,38 +415,140 @@ const UserProfile = () => {
 
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4 relative group">
                         <div className="flex justify-between items-center mb-4 border-b pb-2">
-                            <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><Moon className="w-5 h-5" /> Religious Practice</h2>
-                            {!editSections.religious && (
-                                <button type="button" onClick={() => toggleSection('religious', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
+                            <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><MapPin className="w-5 h-5" /> Contact & Address</h2>
+                            {!editSections.contact && (
+                                <button type="button" onClick={() => toggleSection('contact', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
                             )}
                         </div>
 
-                        {editSections.religious ? (
-                            <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'religious'))} className="space-y-4">
+                        {editSections.contact ? (
+                            <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'contact'))} className="space-y-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-xs font-semibold text-gray-400 uppercase">Daily Prayers</label>
-                                        <input {...register('prayers')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
+                                        <label className="text-xs font-semibold text-gray-400 uppercase">Contact No</label>
+                                        <input {...register('contactNo')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-semibold text-gray-400 uppercase">Intentions</label>
-                                        <input {...register('intentions')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
+                                        <label className="text-xs font-semibold text-gray-400 uppercase">Email</label>
+                                        <input {...register('email')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                     </div>
                                 </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-4">
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-bold text-gray-700">Current Address</h3>
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-400 uppercase">Division</label>
+                                            <select {...register('currentDivision')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white">
+                                                <option value="">Select Division</option>
+                                                {divisions.map((div) => (
+                                                    <option key={div._id || div.id} value={div.id}>{div.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-400 uppercase">District</label>
+                                            <select disabled={!watchedCurrentDivision} {...register('currentDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white disabled:opacity-50">
+                                                <option value="">Select District</option>
+                                                {currentDistricts.map((dist) => (
+                                                    <option key={dist._id || dist.id} value={dist.id}>{dist.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-400 uppercase">Thana / Upazila</label>
+                                            <select disabled={!watchedCurrentDistrict} {...register('currentThana')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white disabled:opacity-50">
+                                                <option value="">Select Thana</option>
+                                                {currentUpazilas.map((upz) => (
+                                                    <option key={upz._id || upz.id} value={upz.name}>{upz.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-400 uppercase">Country</label>
+                                            <select {...register('currentCountry')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white">
+                                                <option value="Bangladesh">Bangladesh</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-bold text-gray-700">Permanent Address</h3>
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-400 uppercase">Division</label>
+                                            <select {...register('permanentDivision')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white">
+                                                <option value="">Select Division</option>
+                                                {divisions.map((div) => (
+                                                    <option key={div._id || div.id} value={div.id}>{div.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-400 uppercase">District</label>
+                                            <select disabled={!watchedPermanentDivision} {...register('permanentDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white disabled:opacity-50">
+                                                <option value="">Select District</option>
+                                                {permanentDistricts.map((dist) => (
+                                                    <option key={dist._id || dist.id} value={dist.id}>{dist.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-400 uppercase">Thana / Upazila</label>
+                                            <select disabled={!watchedPermanentDistrict} {...register('permanentThana')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white disabled:opacity-50">
+                                                <option value="">Select Thana</option>
+                                                {permanentUpazilas.map((upz) => (
+                                                    <option key={upz._id || upz.id} value={upz.name}>{upz.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-400 uppercase">Country</label>
+                                            <select {...register('permanentCountry')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white">
+                                                <option value="Bangladesh">Bangladesh</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div className="flex justify-end gap-2 pt-2">
-                                    <button type="button" onClick={() => toggleSection('religious', false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium">Cancel</button>
+                                    <button type="button" onClick={() => toggleSection('contact', false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium">Cancel</button>
                                     <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-medium">Save</button>
                                 </div>
                             </form>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                    <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><CheckCircle2 className="w-3.5 h-3.5" /> Daily Prayers</span>
-                                    <p className="text-gray-700 text-sm font-medium">{watchedValues?.prayers || 'Not Set'}</p>
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                        <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Phone className="w-3.5 h-3.5" /> Contact No</span>
+                                        <p className="text-gray-700 text-sm font-medium">{watchedValues?.contactNo || 'Not Set'}</p>
+                                    </div>
+                                    <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                        <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Mail className="w-3.5 h-3.5" /> Email Address</span>
+                                        <p className="text-gray-700 text-sm font-medium">{watchedValues?.email || 'Not Set'}</p>
+                                    </div>
                                 </div>
-                                <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                    <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><HeartHandshake className="w-3.5 h-3.5" /> Intentions</span>
-                                    <p className="text-gray-700 text-sm font-medium">{watchedValues?.intentions || 'Not Set'}</p>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                        <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><MapPin className="w-3.5 h-3.5" /> Current Address</span>
+                                        <p className="text-gray-700 text-sm font-medium">
+                                            {profileUser?.currentThana && profileUser?.currentDistrict && profileUser?.currentDivision && profileUser?.currentCountry ? (
+                                                `${profileUser.currentThana}, ${profileUser.currentDistrict}, ${profileUser.currentDivision}, ${profileUser.currentCountry}`
+                                            ) : (
+                                                'Not Set'
+                                            )}
+                                        </p>
+                                    </div>
+                                    <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                        <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Globe className="w-3.5 h-3.5" /> Permanent Address</span>
+                                        <p className="text-gray-700 text-sm font-medium">
+                                            {profileUser?.permanentThana && profileUser?.permanentDistrict && profileUser?.permanentDivision && profileUser?.permanentCountry ? (
+                                                `${profileUser.permanentThana}, ${profileUser.permanentDistrict}, ${profileUser.permanentDivision}, ${profileUser.permanentCountry}`
+                                            ) : (
+                                                'Not Set'
+                                            )}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         )}

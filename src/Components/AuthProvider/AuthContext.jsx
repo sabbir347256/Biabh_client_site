@@ -40,6 +40,7 @@ const AuthContext = ({ children }) => {
 
   const authInfo = {
     setToken,
+    token,
     user,
     role: user?.role,
     loading,

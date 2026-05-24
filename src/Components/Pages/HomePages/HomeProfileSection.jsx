@@ -1,11 +1,33 @@
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef } from "react";
 import Button from "../utilies/Button";
+import { useQuery } from "@tanstack/react-query";
+import config from "../utilies/envconfig";
+import { NavLink } from "react-router";
 
 const HomeProfileSection = () => {
+
     const sliderRef = useRef(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(true);
+
+    const { data: profileData, isLoading, refetch } = useQuery({
+        queryKey: ['allUserData'],
+        queryFn: async () => {
+            const response = await fetch(`http://localhost:5000/api/v1/user`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+            if (!response.ok) throw new Error("Status check failed");
+            const result = await response.json();
+            return result;
+        },
+    });
+
+    const allProfileData = profileData?.data;
+    console.log(profileData)
 
     const profiles = [
         {
@@ -124,15 +146,15 @@ const HomeProfileSection = () => {
                     className="flex gap-5 overflow-x-auto no-scrollbar pb-6 scroll-smooth snap-x snap-mandatory"
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
-                    {profiles.map((profile) => (
-                        <div
+                    {allProfileData?.map((profile) => (
+                        <NavLink to={`/${profile?.fullName}/${profile?._id}`}
                             key={profile.id}
                             className="bg-[#240101] border border-white/5 rounded-3xl p-4 min-w-[260px] sm:min-w-[280px] max-w-[280px] snap-start flex flex-col justify-between shadow-xl"
                         >
                             <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden mb-4 bg-[#140000]">
                                 <img
-                                    src={profile.image}
-                                    alt={profile.name}
+                                    src={profile?.profileImage}
+                                    alt={profile?.fullName}
                                     className="w-full h-full object-cover grayscale-[10%] hover:grayscale-0 transition-all duration-500 hover:scale-105"
                                 />
                                 {profile.isPremium && (
@@ -145,16 +167,16 @@ const HomeProfileSection = () => {
                             <div className="space-y-3">
                                 <div>
                                     <h3 className="text-white font-bold text-lg leading-tight">
-                                        {profile.name}, {profile.age}
+                                        {profile?.fullName} <br></br> Age :  {profile?.age}
                                     </h3>
                                     <p className="text-white/40 text-[10px] font-medium tracking-wide uppercase mt-1 truncate">
-                                        {profile.role} • {profile.location}
+                                        {profile?.role} • {profile?.location}
                                     </p>
                                 </div>
 
                                 <Button text={'View Profile'}></Button>
                             </div>
-                        </div>
+                        </NavLink>
                     ))}
                 </div>
 

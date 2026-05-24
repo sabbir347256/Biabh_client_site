@@ -8,7 +8,7 @@ import config from "../../utilies/envconfig";
 
 const SignUp = () => {
 
-    const { register, handleSubmit, watch, setValue } = useForm({ });
+    const { register, handleSubmit, watch, setValue } = useForm({});
 
     const [previewImage, setPreviewImage] = useState(null);
     const [imageFile, setImageFile] = useState(null);
@@ -138,6 +138,16 @@ const SignUp = () => {
             }
             delete submissionData.customProfession;
 
+            const currentDivObj = divisions.find(d => d.id === submissionData.currentDivision || d._id === submissionData.currentDivision);
+            const currentDistObj = currentDistricts.find(d => d.id === submissionData.currentDistrict || d._id === submissionData.currentDistrict);
+            if (currentDivObj) submissionData.currentDivision = currentDivObj.name;
+            if (currentDistObj) submissionData.currentDistrict = currentDistObj.name;
+
+            const permDivObj = divisions.find(d => d.id === submissionData.permanentDivision || d._id === submissionData.permanentDivision);
+            const permDistObj = permanentDistricts.find(d => d.id === submissionData.permanentDistrict || d._id === submissionData.permanentDistrict);
+            if (permDivObj) submissionData.permanentDivision = permDivObj.name;
+            if (permDistObj) submissionData.permanentDistrict = permDistObj.name;
+
             const formData = new FormData();
             Object.keys(submissionData).forEach((key) => {
                 formData.append(key, submissionData[key]);
@@ -150,8 +160,6 @@ const SignUp = () => {
             const response = await axios.post(`${config.backendUrl}/user/register`, formData, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
-
-            console.log(response)
 
             if (response.status === 200 || response.status === 201) {
                 toast.success(response.data?.message || "OTP sent to your mobile phone!");
@@ -177,7 +185,6 @@ const SignUp = () => {
                 email: 'sabbir195323@gmail.com'
             };
 
-
             const response = await axios.post(`${config.backendUrl}/user/verify-email`, payload);
 
             if (response.status === 200 || response.status === 201) {
@@ -191,6 +198,9 @@ const SignUp = () => {
             setLoading(false);
         }
     };
+
+
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#FFEAEA] via-[#FFF5F5] to-white py-12 px-4 sm:px-6 lg:px-8">
