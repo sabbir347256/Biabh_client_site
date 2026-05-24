@@ -38,7 +38,8 @@ const Login = () => {
                 localStorage.setItem('accessToken', result.data.accessToken);
                 toast.success(`${result.message}`);
                 setTimeout(() => {
-                    navigate('/')
+                    navigate('/');
+                    window.location.reload();
                 }, 1000);
             } else {
                 setApiError(result?.message || 'Login failed. Please try again.');

@@ -4,31 +4,11 @@ import { Camera, CheckCircle, Globe, MapPin, Phone, Star, User } from "lucide-re
 import { useEffect, useState } from "react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
-
-const BACKEND_BASE_URL = "http://localhost:5000/api/v1/user";
-const API_BASE_URL = "https://bdapis.vercel.app/geo/v2.0";
+import config from "../../utilies/envconfig";
 
 const SignUp = () => {
 
-    const { register, handleSubmit, watch, setValue } = useForm({
-        defaultValues: {
-            currentCountry: "Bangladesh",
-            permanentCountry: "Bangladesh",
-            profession: "Doctor",
-            fullName: "",
-            dob: "",
-            gender: "",
-            phone: "",
-            email: "",
-            referalID: "",
-            currentDivision: "",
-            currentDistrict: "",
-            currentThana: "",
-            permanentDivision: "",
-            permanentDistrict: "",
-            permanentThana: ""
-        }
-    });
+    const { register, handleSubmit, watch, setValue } = useForm({ });
 
     const [previewImage, setPreviewImage] = useState(null);
     const [imageFile, setImageFile] = useState(null);
@@ -51,7 +31,7 @@ const SignUp = () => {
     useEffect(() => {
         const fetchDivisions = async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/divisions`);
+                const response = await axios.get(`${config.geoApiUrl}/divisions`);
                 const divisionsData = response.data?.data || response.data;
                 if (Array.isArray(divisionsData)) {
                     setDivisions(divisionsData);
@@ -71,7 +51,7 @@ const SignUp = () => {
         }
         const fetchCurrentDistricts = async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/districts/${watchedCurrentDivision}`);
+                const response = await axios.get(`${config.geoApiUrl}/districts/${watchedCurrentDivision}`);
                 const districtsData = response.data?.data || response.data;
                 setCurrentDistricts(Array.isArray(districtsData) ? districtsData : []);
                 setCurrentUpazilas([]);
@@ -91,7 +71,7 @@ const SignUp = () => {
         }
         const fetchCurrentUpazilas = async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/upazilas/${watchedCurrentDistrict}`);
+                const response = await axios.get(`${config.geoApiUrl}/upazilas/${watchedCurrentDistrict}`);
                 const upazilasData = response.data?.data || response.data;
                 setCurrentUpazilas(Array.isArray(upazilasData) ? upazilasData : []);
                 setValue("currentThana", "");
@@ -110,7 +90,7 @@ const SignUp = () => {
         }
         const fetchPermanentDistricts = async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/districts/${watchedPermanentDivision}`);
+                const response = await axios.get(`${config.geoApiUrl}/districts/${watchedPermanentDivision}`);
                 const districtsData = response.data?.data || response.data;
                 setPermanentDistricts(Array.isArray(districtsData) ? districtsData : []);
                 setPermanentUpazilas([]);
@@ -130,7 +110,7 @@ const SignUp = () => {
         }
         const fetchPermanentUpazilas = async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/upazilas/${watchedPermanentDistrict}`);
+                const response = await axios.get(`${config.geoApiUrl}/upazilas/${watchedPermanentDistrict}`);
                 const upazilasData = response.data?.data || response.data;
                 setPermanentUpazilas(Array.isArray(upazilasData) ? upazilasData : []);
                 setValue("permanentThana", "");
@@ -162,12 +142,12 @@ const SignUp = () => {
             Object.keys(submissionData).forEach((key) => {
                 formData.append(key, submissionData[key]);
             });
-            
+
             if (imageFile) {
                 formData.append("image", imageFile);
             }
 
-            const response = await axios.post(`${BACKEND_BASE_URL}/register`, formData, {
+            const response = await axios.post(`${config.backendUrl}/user/register`, formData, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
 
@@ -198,7 +178,7 @@ const SignUp = () => {
             };
 
 
-            const response = await axios.post(`${BACKEND_BASE_URL}/verify-email`, payload);
+            const response = await axios.post(`${config.backendUrl}/user/verify-email`, payload);
 
             if (response.status === 200 || response.status === 201) {
                 toast.success("Account created successfully!");
@@ -285,6 +265,14 @@ const SignUp = () => {
                                         className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white text-gray-700"
                                     />
                                 </div>
+                                <div className="space-y-2 hidden">
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Age</label>
+                                    <input
+                                        type="number"
+                                        {...register("age")}
+                                        className="w-full  px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white text-gray-700"
+                                    />
+                                </div>
                                 <div className="space-y-2">
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Gender</label>
                                     <div className="flex gap-2.5">
@@ -326,7 +314,7 @@ const SignUp = () => {
                                 <div className="space-y-2 md:col-span-2">
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Referral ID</label>
                                     <input
-                                        {...register("referalID")}
+                                        {...register("bonusRefarelID")}
                                         placeholder="e.g. REF123456"
                                         className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white"
                                     />

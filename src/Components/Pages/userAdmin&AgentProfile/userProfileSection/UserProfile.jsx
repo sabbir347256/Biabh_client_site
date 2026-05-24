@@ -1,17 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import {
     User, Briefcase, GraduationCap, Moon, Heart, Home,
     MapPin, Edit2, CheckCircle2,
-    Upload, X, ShieldCheck, Lock, HeartHandshake, Camera
+    Upload, X, ShieldCheck, Lock, HeartHandshake, Camera, Unlock
 } from 'lucide-react';
+import { AuthProvider } from '../../../AuthProvider/CreateContext';
+import config from '../../utilies/envconfig';
 
-
-const API_BASE_URL = 'https://api.example.com/user';
+// const config?.backendUrl /user= 'https://api.example.com/user';
 
 const UserProfile = () => {
-const [loading, setLoading] = useState(true);
+    const { data: authContextData } = useContext(AuthProvider);
+    const profileUser = authContextData?.data;
+
+    console.log(profileUser)
+
+    const [loading, setLoading] = useState(true);
+    const [isProfileLocked, setIsProfileLocked] = useState(true);
     const [editSections, setEditSections] = useState({
         header: false,
         personal: false,
@@ -30,27 +37,38 @@ const [loading, setLoading] = useState(true);
 
     const { register, handleSubmit, watch, reset } = useForm();
     const watchedValues = watch();
+    console.log(watchedValues)
 
     useEffect(() => {
         const fetchProfileData = async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/profile`);
-                const data = response.data;
-                
-                reset(data);
-                if (data.coverImage) setImages(prev => ({ ...prev, cover: data.coverImage }));
-                if (data.avatarImage) setImages(prev => ({ ...prev, avatar: data.avatarImage }));
-                if (data.nidStatus) setNidUploaded(data.nidStatus === 'verified' || data.nidStatus === 'pending');
-                
+                const response = await axios.get(`${config?.backendUrl}/user/profile`);
+                const profileData = response.data;
+
+                reset(profileData);
+                if (profileData.coverImage) setImages(prev => ({ ...prev, cover: profileData.coverImage }));
+                if (profileData.avatarImage) setImages(prev => ({ ...prev, avatar: profileData.avatarImage }));
+                if (profileData.nidStatus) setNidUploaded(profileData.nidStatus === 'verified' || profileData.nidStatus === 'pending');
+                if (profileData.isUnlocked !== undefined) {
+                    setIsProfileLocked(!profileData.isUnlocked);
+                }
+
                 setLoading(false);
             } catch (error) {
                 console.error("Error fetching profile data:", error);
+                if (profileUser) {
+                    reset(profileUser);
+                    if (profileUser.coverImage) setImages(prev => ({ ...prev, cover: profileUser.coverImage }));
+                    if (profileUser.avatarImage) setImages(prev => ({ ...prev, avatar: profileUser.avatarImage }));
+                    if (profileUser.nidStatus) setNidUploaded(profileUser.nidStatus === 'verified' || profileUser.nidStatus === 'pending');
+                    setIsProfileLocked(profileUser.isLocked !== undefined ? profileUser.isLocked : true);
+                }
                 setLoading(false);
             }
         };
 
         fetchProfileData();
-    }, [reset]);
+    }, [reset, profileUser]);
 
     const handleImageChange = async (e, type) => {
         const file = e.target.files[0];
@@ -62,7 +80,7 @@ const [loading, setLoading] = useState(true);
             formData.append(type === 'cover' ? 'coverPhoto' : 'avatarPhoto', file);
 
             try {
-                const response = await axios.post(`${API_BASE_URL}/upload-${type}`, formData, {
+                const response = await axios.post(`${config?.backendUrl}/user/upload-${type}`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
                 if (response.data.imageUrl) {
@@ -82,7 +100,7 @@ const [loading, setLoading] = useState(true);
             formData.append('nidDocument', file);
 
             try {
-                await axios.post(`${API_BASE_URL}/upload-nid`, formData, {
+                await axios.post(`${config?.backendUrl}/user/upload-nid`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
             } catch (error) {
@@ -95,21 +113,33 @@ const [loading, setLoading] = useState(true);
     const toggleSection = async (section, state) => {
         if (!state) {
             try {
-                const response = await axios.get(`${API_BASE_URL}/profile`);
+                const response = await axios.get(`${config?.backendUrl}/user/profile`);
                 reset(response.data);
             } catch (error) {
+                if (profileUser) reset(profileUser);
                 console.error("Error reverting changes:", error);
             }
         }
         setEditSections(prev => ({ ...prev, [section]: state }));
     };
 
-    const onFormSubmit = async (data, sectionName) => {
+    const onFormSubmit = async (formData, sectionName) => {
         try {
-            await axios.put(`${API_BASE_URL}/update`, data);
+            await axios.put(`${config?.backendUrl}/user/update`, formData);
             setEditSections(prev => ({ ...prev, [sectionName]: false }));
         } catch (error) {
             console.error(`Error updating data for section ${sectionName}:`, error);
+        }
+    };
+
+    const handleUnlockProfile = async () => {
+        try {
+            const response = await axios.post(`${config?.backendUrl}/user/profile/unlock`);
+            if (response.status === 200) {
+                setIsProfileLocked(false);
+            }
+        } catch (error) {
+            console.error("Error unlocking profile:", error);
         }
     };
 
@@ -121,7 +151,7 @@ const [loading, setLoading] = useState(true);
         );
     }
     return (
-      <div className="app-container pb-8 min-h-screen">
+        <div className="app-container pb-8 min-h-screen">
             <div className="relative mb-6">
                 <div className="h-64 md:h-[32rem] w-full rounded-b-2xl overflow-hidden bg-emerald-950 relative">
                     <img src={images.cover} className="w-full h-full object-cover opacity-40" alt="Cover" />
@@ -142,11 +172,13 @@ const [loading, setLoading] = useState(true);
                                 <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageChange(e, 'avatar')} />
                             </label>
                         </div>
-                        <div className="absolute bottom-2 right-2 bg-red-600 border-2 border-white text-white p-1.5 rounded-full">
-                            <ShieldCheck className="w-4 h-4" />
-                        </div>
+                        {watchedValues?.nidStatus === 'verified' && (
+                            <div className="absolute bottom-2 right-2 bg-emerald-600 border-2 border-white text-white p-1.5 rounded-full">
+                                <ShieldCheck className="w-4 h-4" />
+                            </div>
+                        )}
                     </div>
-                    
+
                     <div className="mb-4">
                         {editSections.header ? (
                             <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'header'))} className="bg-black/70 p-3 rounded-xl space-y-2 backdrop-blur-sm min-w-[250px]">
@@ -160,10 +192,10 @@ const [loading, setLoading] = useState(true);
                         ) : (
                             <div className="flex items-start gap-2 group">
                                 <div>
-                                    <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-md">{watchedValues?.name}</h1>
-                                    <div className="flex flex-wrap gap-3 mt-1 text-black text-sm">
-                                        <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {watchedValues?.homeDistrict}, Bangladesh</span>
-                                        <span className="flex items-center gap-1"><User className="w-4 h-4" /> ID: RM 48920</span>
+                                    <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-md">{watchedValues?.fullName || 'No Name Set'}</h1>
+                                    <div className="flex flex-wrap gap-3 mt-1 text-black text-sm drop-shadow-sm">
+                                        <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {watchedValues?.currentThana || 'Not Set'}, Bangladesh</span>
+                                        <span className="flex items-center gap-1"><User className="w-4 h-4" /> ID: {watchedValues?.profileId || watchedValues?.userID || 'N/A'}</span>
                                     </div>
                                 </div>
                                 <button type="button" onClick={() => toggleSection('header', true)} className="mt-1 p-1.5 bg-white/80 hover:bg-white text-gray-700 rounded-full shadow opacity-0 group-hover:opacity-100 transition">
@@ -191,19 +223,19 @@ const [loading, setLoading] = useState(true);
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Age</label>
-                                        <input {...register('age')} className="w-full mt-1 p-2 border rounded-lg text-sm" />
+                                        <input {...register('age')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                     </div>
                                     <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Height</label>
-                                        <input {...register('height')} className="w-full mt-1 p-2 border rounded-lg text-sm" />
+                                        <input {...register('height')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                     </div>
                                     <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Home District</label>
-                                        <input {...register('homeDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm" />
+                                        <input {...register('homeDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                     </div>
                                     <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Marital Status</label>
-                                        <input {...register('maritalStatus')} className="w-full mt-1 p-2 border rounded-lg text-sm" />
+                                        <input {...register('maritalStatus')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                     </div>
                                 </div>
                                 <div className="flex justify-end gap-2 pt-2">
@@ -215,19 +247,19 @@ const [loading, setLoading] = useState(true);
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Age</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.age}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.age || 'Not Set'}</p>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Height</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.height}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.height || 'Not Set'}</p>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Home District</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.homeDistrict}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.homeDistrict || 'Not Set'}</p>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Marital Status</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.maritalStatus}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.maritalStatus || 'Not Set'}</p>
                                 </div>
                             </div>
                         )}
@@ -246,13 +278,13 @@ const [loading, setLoading] = useState(true);
                                 <div className="space-y-3">
                                     <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Profession</label>
-                                        <input {...register('profession')} className="w-full mt-1 p-2 border rounded-lg text-sm mb-2" placeholder="Profession" />
-                                        <input {...register('organization')} className="w-full p-2 border rounded-lg text-sm" placeholder="Organization" />
+                                        <input {...register('profession')} className="w-full mt-1 p-2 border rounded-lg text-sm mb-2 bg-white" placeholder="Profession" />
+                                        <input {...register('organization')} className="w-full p-2 border rounded-lg text-sm bg-white" placeholder="Organization" />
                                     </div>
                                     <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Education</label>
-                                        <input {...register('education')} className="w-full mt-1 p-2 border rounded-lg text-sm mb-2" placeholder="Education" />
-                                        <input {...register('institution')} className="w-full p-2 border rounded-lg text-sm" placeholder="Institution" />
+                                        <input {...register('education')} className="w-full mt-1 p-2 border rounded-lg text-sm mb-2 bg-white" placeholder="Education" />
+                                        <input {...register('institution')} className="w-full p-2 border rounded-lg text-sm bg-white" placeholder="Institution" />
                                     </div>
                                 </div>
                                 <div className="flex justify-end gap-2 pt-2">
@@ -265,15 +297,15 @@ const [loading, setLoading] = useState(true);
                                 <div className="flex gap-3 items-start">
                                     <div className="bg-red-50 p-2 rounded-xl text-red-600 mt-1"><Briefcase className="w-5 h-5" /></div>
                                     <div className="flex-1">
-                                        <p className="text-gray-800 font-semibold">{watchedValues?.profession}</p>
-                                        <p className="text-gray-500 text-sm">{watchedValues?.organization}</p>
+                                        <p className="text-gray-800 font-semibold">{watchedValues?.profession || 'Not Set'}</p>
+                                        <p className="text-gray-500 text-sm">{watchedValues?.organization || 'No Organization'}</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-3 items-start">
                                     <div className="bg-red-50 p-2 rounded-xl text-red-600 mt-1"><GraduationCap className="w-5 h-5" /></div>
                                     <div className="flex-1">
-                                        <p className="text-gray-800 font-semibold">{watchedValues?.education}</p>
-                                        <p className="text-gray-500 text-sm">{watchedValues?.institution}</p>
+                                        <p className="text-gray-800 font-semibold">{watchedValues?.education || 'Not Set'}</p>
+                                        <p className="text-gray-500 text-sm">{watchedValues?.institution || 'No Institution'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -309,11 +341,11 @@ const [loading, setLoading] = useState(true);
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
                                     <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><CheckCircle2 className="w-3.5 h-3.5" /> Daily Prayers</span>
-                                    <p className="text-gray-700 text-sm font-medium">{watchedValues?.prayers}</p>
+                                    <p className="text-gray-700 text-sm font-medium">{watchedValues?.prayers || 'Not Set'}</p>
                                 </div>
                                 <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
                                     <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><HeartHandshake className="w-3.5 h-3.5" /> Intentions</span>
-                                    <p className="text-gray-700 text-sm font-medium">{watchedValues?.intentions}</p>
+                                    <p className="text-gray-700 text-sm font-medium">{watchedValues?.intentions || 'Not Set'}</p>
                                 </div>
                             </div>
                         )}
@@ -332,19 +364,19 @@ const [loading, setLoading] = useState(true);
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Father's Occupation</label>
-                                        <input {...register('fatherOccupation')} className="w-full mt-1 p-2 border rounded-lg text-sm" />
+                                        <input {...register('fatherOccupation')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                     </div>
                                     <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Mother's Occupation</label>
-                                        <input {...register('motherOccupation')} className="w-full mt-1 p-2 border rounded-lg text-sm" />
+                                        <input {...register('motherOccupation')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                     </div>
                                     <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Siblings</label>
-                                        <input {...register('siblings')} className="w-full mt-1 p-2 border rounded-lg text-sm" />
+                                        <input {...register('siblings')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                     </div>
                                     <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Family Values</label>
-                                        <input {...register('familyValues')} className="w-full mt-1 p-2 border rounded-lg text-sm" />
+                                        <input {...register('familyValues')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                     </div>
                                 </div>
                                 <div className="flex justify-end gap-2 pt-2">
@@ -356,19 +388,19 @@ const [loading, setLoading] = useState(true);
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Father's Occupation</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.fatherOccupation}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.fatherOccupation || 'Not Set'}</p>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Mother's Occupation</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.motherOccupation}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.motherOccupation || 'Not Set'}</p>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Siblings</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.siblings}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.siblings || 'Not Set'}</p>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Family Values</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.familyValues}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.familyValues || 'Not Set'}</p>
                                 </div>
                             </div>
                         )}
@@ -402,7 +434,7 @@ const [loading, setLoading] = useState(true);
                                 {[1, 2, 3, 4].map((num) => (
                                     <div key={num} className="flex gap-2 items-start">
                                         <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-white/80" />
-                                        <p className="text-sm font-medium leading-relaxed">{watchedValues?.[`expectation${num}`]}</p>
+                                        <p className="text-sm font-medium leading-relaxed">{watchedValues?.[`expectation${num}`] || 'No expectations added yet.'}</p>
                                     </div>
                                 ))}
                             </div>
@@ -414,21 +446,35 @@ const [loading, setLoading] = useState(true);
                 <div className="space-y-6">
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
                         <div className="mx-auto bg-red-50 text-red-600 w-12 h-12 rounded-full flex items-center justify-center mb-3"><Heart className="w-6 h-6" /></div>
-                        <h3 className="font-bold text-gray-800 text-lg">Connect with Rahat</h3>
+                        <h3 className="font-bold text-gray-800 text-lg">Connect with {watchedValues?.name || 'User'}</h3>
                         <p className="text-gray-500 text-sm mt-1 mb-4 px-4">Take the first step toward a blessed journey together.</p>
+
                         <button type="button" className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-semibold text-sm transition shadow-md shadow-red-100 mb-3 flex items-center justify-center gap-2">
                             <Heart className="w-4 h-4" /> Send Interest
                         </button>
-                        <button type="button" className="w-full border border-red-200 hover:bg-red-50 text-red-600 py-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2">
-                            <Lock className="w-4 h-4" /> Unlock Contact Details
-                        </button>
+
+                        {isProfileLocked ? (
+                            <button type="button" onClick={handleUnlockProfile} className="w-full border border-red-200 hover:bg-red-50 text-red-600 py-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2">
+                                <Lock className="w-4 h-4" /> Unlock Contact Details
+                            </button>
+                        ) : (
+                            <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-xl space-y-2 text-left">
+                                <p className="text-xs font-bold flex items-center gap-1 text-emerald-600 uppercase"><Unlock className="w-3.5 h-3.5" /> Contact Unlocked</p>
+                                <p className="text-sm"><strong>Phone:</strong> {watchedValues?.phone || 'N/A'}</p>
+                                <p className="text-sm"><strong>Email:</strong> {watchedValues?.email || 'N/A'}</p>
+                            </div>
+                        )}
                     </div>
 
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Verification Status</h3>
                         <div className="space-y-3">
                             <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
-                                <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />
+                                {watchedValues?.phoneVerified ? (
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />
+                                ) : (
+                                    <X className="w-4 h-4 text-red-500" />
+                                )}
                                 <span>Phone Number Verified</span>
                             </div>
                             <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
@@ -449,8 +495,12 @@ const [loading, setLoading] = useState(true);
                             </div>
                         ) : (
                             <div className="bg-emerald-800/40 border border-emerald-500/30 p-3 rounded-xl flex items-center justify-between">
-                                <span className="text-xs font-medium text-emerald-200">NID Uploaded (Pending Review)</span>
-                                <button type="button" onClick={() => setNidUploaded(false)} className="text-emerald-400 hover:text-emerald-200"><X className="w-4 h-4" /></button>
+                                <span className="text-xs font-medium text-emerald-200">
+                                    {watchedValues?.nidStatus === 'verified' ? 'NID Verified Successfully' : 'NID Uploaded (Pending Review)'}
+                                </span>
+                                {watchedValues?.nidStatus !== 'verified' && (
+                                    <button type="button" onClick={() => setNidUploaded(false)} className="text-emerald-400 hover:text-emerald-200"><X className="w-4 h-4" /></button>
+                                )}
                             </div>
                         )}
                     </div>

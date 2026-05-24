@@ -6,7 +6,7 @@ import { NavLink, useLocation } from "react-router";
 import { AuthProvider } from "../../AuthProvider/CreateContext";
 
 const Navbar = () => {
-    const { user } = useContext(AuthProvider);
+    const { user, data } = useContext(AuthProvider);
     const [isOpen, setIsOpen] = useState(false);
     const [isWalletOpen, setIsWalletOpen] = useState(false);
     const menuRef = useRef(null);
@@ -44,8 +44,8 @@ const Navbar = () => {
         };
     }, []);
 
-    const mainAmount = user?.wallet?.mainBalance || 0;
-    const bonusAmount = user?.wallet?.bonusBalance || 0;
+    const mainAmount = data?.data?.mainWalletBalance || 0;
+    const bonusAmount = data?.data?.isActive === 'INACTIVE' ? 0 : data?.data?.bonusWalletPoints ;
     const referralAmount = user?.wallet?.referralBalance || 0;
     const totalAmount = mainAmount + bonusAmount + referralAmount;
     return (

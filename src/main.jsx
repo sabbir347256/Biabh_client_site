@@ -10,6 +10,7 @@ import Login from "./Components/Pages/Authentication/Login/Login";
 import SignUp from "./Components/Pages/Authentication/SignUp/SignUp";
 import HomeRoot from "./Components/Pages/HomePages/HomeRoot";
 import UserProfile from "./Components/Pages/userAdmin&AgentProfile/userProfileSection/UserProfile";
+import Underconstraction from "./Components/Pages/Shared/Underconstraction";
 
 
 const queryClient = new QueryClient();
@@ -34,11 +35,13 @@ const router = createBrowserRouter([
       {
         path: "/create-account",
         element: <SignUp></SignUp>
+      },
+      {
+        path: "*",
+        element: <Underconstraction></Underconstraction>
       }
     ]
   },
-
-
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
