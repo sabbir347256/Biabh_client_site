@@ -10,6 +10,7 @@ const SignUp = () => {
 
     const { register, handleSubmit, watch, setValue } = useForm({});
 
+    const [registeredEmail, setRegisteredEmail] = useState("");
     const [previewImage, setPreviewImage] = useState(null);
     const [imageFile, setImageFile] = useState(null);
     const [divisions, setDivisions] = useState([]);
@@ -162,6 +163,7 @@ const SignUp = () => {
             });
 
             if (response.status === 200 || response.status === 201) {
+                setRegisteredEmail(submissionData.email);
                 toast.success(response.data?.message || "OTP sent to your mobile phone!");
                 setShowOtpModal(true);
             }
@@ -182,7 +184,7 @@ const SignUp = () => {
         try {
             const payload = {
                 code: otpCode,
-                email: 'sabbir195323@gmail.com'
+                email: registeredEmail
             };
 
             const response = await axios.post(`${config.backendUrl}/user/verify-email`, payload);

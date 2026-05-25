@@ -1,16 +1,14 @@
-import { useState, useEffect, useContext } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
-    User, Briefcase, GraduationCap, Heart, Home,
-    MapPin, Edit2, CheckCircle2,
-    Upload, X, ShieldCheck, Lock, Camera, Unlock,
+    User, Briefcase, Heart,
+    MapPin, CheckCircle2, X, ShieldCheck, Lock, Unlock,
     Phone,
     Mail,
     Globe
 } from 'lucide-react';
 import config from '../utilies/envconfig';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 
 const ProfileDetails = () => {
@@ -20,38 +18,51 @@ const ProfileDetails = () => {
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState({ type: '', text: '' });
 
-    const fetchProfileData = async () => {
-        try {
-            setLoading(true);
-            const token = localStorage.getItem("token");
-            const response = await axios.get(`${config.backendUrl}/profile/details/${id}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-            if (response.data.success) {
-                setProfileUser(response.data.data.profile);
-                setIsProfileLocked(response.data.data.isProfileLocked);
-            }
-        } catch (error) {
-            console.error(error);
-        } biographical: {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
+        const fetchProfileData = async () => {
+            try {
+                setLoading(true);
+                const token = localStorage.getItem("accessToken");
+
+                const configHeaders = {};
+                if (token) {
+                    configHeaders.Authorization = `Bearer ${token}`;
+                }
+
+                const response = await axios.get(`${config.backendUrl}/user/details/${id}`, {
+                    headers: configHeaders
+                });
+
+                if (response.data.success) {
+                    setProfileUser(response.data.data.profile);
+                    setIsProfileLocked(response.data.data.isProfileLocked);
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         if (id) {
             fetchProfileData();
         }
     }, [id]);
 
+    const navigate = useNavigate();
+
     const handleUnlockProfile = async () => {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+            setMessage({ type: 'error', text: 'প্রোফাইল আনলক করতে প্রথমে লগইন করুন।' });
+            navigate("/login");
+            return;
+        }
+
         try {
             setMessage({ type: '', text: '' });
-            const token = localStorage.getItem("token");
             const response = await axios.post(
-                `${config.backendUrl}/profile/unlock`,
+                `${config.backendUrl}/user/unlock`,
                 { targetUserId: id },
                 {
                     headers: {
@@ -70,9 +81,9 @@ const ProfileDetails = () => {
                 setMessage({ type: 'success', text: response.data.message });
             }
         } catch (error) {
-            setMessage({ 
-                type: 'error', 
-                text: error.response?.data?.message || "কিছু একটা সমস্যা হয়েছে।" 
+            setMessage({
+                type: 'error',
+                text: error.response?.data?.message || "কিছু একটা সমস্যা হয়েছে।"
             });
         }
     };
@@ -82,11 +93,10 @@ const ProfileDetails = () => {
     }
 
     return (
-    <div className="app-container pb-8 min-h-screen bg-gray-50/50">
+        <div className="app-container pb-8 min-h-screen bg-gray-50/50">
             {message.text && (
-                <div className={`fixed top-4 right-4 z-50 p-4 rounded-xl text-sm font-medium shadow-md transition-all ${
-                    message.type === 'success' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-100 text-red-800 border border-red-200'
-                }`}>
+                <div className={`fixed top-4 right-4 z-50 p-4 rounded-xl text-sm font-medium shadow-md transition-all ${message.type === 'success' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-100 text-red-800 border border-red-200'
+                    }`}>
                     {message.text}
                 </div>
             )}
@@ -111,7 +121,7 @@ const ProfileDetails = () => {
 
                     <div className="mb-4">
                         <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-md">{profileUser?.fullName || 'No Name Set'}</h1>
-                        <div className="flex flex-wrap gap-3 mt-1 text-white text-sm drop-shadow-sm opacity-90">
+                        <div className="flex flex-wrap gap-3 mt-1 text-black text-sm drop-shadow-sm opacity-90">
                             <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {profileUser?.currentThana || 'Not Set'}, Bangladesh</span>
                             <span className="flex items-center gap-1"><User className="w-4 h-4" /> ID: {profileUser?.userID || 'N/A'}</span>
                         </div>
@@ -119,7 +129,7 @@ const ProfileDetails = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-16 px-4 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-16">
                 <div className="lg:col-span-2 space-y-6">
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4">
                         <div className="flex justify-between items-center mb-4 border-b pb-2">
@@ -198,8 +208,8 @@ const ProfileDetails = () => {
                         ) : (
                             <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-xl space-y-2 text-left animate-fadeIn">
                                 <p className="text-xs font-bold flex items-center gap-1 text-emerald-600 uppercase"><Unlock className="w-3.5 h-3.5" /> Contact Unlocked</p>
-                                <p className="text-sm flex items-center gap-2"><strong><Phone className="w-4 h-4 text-gray-500 inline"/> Phone:</strong> {profileUser?.contactNo}</p>
-                                <p className="text-sm flex items-center gap-2"><strong><Mail className="w-4 h-4 text-gray-500 inline"/> Email:</strong> {profileUser?.email}</p>
+                                <p className="text-sm flex items-center gap-2"><strong><Phone className="w-4 h-4 text-gray-500 inline" /> Phone:</strong> {profileUser?.contactNo}</p>
+                                <p className="text-sm flex items-center gap-2"><strong><Mail className="w-4 h-4 text-gray-500 inline" /> Email:</strong> {profileUser?.email}</p>
                             </div>
                         )}
                     </div>

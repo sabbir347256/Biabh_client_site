@@ -22,6 +22,6 @@ body {
 
 @layer utilities {
   .app-container {
-    @apply max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8;
+    @apply max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8;
   }
 }
