@@ -1,14 +1,17 @@
 import { useForm } from "react-hook-form";
 // import Button from "../../utilies/Button";
-import { Camera, CheckCircle, Globe, MapPin, Phone, Star, User } from "lucide-react";
+import { Camera, CheckCircle, Eye, EyeOff, Globe, MapPin, Phone, Star, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import config from "../../utilies/envconfig";
+import { useNavigate } from "react-router";
 
 const SignUp = () => {
 
-    const { register, handleSubmit, watch, setValue } = useForm({});
+    const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm({});
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [registeredEmail, setRegisteredEmail] = useState("");
     const [previewImage, setPreviewImage] = useState(null);
@@ -28,6 +31,7 @@ const SignUp = () => {
     const watchedPermanentDivision = watch("permanentDivision");
     const watchedPermanentDistrict = watch("permanentDistrict");
     const watchedProfession = watch("profession");
+    const password = watch("password");
 
     useEffect(() => {
         const fetchDivisions = async () => {
@@ -134,6 +138,9 @@ const SignUp = () => {
         setLoading(true);
         try {
             const submissionData = { ...data };
+            if (!submissionData.bonusRefarelID || submissionData.bonusRefarelID.trim() === "") {
+                delete submissionData.bonusRefarelID;
+            }
             if (submissionData.profession === "Other") {
                 submissionData.profession = data.customProfession || "Other";
             }
@@ -173,7 +180,7 @@ const SignUp = () => {
             setLoading(false);
         }
     };
-
+    const navigate = useNavigate();
     const handleVerifyOtp = async (e) => {
         e.preventDefault();
         if (!otpCode) {
@@ -190,9 +197,12 @@ const SignUp = () => {
             const response = await axios.post(`${config.backendUrl}/user/verify-email`, payload);
 
             if (response.status === 200 || response.status === 201) {
-                toast.success("Account created successfully!");
+                toast.success("Account created successfully! Please Login");
                 setShowOtpModal(false);
                 setOtpCode("");
+                setTimeout(() => {
+                    navigate('/login')
+                }, 1000);
             }
         } catch (error) {
             toast.error(error.response?.data?.message || "Invalid OTP code.");
@@ -326,6 +336,7 @@ const SignUp = () => {
                                 <div className="space-y-2 md:col-span-2">
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Referral ID</label>
                                     <input
+                                        type="number"
                                         {...register("bonusRefarelID")}
                                         placeholder="e.g. REF123456"
                                         className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white"
@@ -486,35 +497,64 @@ const SignUp = () => {
                             </div>
                         </section>
 
-                        <section>
+                        <section className="space-y-4">
                             <div className="space-y-2">
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Password</label>
-                                <input
-                                    required
-                                    {...register("password")}
-                                    placeholder="****"
-                                    type="password"
-                                    className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white"
-                                />
+                                <div className="relative">
+                                    <input
+                                        required
+                                        {...register("password", {
+                                            required: "Password is required",
+                                            minLength: { value: 6, message: "Password must be at least 6 characters" }
+                                        })}
+                                        placeholder="****"
+                                        type={showPassword ? "text" : "password"}
+                                        className={`w-full px-4 py-3.5 pr-12 rounded-xl border ${errors.password ? 'border-red-500' : 'border-gray-200'} focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                                {errors.password && <p className="text-red-600 text-xs font-medium pl-1">{errors.password.message}</p>}
                             </div>
+
                             <div className="space-y-2">
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Confirm Password</label>
-                                <input
-                                    required
-                                    {...register("confirmPassword")}
-                                    placeholder="****"
-                                    type="password"
-                                    className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white"
-                                />
+                                <div className="relative">
+                                    <input
+                                        required
+                                        {...register("confirmPassword", {
+                                            required: "Please confirm your password",
+                                            validate: (value) => value === password || "Passwords do not match"
+                                        })}
+                                        placeholder="****"
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        className={`w-full px-4 py-3.5 pr-12 rounded-xl border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-200'} focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                    >
+                                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                                {errors.confirmPassword && <p className="text-red-600 text-xs font-medium pl-1">{errors.confirmPassword.message}</p>}
                             </div>
+
                             <div className="space-y-2">
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Nid NO</label>
                                 <input
                                     required
-                                    {...register("nidNo")}
+                                    {...register("nidNo", { required: "NID number is required" })}
                                     type="text"
-                                    className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white"
+                                    className={`w-full px-4 py-3.5 rounded-xl border ${errors.nidNo ? 'border-red-500' : 'border-gray-200'} focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white`}
                                 />
+                                {errors.nidNo && <p className="text-red-600 text-xs font-medium pl-1">{errors.nidNo.message}</p>}
                             </div>
                         </section>
 

@@ -673,21 +673,21 @@ const UserProfile = () => {
                         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Verification Status</h3>
                         <div className="space-y-3">
                             <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
-                                {watchedValues?.phoneVerified ? (
+                                {watchedValues?.isActive === 'ACTIVE' ? (
                                     <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />
                                 ) : (
                                     <X className="w-4 h-4 text-red-500" />
                                 )}
-                                <span>Phone Number Verified</span>
+                                <span>Profile Activation</span>
                             </div>
-                            <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                            {/* <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
                                 {nidUploaded ? <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" /> : <X className="w-4 h-4 text-gray-300" />}
                                 <span>Official ID Document Verified</span>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-emerald-900 to-teal-950 text-white p-6 rounded-2xl shadow-sm relative overflow-hidden">
+                    {/* <div className="bg-gradient-to-br from-emerald-900 to-teal-950 text-white p-6 rounded-2xl shadow-sm relative overflow-hidden">
                         <h3 className="font-bold text-lg mb-1">Verify Your Identity</h3>
                         <p className="text-xs text-emerald-200/80 mb-4 leading-relaxed">Attach your National ID Card (NID) to unlock verified badge.</p>
                         {!nidUploaded ? (
@@ -706,7 +706,7 @@ const UserProfile = () => {
                                 )}
                             </div>
                         )}
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>
