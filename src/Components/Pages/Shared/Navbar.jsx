@@ -31,7 +31,7 @@ const Navbar = () => {
         const token = localStorage.getItem("accessToken");
         try {
             await axios.post(
-                "http://localhost:5000/api/v1/transaction",
+                "http://72.61.225.177:5000/api/v1/transaction",
                 {
                     userObjectId: user?.userId,
                     userId: user?.userProfileId,
