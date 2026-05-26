@@ -3,13 +3,13 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  server: {
-    proxy: {
-      '/api-geo': {
-        target: 'https://bdapis.vercel.app',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api-geo/, ''),
-      },
-    },
-  },
+  // server: {
+  //   proxy: {
+  //     '/api-geo': {
+  //       target: 'https://bdapis.vercel.app',
+  //       changeOrigin: true,
+  //       rewrite: (path) => path.replace(/^\/api-geo/, ''),
+  //     },
+  //   },
+  // },
 })
