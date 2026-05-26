@@ -163,7 +163,7 @@ const Navbar = () => {
                                     onClick={() => setIsRechargeOpen(true)}
                                     className="bg-red-600 text-white hover:bg-red-800 duration-100 p-2 rounded-xl w-full mt-2"
                                 >
-                                    Change
+                                    Recharge
                                 </button>
                             </div>
                         )}
@@ -246,7 +246,14 @@ const Navbar = () => {
                                         <span className="font-semibold text-indigo-600">৳{referralAmount}</span>
                                     </div>
                                 </div>
+                                <button
+                                    onClick={() => setIsRechargeOpen(true)}
+                                    className="bg-red-600 text-white hover:bg-red-800 duration-100 p-2 rounded-xl w-full mt-2"
+                                >
+                                    Recharge
+                                </button>
                             </div>
+
                         )}
                     </div>
 
