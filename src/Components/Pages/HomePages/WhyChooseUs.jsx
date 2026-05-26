@@ -27,12 +27,12 @@ const WhyChooseUs = () => {
     const stats = [
         {
             icon: <Heart className="text-red-600" size={20} fill="currentColor" />,
-            count: "50K+",
+            count: "500+",
             label: "Successful Matches"
         },
         {
             icon: <Users className="text-red-600" size={20} />,
-            count: "200K+",
+            count: "200+",
             label: "Registered Members"
         },
         {
