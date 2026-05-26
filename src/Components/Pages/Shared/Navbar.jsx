@@ -353,7 +353,7 @@ const Navbar = () => {
                         </button>
                         <h3 className="text-lg font-bold text-gray-990 mb-2">Recharge Account</h3>
                         <p className="text-sm text-gray-600 bg-red-50 text-red-800 p-3 rounded-xl mb-4 font-medium">
-                            Please Send Money to <span className="font-bold text-red-600">+8801XXXXXXXXX</span> via bKash, then submit your Transaction ID and Mobile Number below.
+                            Please Payment to <span className="font-bold text-red-600">01711651471</span> via bKash, then submit your Transaction ID and Mobile Number below.
                         </p>
 
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
