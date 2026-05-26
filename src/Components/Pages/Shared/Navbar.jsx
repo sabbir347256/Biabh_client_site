@@ -4,6 +4,9 @@ import { Menu, X } from "lucide-react";
 import Button from "../utilies/Button";
 import { NavLink, useLocation } from "react-router";
 import { AuthProvider } from "../../AuthProvider/CreateContext";
+import { useForm } from "react-hook-form";
+import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
 
 const Navbar = () => {
     const { user, data } = useContext(AuthProvider);
@@ -13,6 +16,36 @@ const Navbar = () => {
     const walletRef = useRef(null);
     const mobileWalletRef = useRef(null);
     const location = useLocation();
+
+    const [isRechargeOpen, setIsRechargeOpen] = useState(false);
+    const { register, handleSubmit, reset, formState: { errors } } = useForm();
+
+    const onSubmit = async (data) => {
+        const token = localStorage.getItem("accessToken");
+
+        try {
+            await axios.post(
+                "http://localhost:5000/api/v1/transaction",
+                {
+                    userObjectId: user?.userId,
+                    userId: user?.userProfileId,
+                    transactionId: data.transactionId,
+                    phoneNumber: data.phoneNumber,
+                    amount: data.amount,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            toast.success("Recharge request submitted successfully!");
+            reset();
+            setIsRechargeOpen(false);
+        } catch (error) {
+            toast.error(error?.response?.data?.message || "Failed to submit request");
+        }
+    };
 
 
     const navLinks = [
@@ -45,11 +78,12 @@ const Navbar = () => {
     }, []);
 
     const mainAmount = data?.data?.mainWalletBalance || 0;
-    const bonusAmount = data?.data?.isActive === 'INACTIVE' ? 0 : data?.data?.bonusWalletPoints ;
+    const bonusAmount = data?.data?.isActive === 'INACTIVE' ? 0 : data?.data?.bonusWalletPoints;
     const referralAmount = user?.wallet?.referralBalance || 0;
     const totalAmount = mainAmount + bonusAmount + referralAmount;
     return (
         <div className="border-b">
+            <Toaster position="top-right" reverseOrder={false} />
             <nav className="flex items-center justify-between app-container relative py-4 z-50">
                 <div ref={menuRef} className="flex items-center space-x-3 select-none">
                     <img className="size-14 object-contain rounded-xl" src={logo} alt="Logo" />
@@ -76,45 +110,123 @@ const Navbar = () => {
                 </div>
 
                 <div className="hidden md:flex items-center gap-4">
-                    {user && (
-                        <div className="relative" ref={walletRef}>
-                            <button
-                                onClick={() => setIsWalletOpen(!isWalletOpen)}
-                                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-xl transition-all duration-200 active:scale-95 shadow-md shadow-amber-100"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                </svg>
-                                <div className="text-left leading-tight">
-                                    <span className="block text-[9px] uppercase tracking-wider opacity-90">Wallet</span>
-                                    <span className="text-xs font-bold">৳ {totalAmount}</span>
-                                </div>
-                                <svg xmlns="http://www.w3.org/2000/svg" className={`h-3.5 w-3.5 transition-transform duration-200 ${isWalletOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
+                    <div className="relative" ref={walletRef}>
+                        <button
+                            onClick={() => setIsWalletOpen(!isWalletOpen)}
+                            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-xl transition-all duration-200 active:scale-95 shadow-md shadow-amber-100"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
+                            <div className="text-left leading-tight">
+                                <span className="block text-[9px] uppercase tracking-wider opacity-90">Wallet</span>
+                                <span className="text-xs font-bold">৳ {totalAmount}</span>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" className={`h-3.5 w-3.5 transition-transform duration-200 ${isWalletOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
 
-                            {isWalletOpen && (
-                                <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 py-4 px-4 z-50">
-                                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Balance Details</h4>
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between items-center py-1.5 border-b border-gray-50">
-                                            <span className="text-sm text-gray-600">Main Balance</span>
-                                            <span className="font-semibold text-gray-900">৳ {mainAmount}</span>
+                        {
+                            user ? <div className="relative">
+                                {isWalletOpen && (
+                                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 py-4 px-4 z-50">
+                                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Balance Details</h4>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center py-1.5 border-b border-gray-50">
+                                                <span className="text-sm text-gray-600">Main Balance</span>
+                                                <span className="font-semibold text-gray-900">৳ {mainAmount}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center py-1.5 border-b border-gray-50">
+                                                <span className="text-sm text-gray-600">Bonus Balance</span>
+                                                <span className="font-semibold text-emerald-600">৳ {bonusAmount}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center py-1.5">
+                                                <span className="text-sm text-gray-600">Referral Earn</span>
+                                                <span className="font-semibold text-indigo-600">৳ {referralAmount}</span>
+                                            </div>
                                         </div>
-                                        <div className="flex justify-between items-center py-1.5 border-b border-gray-50">
-                                            <span className="text-sm text-gray-600">Bonus Balance</span>
-                                            <span className="font-semibold text-emerald-600">৳ {bonusAmount}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center py-1.5">
-                                            <span className="text-sm text-gray-600">Referral Earn</span>
-                                            <span className="font-semibold text-indigo-600">৳ {referralAmount}</span>
+                                        <button
+                                            onClick={() => setIsRechargeOpen(true)}
+                                            className="bg-red-600 text-white hover:bg-red-800 duration-100 p-2 rounded-xl w-full mt-2"
+                                        >
+                                            Recharge
+                                        </button>
+                                    </div>
+                                )}
+
+                                {isRechargeOpen && (
+                                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] px-4">
+                                        <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+                                            <button
+                                                onClick={() => setIsRechargeOpen(false)}
+                                                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold"
+                                            >
+                                                &times;
+                                            </button>
+                                            <h3 className="text-lg font-bold text-gray-900 mb-2">Recharge Account</h3>
+                                            <p className="text-sm text-gray-600 bg-red-50 text-red-800 p-3 rounded-xl mb-4 font-medium">
+                                                Please Send Money to <span className="font-bold text-red-600">+8801XXXXXXXXX</span> via bKash, then submit your Transaction ID and Mobile Number below.
+                                            </p>
+
+                                            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                                                <div>
+                                                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Mobile Number</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="01XXXXXXXXX"
+                                                        {...register("phoneNumber", { required: "Mobile number is required" })}
+                                                        className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-red-500 text-sm"
+                                                    />
+                                                    {errors.phoneNumber && <p className="text-red-500 text-xs mt-1">{errors.phoneNumber.message}</p>}
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Transaction ID</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="TxnID"
+                                                        {...register("transactionId", { required: "Transaction ID is required" })}
+                                                        className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-red-500 text-sm"
+                                                    />
+                                                    {errors.transactionId && <p className="text-red-500 text-xs mt-1">{errors.transactionId.message}</p>}
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Amount</label>
+                                                    <input
+                                                        type="number"
+                                                        placeholder="Inter amount"
+                                                        {...register("amount", { required: "Amount  is required" })}
+                                                        className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-red-500 text-sm"
+                                                    />
+                                                    {errors.transactionId && <p className="text-red-500 text-xs mt-1">{errors.transactionId.message}</p>}
+                                                </div>
+
+                                                <div className="flex gap-2 pt-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsRechargeOpen(false)}
+                                                        className="w-1/2 border border-gray-200 text-gray-600 py-2 rounded-xl text-sm font-medium hover:bg-gray-50"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                    <button
+                                                        type="submit"
+                                                        className="w-1/2 bg-red-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-red-700"
+                                                    >
+                                                        Submit
+                                                    </button>
+                                                </div>
+                                            </form>
                                         </div>
                                     </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
+                                )}
+                            </div> : <div>
+                                <h1>Please First Login or SignUp</h1>
+                            </div>
+
+                        }
+                    </div>
 
                     {user ? (
                         <NavLink to='/user-profile' className="flex items-center gap-3 bg-gray-50 p-1.5 pr-4 rounded-xl border border-gray-100">

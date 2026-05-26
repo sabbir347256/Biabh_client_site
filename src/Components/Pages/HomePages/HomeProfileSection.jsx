@@ -11,15 +11,24 @@ const HomeProfileSection = () => {
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(true);
 
+    const token = localStorage.getItem("accessToken");
+
     const { data: profileData, isLoading, refetch } = useQuery({
         queryKey: ['allUserData'],
         queryFn: async () => {
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+
             const response = await fetch(`http://localhost:5000/api/v1/user`, {
                 method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: headers,
             });
+
             if (!response.ok) throw new Error("Status check failed");
             const result = await response.json();
             return result;
