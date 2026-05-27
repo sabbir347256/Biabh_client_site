@@ -152,15 +152,19 @@ const SignUp = () => {
             }
             delete submissionData.customProfession;
 
-            const currentDivObj = divisions.find(d => d.id === submissionData.currentDivision || d._id === submissionData.currentDivision);
-            const currentDistObj = currentDistricts.find(d => d.id === submissionData.currentDistrict || d._id === submissionData.currentDistrict);
-            if (currentDivObj) submissionData.currentDivision = currentDivObj.name;
-            if (currentDistObj) submissionData.currentDistrict = currentDistObj.name;
+            if (submissionData.currentCountry === "Bangladesh") {
+                const currentDivObj = divisions.find(d => d.id === submissionData.currentDivision || d._id === submissionData.currentDivision);
+                const currentDistObj = currentDistricts.find(d => d.id === submissionData.currentDistrict || d._id === submissionData.currentDistrict);
+                if (currentDivObj) submissionData.currentDivision = currentDivObj.name;
+                if (currentDistObj) submissionData.currentDistrict = currentDistObj.name;
+            }
 
-            const permDivObj = divisions.find(d => d.id === submissionData.permanentDivision || d._id === submissionData.permanentDivision);
-            const permDistObj = permanentDistricts.find(d => d.id === submissionData.permanentDistrict || d._id === submissionData.permanentDistrict);
-            if (permDivObj) submissionData.permanentDivision = permDivObj.name;
-            if (permDistObj) submissionData.permanentDistrict = permDistObj.name;
+            if (submissionData.permanentCountry === "Bangladesh") {
+                const permDivObj = divisions.find(d => d.id === submissionData.permanentDivision || d._id === submissionData.permanentDivision);
+                const permDistObj = permanentDistricts.find(d => d.id === submissionData.permanentDistrict || d._id === submissionData.permanentDistrict);
+                if (permDivObj) submissionData.permanentDivision = permDivObj.name;
+                if (permDistObj) submissionData.permanentDistrict = permDistObj.name;
+            }
 
             const formData = new FormData();
             Object.keys(submissionData).forEach((key) => {
@@ -186,6 +190,7 @@ const SignUp = () => {
             setLoading(false);
         }
     };
+
     const navigate = useNavigate();
     const handleVerifyOtp = async (e) => {
         e.preventDefault();
@@ -339,7 +344,7 @@ const SignUp = () => {
                                         <option value="Doctor">Doctor</option>
                                         <option value="Engineer">Engineer</option>
                                         <option value="Business">Business</option>
-                                        <option value="Business">NRB (Probashi)</option>
+                                        <option value="NRB (Probashi)">NRB (Probashi)</option>
                                         <option value="Other">Other</option>
                                     </select>
                                 </div>
@@ -436,39 +441,43 @@ const SignUp = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                     <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Country</label>
-                                    <select {...register("currentCountry")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50">
+                                    <select {...register("currentCountry")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer">
                                         <option value="Bangladesh">Bangladesh</option>
+                                        <option value="NRB (Probashi)">NRB (Probashi)</option>
                                     </select>
                                 </div>
 
                                 <div className="space-y-1.5">
                                     <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Division</label>
-                                    <select required {...register("currentDivision")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer">
-                                        <option value="">Select Division</option>
-                                        {divisions.map((div) => (
-                                            <option key={div._id || div.id} value={div.id}>{div.name}</option>
-                                        ))}
-                                    </select>
+                                    {watch("currentCountry") === "NRB (Probashi)" ? (
+                                        <input required type="text" {...register("currentDivision")} placeholder="Enter Division" className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E]" />
+                                    ) : (
+                                        <select required {...register("currentDivision")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer">
+                                            <option value="">Select Division</option>
+                                            {divisions.map((div) => (
+                                                <option key={div._id || div.id} value={div.id}>{div.name}</option>
+                                            ))}
+                                        </select>
+                                    )}
                                 </div>
 
                                 <div className="space-y-1.5">
                                     <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">District</label>
-                                    <select required disabled={!watchedCurrentDivision} {...register("currentDistrict")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer disabled:opacity-50">
-                                        <option value="">Select District</option>
-                                        {currentDistricts.map((dist) => (
-                                            <option key={dist._id || dist.id} value={dist.id}>{dist.name}</option>
-                                        ))}
-                                    </select>
+                                    {watch("currentCountry") === "NRB (Probashi)" ? (
+                                        <input required type="text" {...register("currentDistrict")} placeholder="Enter District" className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E]" />
+                                    ) : (
+                                        <select required disabled={!watchedCurrentDivision} {...register("currentDistrict")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer disabled:opacity-50">
+                                            <option value="">Select District</option>
+                                            {currentDistricts.map((dist) => (
+                                                <option key={dist._id || dist.id} value={dist.id}>{dist.name}</option>
+                                            ))}
+                                        </select>
+                                    )}
                                 </div>
 
                                 <div className="space-y-1.5">
                                     <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Thana / Upazila</label>
-                                    <select required disabled={!watchedCurrentDistrict} {...register("currentThana")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer disabled:opacity-50">
-                                        <option value="">Select Thana</option>
-                                        {currentUpazilas.map((upz) => (
-                                            <option key={upz._id || upz.id} value={upz.name}>{upz.name}</option>
-                                        ))}
-                                    </select>
+                                    <input required type="text" {...register("currentThana")} placeholder="Enter Thana / Upazila" className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E]" />
                                 </div>
                             </div>
                         </section>
@@ -483,39 +492,43 @@ const SignUp = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                     <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Country</label>
-                                    <select {...register("permanentCountry")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50">
+                                    <select {...register("permanentCountry")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer">
                                         <option value="Bangladesh">Bangladesh</option>
+                                        <option value="NRB (Probashi)">NRB (Probashi)</option>
                                     </select>
                                 </div>
 
                                 <div className="space-y-1.5">
                                     <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Division</label>
-                                    <select required {...register("permanentDivision")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer">
-                                        <option value="">Select Division</option>
-                                        {divisions.map((div) => (
-                                            <option key={div._id || div.id} value={div.id}>{div.name}</option>
-                                        ))}
-                                    </select>
+                                    {watch("permanentCountry") === "NRB (Probashi)" ? (
+                                        <input required type="text" {...register("permanentDivision")} placeholder="Enter Division" className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E]" />
+                                    ) : (
+                                        <select required {...register("permanentDivision")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer">
+                                            <option value="">Select Division</option>
+                                            {divisions.map((div) => (
+                                                <option key={div._id || div.id} value={div.id}>{div.name}</option>
+                                            ))}
+                                        </select>
+                                    )}
                                 </div>
 
                                 <div className="space-y-1.5">
                                     <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">District</label>
-                                    <select required disabled={!watchedPermanentDivision} {...register("permanentDistrict")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer disabled:opacity-50">
-                                        <option value="">Select District</option>
-                                        {permanentDistricts.map((dist) => (
-                                            <option key={dist._id || dist.id} value={dist.id}>{dist.name}</option>
-                                        ))}
-                                    </select>
+                                    {watch("permanentCountry") === "NRB (Probashi)" ? (
+                                        <input required type="text" {...register("permanentDistrict")} placeholder="Enter District" className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E]" />
+                                    ) : (
+                                        <select required disabled={!watchedPermanentDivision} {...register("permanentDistrict")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer disabled:opacity-50">
+                                            <option value="">Select District</option>
+                                            {permanentDistricts.map((dist) => (
+                                                <option key={dist._id || dist.id} value={dist.id}>{dist.name}</option>
+                                            ))}
+                                        </select>
+                                    )}
                                 </div>
 
                                 <div className="space-y-1.5">
                                     <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Thana / Upazila</label>
-                                    <select required disabled={!watchedPermanentDistrict} {...register("permanentThana")} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] cursor-pointer disabled:opacity-50">
-                                        <option value="">Select Thana</option>
-                                        {permanentUpazilas.map((upz) => (
-                                            <option key={upz._id || upz.id} value={upz.name}>{upz.name}</option>
-                                        ))}
-                                    </select>
+                                    <input required type="text" {...register("permanentThana")} placeholder="Enter Thana / Upazila" className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 outline-none bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E]" />
                                 </div>
                             </div>
                         </section>

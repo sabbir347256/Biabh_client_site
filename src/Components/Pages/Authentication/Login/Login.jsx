@@ -4,6 +4,7 @@ import Button from '../../utilies/Button';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import toast, { Toaster } from 'react-hot-toast';
+import config from '../../utilies/envconfig';
 
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -21,7 +22,7 @@ const Login = () => {
         setApiError('');
         setIsLoading(true);
         try {
-            const response = await fetch('http://72.61.225.177:5000/api/v1/auth/login', {
+            const response = await fetch(`${config?.backendUrl}auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

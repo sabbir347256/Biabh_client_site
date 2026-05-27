@@ -7,6 +7,7 @@ import { AuthProvider } from "../../AuthProvider/CreateContext";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
+import config from "../utilies/envconfig";
 
 const Navbar = () => {
     const { user, data } = useContext(AuthProvider);
@@ -31,7 +32,7 @@ const Navbar = () => {
         const token = localStorage.getItem("accessToken");
         try {
             await axios.post(
-                "http://72.61.225.177:5000/api/v1/transaction",
+                `${config?.backendUrl}transaction`,
                 {
                     userObjectId: user?.userId,
                     userId: user?.userProfileId,
@@ -95,7 +96,11 @@ const Navbar = () => {
     const mainAmount = data?.data?.mainWalletBalance || 0;
     const bonusAmount = data?.data?.isActive === 'INACTIVE' ? 0 : data?.data?.bonusWalletPoints;
     const referralAmount = user?.wallet?.referralBalance || 0;
-    const totalAmount = user ? mainAmount + bonusAmount + referralAmount : 0;
+    const totalAmount = user
+        ? (mainAmount || 0) + (bonusAmount || 0) + (referralAmount || 0)
+        : 0;
+
+
     return (
         <div className="border-b relative z-50 bg-white">
             <Toaster position="top-right" reverseOrder={false} />

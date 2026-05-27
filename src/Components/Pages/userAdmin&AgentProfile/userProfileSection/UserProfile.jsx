@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { AuthProvider } from '../../../AuthProvider/CreateContext';
 import config from '../../utilies/envconfig';
+import toast, { Toaster } from 'react-hot-toast';
 
 // const config?.backendUrl /user= 'https://api.example.com/user';
 
@@ -38,9 +39,8 @@ const UserProfile = () => {
 
     const [nidUploaded, setNidUploaded] = useState(false);
 
-    const { register, handleSubmit, watch, reset,setValue } = useForm();
+    const { register, handleSubmit, watch, reset, setValue } = useForm();
     const watchedValues = watch();
-    console.log(watchedValues)
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -116,11 +116,26 @@ const UserProfile = () => {
     };
 
     const onFormSubmit = async (formData, sectionName) => {
+        const toastId = toast.loading(`Updating ${sectionName}...`);
+
         try {
-            await axios.put(`${config?.backendUrl}/user/update`, formData);
-            setEditSections(prev => ({ ...prev, [sectionName]: false }));
+            const response = await axios.put(`${config?.backendUrl}/user/update`, formData);
+
+            if (response.data?.success) {
+                toast.success(response.data?.message || `${sectionName} updated successfully!`, {
+                    id: toastId,
+                });
+
+                setEditSections(prev => ({ ...prev, [sectionName]: false }));
+            }
         } catch (error) {
             console.error(`Error updating data for section ${sectionName}:`, error);
+
+            const errorMessage = error.response?.data?.message || `Failed to update ${sectionName}.`;
+
+            toast.error(errorMessage, {
+                id: toastId,
+            });
         }
     };
 
@@ -253,6 +268,8 @@ const UserProfile = () => {
     }
     return (
         <div className="app-container pb-8 min-h-screen">
+            <Toaster position="top-right" reverseOrder={false} />
+
             <div className="relative mb-6">
                 <div className="h-64 md:h-[32rem] w-full rounded-b-2xl overflow-hidden bg-emerald-950 relative">
                     <img src={images.cover} className="w-full h-full object-cover opacity-40" alt="Cover" />
@@ -283,8 +300,8 @@ const UserProfile = () => {
                     <div className="mb-4">
                         {editSections.header ? (
                             <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'header'))} className="bg-black/70 p-3 rounded-xl space-y-2 backdrop-blur-sm min-w-[250px]">
-                                <input {...register('name')} className="w-full p-1.5 text-sm bg-white text-gray-800 rounded border" placeholder="Name" />
-                                <input {...register('homeDistrict')} className="w-full p-1.5 text-sm bg-white text-gray-800 rounded border" placeholder="District" />
+                                <input {...register('fullName')} className="w-full p-1.5 text-sm bg-white text-gray-800 rounded border" placeholder="Name" />
+                                {/* <input {...register('homeDistrict')} className="w-full p-1.5 text-sm bg-white text-gray-800 rounded border" placeholder="District" /> */}
                                 <div className="flex gap-2">
                                     <button type="submit" className="bg-emerald-600 text-white px-2 py-1 text-xs rounded font-medium flex-1">Save</button>
                                     <button type="button" onClick={() => toggleSection('header', false)} className="bg-gray-500 text-white px-2 py-1 text-xs rounded font-medium flex-1">Cancel</button>
@@ -323,20 +340,26 @@ const UserProfile = () => {
                             <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'personal'))} className="space-y-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-xs font-semibold text-gray-400 uppercase">Age</label>
-                                        <input {...register('age')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
-                                    </div>
-                                    <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Height</label>
-                                        <input {...register('height')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
+                                        <input {...register('Height')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                     </div>
-                                    <div>
+                                    {/* <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Home District</label>
                                         <input {...register('homeDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-400 uppercase">Marital Status</label>
-                                        <input {...register('maritalStatus')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
+                                    </div> */}
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">
+                                            Marital Status
+                                        </label>
+                                        <select
+                                            {...register('maritalStatus')}
+                                            className="w-full mt-1 p-2 border rounded-lg text-sm bg-white text-gray-700 outline-none cursor-pointer focus:border-[#C20E0E]"
+                                        >
+                                            <option value="">Select Status</option>
+                                            <option value="Unmarried">Unmarried</option>
+                                            <option value="Married">Married</option>
+                                            <option value="Divorced">Divorced</option>
+                                        </select>
                                     </div>
                                 </div>
                                 <div className="flex justify-end gap-2 pt-2">
@@ -352,7 +375,7 @@ const UserProfile = () => {
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Height</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.height || 'Not Set'}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.Height || 'Not Set'}</p>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Home District</label>
@@ -380,12 +403,12 @@ const UserProfile = () => {
                                     <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Profession</label>
                                         <input {...register('profession')} className="w-full mt-1 p-2 border rounded-lg text-sm mb-2 bg-white" placeholder="Profession" />
-                                        <input {...register('organization')} className="w-full p-2 border rounded-lg text-sm bg-white" placeholder="Organization" />
+                                        <input {...register('professionOrganization')} className="w-full p-2 border rounded-lg text-sm bg-white" placeholder="Organization" />
                                     </div>
                                     <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Education</label>
                                         <input {...register('education')} className="w-full mt-1 p-2 border rounded-lg text-sm mb-2 bg-white" placeholder="Education" />
-                                        <input {...register('institution')} className="w-full p-2 border rounded-lg text-sm bg-white" placeholder="Institution" />
+                                        <input {...register('institute')} className="w-full p-2 border rounded-lg text-sm bg-white" placeholder="Institution" />
                                     </div>
                                 </div>
                                 <div className="flex justify-end gap-2 pt-2">
@@ -399,14 +422,14 @@ const UserProfile = () => {
                                     <div className="bg-red-50 p-2 rounded-xl text-red-600 mt-1"><Briefcase className="w-5 h-5" /></div>
                                     <div className="flex-1">
                                         <p className="text-gray-800 font-semibold">{watchedValues?.profession || 'Not Set'}</p>
-                                        <p className="text-gray-500 text-sm">{watchedValues?.organization || 'No Organization'}</p>
+                                        <p className="text-gray-500 text-sm">{watchedValues?.professionOrganization || 'No Organization'}</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-3 items-start">
                                     <div className="bg-red-50 p-2 rounded-xl text-red-600 mt-1"><GraduationCap className="w-5 h-5" /></div>
                                     <div className="flex-1">
                                         <p className="text-gray-800 font-semibold">{watchedValues?.education || 'Not Set'}</p>
-                                        <p className="text-gray-500 text-sm">{watchedValues?.institution || 'No Institution'}</p>
+                                        <p className="text-gray-500 text-sm">{watchedValues?.institute || 'No Institution'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -416,12 +439,66 @@ const UserProfile = () => {
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4 relative group">
                         <div className="flex justify-between items-center mb-4 border-b pb-2">
                             <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><MapPin className="w-5 h-5" /> Contact & Address</h2>
-                            {!editSections.contact && (
+                            {/* {!editSections.contact && (
                                 <button type="button" onClick={() => toggleSection('contact', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
-                            )}
+                            )} */}
                         </div>
 
-                        {editSections.contact ? (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                    <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Phone className="w-3.5 h-3.5" /> Contact No</span>
+                                    <p className="text-gray-700 text-sm font-medium">{watchedValues?.contactNo || 'Not Set'}</p>
+                                </div>
+                                <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                    <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Mail className="w-3.5 h-3.5" /> Email Address</span>
+                                    <p className="text-gray-700 text-sm font-medium">{watchedValues?.email || 'Not Set'}</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                    <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><MapPin className="w-3.5 h-3.5" /> Current Address</span>
+                                    <p className="text-gray-700 text-sm font-medium">
+                                        {
+                                            (() => {
+                                                const addressParts = [
+                                                    profileUser?.currentThana,
+                                                    profileUser?.currentDistrict,
+                                                    profileUser?.currentDivision,
+                                                    profileUser?.currentCountry
+                                                ].filter(Boolean);
+
+                                                return addressParts.length > 0
+                                                    ? addressParts.join(", ")
+                                                    : "No set text";
+                                            })()
+                                        }
+                                    </p>
+                                </div>
+                                <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                    <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Globe className="w-3.5 h-3.5" /> Permanent Address</span>
+                                    <p className="text-gray-700 text-sm font-medium">
+                                        {
+                                            (() => {
+                                                const addressParts = [
+                                                    profileUser?.permanentThana,
+                                                    profileUser?.permanentDistrict,
+                                                    profileUser?.permanentDivision,
+                                                    profileUser?.permanentCountry
+                                                ].filter(Boolean);
+
+                                                return addressParts.length > 0
+                                                    ? addressParts.join(", ")
+                                                    : "No set text";
+                                            })()
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* {editSections.contact ? (
                             <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'contact'))} className="space-y-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
@@ -515,43 +592,12 @@ const UserProfile = () => {
                                     <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-medium">Save</button>
                                 </div>
                             </form>
-                        ) : (
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                        <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Phone className="w-3.5 h-3.5" /> Contact No</span>
-                                        <p className="text-gray-700 text-sm font-medium">{watchedValues?.contactNo || 'Not Set'}</p>
-                                    </div>
-                                    <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                        <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Mail className="w-3.5 h-3.5" /> Email Address</span>
-                                        <p className="text-gray-700 text-sm font-medium">{watchedValues?.email || 'Not Set'}</p>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                        <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><MapPin className="w-3.5 h-3.5" /> Current Address</span>
-                                        <p className="text-gray-700 text-sm font-medium">
-                                            {profileUser?.currentThana && profileUser?.currentDistrict && profileUser?.currentDivision && profileUser?.currentCountry ? (
-                                                `${profileUser.currentThana}, ${profileUser.currentDistrict}, ${profileUser.currentDivision}, ${profileUser.currentCountry}`
-                                            ) : (
-                                                'Not Set'
-                                            )}
-                                        </p>
-                                    </div>
-                                    <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                        <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Globe className="w-3.5 h-3.5" /> Permanent Address</span>
-                                        <p className="text-gray-700 text-sm font-medium">
-                                            {profileUser?.permanentThana && profileUser?.permanentDistrict && profileUser?.permanentDivision && profileUser?.permanentCountry ? (
-                                                `${profileUser.permanentThana}, ${profileUser.permanentDistrict}, ${profileUser.permanentDivision}, ${profileUser.permanentCountry}`
-                                            ) : (
-                                                'Not Set'
-                                            )}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                        )
+                            :
+                            (
+                               
+                            )
+                        } */}
                     </div>
 
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4 relative group">
@@ -573,14 +619,14 @@ const UserProfile = () => {
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Mother's Occupation</label>
                                         <input {...register('motherOccupation')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                     </div>
-                                    <div>
+                                    {/* <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Siblings</label>
                                         <input {...register('siblings')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                     </div>
                                     <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Family Values</label>
                                         <input {...register('familyValues')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
-                                    </div>
+                                    </div> */}
                                 </div>
                                 <div className="flex justify-end gap-2 pt-2">
                                     <button type="button" onClick={() => toggleSection('family', false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium">Cancel</button>
@@ -597,14 +643,14 @@ const UserProfile = () => {
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Mother's Occupation</label>
                                     <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.motherOccupation || 'Not Set'}</p>
                                 </div>
-                                <div>
+                                {/* <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Siblings</label>
                                     <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.siblings || 'Not Set'}</p>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Family Values</label>
                                     <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.familyValues || 'Not Set'}</p>
-                                </div>
+                                </div> */}
                             </div>
                         )}
                     </div>
@@ -656,7 +702,7 @@ const UserProfile = () => {
                             <Heart className="w-4 h-4" /> Send Interest
                         </button>
 
-                        {isProfileLocked ? (
+                        {/* {isProfileLocked ? (
                             <button type="button" onClick={handleUnlockProfile} className="w-full border border-red-200 hover:bg-red-50 text-red-600 py-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2">
                                 <Lock className="w-4 h-4" /> Unlock Contact Details
                             </button>
@@ -666,7 +712,7 @@ const UserProfile = () => {
                                 <p className="text-sm"><strong>Phone:</strong> {watchedValues?.phone || 'N/A'}</p>
                                 <p className="text-sm"><strong>Email:</strong> {watchedValues?.email || 'N/A'}</p>
                             </div>
-                        )}
+                        )} */}
                     </div>
 
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">

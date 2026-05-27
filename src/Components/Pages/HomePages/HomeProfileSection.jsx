@@ -24,7 +24,7 @@ const HomeProfileSection = () => {
                 headers["Authorization"] = `Bearer ${token}`;
             }
 
-            const response = await fetch(`http://72.61.225.177:5000/api/v1/user`, {
+            const response = await fetch(`${config?.backendUrl}user`, {
                 method: "GET",
                 headers: headers,
             });
