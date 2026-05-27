@@ -268,23 +268,8 @@ const Navbar = () => {
 
                 <div
                     ref={mobileMenuRef}
-                    className={`absolute top-full left-0 w-full bg-white shadow-xl rounded-2xl p-6 mt-2 md:hidden flex flex-col space-y-4 origin-top transition-all duration-300 ease-in-out z-50 ${isOpen ? "opacity-100 scale-y-100 visible" : "opacity-0 scale-y-95 invisible pointer-events-none"}`}
+                    className={`absolute top-full left-0 w-full bg-white shadow-xl rounded-2xl p-6 md:hidden flex flex-col space-y-4 origin-top transition-all duration-300 ease-in-out z-50 ${isOpen ? "opacity-100 scale-y-100 visible" : "opacity-0 scale-y-95 invisible pointer-events-none"}`}
                 >
-                    {navLinks.map((link) => {
-                        const isActive = location.pathname === link.path;
-                        return (
-                            <NavLink
-                                key={link.name}
-                                to={link.path}
-                                onClick={() => setIsOpen(false)}
-                                className={`text-left py-2 font-medium text-lg transition-all duration-200 block ${isActive ? 'text-red-600 pl-2 border-l-4 border-red-600' : 'text-gray-600 hover:text-red-600'}`}
-                            >
-                                {link.name}
-                            </NavLink>
-                        );
-                    })}
-
-                    <hr className="border-gray-100 my-2" />
 
                     {user ? (
                         <div className="flex flex-col space-y-2">
@@ -339,6 +324,22 @@ const Navbar = () => {
                             Login / Sign Up
                         </NavLink>
                     )}
+                    {navLinks.map((link) => {
+                        const isActive = location.pathname === link.path;
+                        return (
+                            <NavLink
+                                key={link.name}
+                                to={link.path}
+                                onClick={() => setIsOpen(false)}
+                                className={`text-left py-2 font-medium text-lg transition-all duration-200 block ${isActive ? 'text-red-600 pl-2 border-l-4 border-red-600' : 'text-gray-600 hover:text-red-600'}`}
+                            >
+                                {link.name}
+                            </NavLink>
+                        );
+                    })}
+
+                    <hr className="border-gray-100 my-2" />
+
                 </div>
             </nav>
 

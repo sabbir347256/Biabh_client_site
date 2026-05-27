@@ -138,6 +138,12 @@ const SignUp = () => {
         setLoading(true);
         try {
             const submissionData = { ...data };
+
+            if (submissionData.birth && submissionData.birth.includes("/")) {
+                const [day, month, year] = submissionData.birth.split("/");
+                submissionData.birth = `${year}-${month}-${day}`;
+            }
+
             if (!submissionData.bonusRefarelID || submissionData.bonusRefarelID.trim() === "") {
                 delete submissionData.bonusRefarelID;
             }
@@ -282,8 +288,24 @@ const SignUp = () => {
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Date of Birth</label>
                                     <input
                                         required
-                                        type="date"
-                                        {...register("birth")}
+                                        type="text"
+                                        placeholder="DD/MM/YYYY"
+                                        maxLength={10}
+                                        {...register("birth", {
+                                            required: "Date of birth is required",
+                                            validate: value => value.length === 10 || "Please enter valid date (DD/MM/YYYY)"
+                                        })}
+                                        onChange={(e) => {
+                                            let val = e.target.value.replace(/\D/g, "");
+                                            let formatted = "";
+
+                                            if (val.length > 0) {
+                                                formatted = val.substring(0, 2);
+                                                if (val.length > 2) formatted += "/" + val.substring(2, 4);
+                                                if (val.length > 4) formatted += "/" + val.substring(4, 8);
+                                            }
+                                            e.target.value = formatted;
+                                        }}
                                         className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white text-gray-700"
                                     />
                                 </div>
@@ -317,6 +339,7 @@ const SignUp = () => {
                                         <option value="Doctor">Doctor</option>
                                         <option value="Engineer">Engineer</option>
                                         <option value="Business">Business</option>
+                                        <option value="Business">NRB (Probashi)</option>
                                         <option value="Other">Other</option>
                                     </select>
                                 </div>
@@ -585,7 +608,7 @@ const SignUp = () => {
 
                         <div className="relative z-10 text-center space-y-6">
                             <div>
-                                <h3 className="text-2xl font-bold text-gray-900 mb-2">Verify Mobile OTP</h3>
+                                <h3 className="text-2xl font-bold text-gray-900 mb-2">Verify Email OTP</h3>
                                 <p className="text-sm text-gray-500 font-medium">We have sent a verification code to your phone number.</p>
                             </div>
 

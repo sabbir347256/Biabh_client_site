@@ -38,7 +38,7 @@ const Login = () => {
                 localStorage.setItem('accessToken', result.data.accessToken);
                 toast.success(`${result.message}`);
                 setTimeout(() => {
-                    navigate('/');
+                    navigate('/user-profile');
                     window.location.reload();
                 }, 1000);
             } else {
@@ -163,7 +163,7 @@ const Login = () => {
                     </div>
 
                     <p className="mt-8 text-center text-sm text-gray-600">
-                        Don't have an account? <a href="/create-account" className="font-bold text-[#b30000] hover:underline">Join Now</a>
+                        Don't have an account? <a href="/create-account" className="font-bold text-[#b30000] hover:underline">Registration Now</a>
                     </p>
                 </div>
 
