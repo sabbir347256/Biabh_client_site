@@ -225,7 +225,7 @@ const SignUp = () => {
             <Toaster position="top-right" reverseOrder={false} />
 
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-                <div className="lg:sticky lg:top-12 space-y-8">
+                <div className="lg:sticky lg:top-12 space-y-8 order-2 lg:order-1">
                     <div>
                         <p className="text-[#C20E0E] font-bold text-xs tracking-widest uppercase mb-4 bg-[#FFEAEA] w-fit px-3 py-1.5 rounded-md">
                             Start Your Journey
@@ -262,7 +262,7 @@ const SignUp = () => {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-red-900/5 p-6 sm:p-8 lg:p-12 border border-red-50/50 relative overflow-hidden">
+                <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-red-900/5 p-6 sm:p-8 lg:p-12 border border-red-50/50 relative overflow-hidden order-1 lg:order-2">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#FFEAEA]/40 to-transparent rounded-bl-full pointer-events-none"></div>
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10 relative z-10">
