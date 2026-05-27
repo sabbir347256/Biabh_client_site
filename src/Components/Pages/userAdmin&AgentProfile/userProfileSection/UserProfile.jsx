@@ -72,7 +72,7 @@ const UserProfile = () => {
             formData.append(type === 'cover' ? 'coverPhoto' : 'avatarPhoto', file);
 
             try {
-                const response = await axios.post(`${config?.backendUrl}//user/upload-${type}`, formData, {
+                const response = await axios.post(`${config?.backendUrl}/user/upload-${type}`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
                 if (response.data.imageUrl) {
@@ -92,7 +92,7 @@ const UserProfile = () => {
             formData.append('nidDocument', file);
 
             try {
-                await axios.post(`${config?.backendUrl}//user/upload-nid`, formData, {
+                await axios.post(`${config?.backendUrl}/user/upload-nid`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
             } catch (error) {
@@ -105,7 +105,7 @@ const UserProfile = () => {
     const toggleSection = async (section, state) => {
         if (!state) {
             try {
-                const response = await axios.get(`${config?.backendUrl}//user/profile`);
+                const response = await axios.get(`${config?.backendUrl}/user/profile`);
                 reset(response.data);
             } catch (error) {
                 if (profileUser) reset(profileUser);
@@ -119,7 +119,7 @@ const UserProfile = () => {
         const toastId = toast.loading(`Updating ${sectionName}...`);
 
         try {
-            const response = await axios.put(`${config?.backendUrl}//user/update`, formData);
+            const response = await axios.put(`${config?.backendUrl}/user/update`, formData);
 
             if (response.data?.success) {
                 toast.success(response.data?.message || `${sectionName} updated successfully!`, {
@@ -141,7 +141,7 @@ const UserProfile = () => {
 
     const handleUnlockProfile = async () => {
         try {
-            const response = await axios.post(`${config?.backendUrl}//user/profile/unlock`);
+            const response = await axios.post(`${config?.backendUrl}/user/profile/unlock`);
             if (response.status === 200) {
                 setIsProfileLocked(false);
             }
