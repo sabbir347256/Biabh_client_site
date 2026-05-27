@@ -32,7 +32,7 @@ const Navbar = () => {
         const token = localStorage.getItem("accessToken");
         try {
             await axios.post(
-                `${config?.backendUrl}transaction`,
+                `${config?.backendUrl}/transaction`,
                 {
                     userObjectId: user?.userId,
                     userId: user?.userProfileId,

@@ -24,7 +24,7 @@ const HomeProfileSection = () => {
                 headers["Authorization"] = `Bearer ${token}`;
             }
 
-            const response = await fetch(`${config?.backendUrl}user`, {
+            const response = await fetch(`${config?.backendUrl}/user`, {
                 method: "GET",
                 headers: headers,
             });
