@@ -13,6 +13,8 @@ import UserProfile from "./Components/Pages/userAdmin&AgentProfile/userProfileSe
 import Underconstraction from "./Components/Pages/Shared/Underconstraction";
 import ProfileDetails from "./Components/Pages/SpecifiqProfile/ProfileDetails";
 import UserPrivateRoute from "./Components/Pages/PrivateRoute/UserPrivateRoute";
+import Search from "./Components/Pages/Search/Search";
+import SuccessStory from "./Components/Pages/successStory/SuccessStory";
 
 
 const queryClient = new QueryClient();
@@ -42,6 +44,14 @@ const router = createBrowserRouter([
         path: "/create-account",
         element: <SignUp></SignUp>
       },
+      // {
+      //   path: "/find-match",
+      //   element: <Search></Search>
+      // },
+      // {
+      //   path: "/success-stories",
+      //   element: <SuccessStory></SuccessStory>
+      // },
       {
         path: "*",
         element: <Underconstraction></Underconstraction>

@@ -13,7 +13,7 @@ const HomeProfileSection = () => {
 
     const token = localStorage.getItem("accessToken");
 
-    const { data: profileData, isLoading, refetch } = useQuery({
+    const { data: profileData} = useQuery({
         queryKey: ['allUserData'],
         queryFn: async () => {
             const headers = {
@@ -38,62 +38,6 @@ const HomeProfileSection = () => {
     const allProfileData = profileData?.data;
     console.log(profileData)
 
-    const profiles = [
-        {
-            id: 1,
-            name: "Ahmed",
-            age: 29,
-            role: "SOFTWARE ARCHITECT",
-            location: "DHAKA",
-            image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
-            isPremium: true
-        },
-        {
-            id: 2,
-            name: "Farhana",
-            age: 26,
-            role: "PEDIATRICIAN",
-            location: "CHITTAGONG",
-            image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80",
-            isPremium: false
-        },
-        {
-            id: 3,
-            name: "Zakir",
-            age: 32,
-            role: "FINANCIAL ANALYST",
-            location: "LONDON",
-            image: "https://images.unsplash.com/photo-1628157582853-a796fa650a6a?auto=format&fit=crop&w=400&q=80",
-            isPremium: false
-        },
-        {
-            id: 4,
-            name: "Raisa",
-            age: 24,
-            role: "INTERIOR DESIGNER",
-            location: "SYLHET",
-            image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-            isPremium: true
-        },
-        {
-            id: 5,
-            name: "Imran",
-            age: 30,
-            role: "CIVIL ENGINEER",
-            location: "KHULNA",
-            image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
-            isPremium: false
-        },
-        {
-            id: 6,
-            name: "Nabila",
-            age: 27,
-            role: "CHARTERED ACCOUNTANT",
-            location: "DHAKA",
-            image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80",
-            isPremium: true
-        }
-    ];
 
     const checkScrollBounds = () => {
         if (sliderRef.current) {

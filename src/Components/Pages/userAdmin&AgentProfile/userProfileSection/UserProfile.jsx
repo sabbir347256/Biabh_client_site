@@ -361,6 +361,10 @@ const UserProfile = () => {
                                             <option value="Divorced">Divorced</option>
                                         </select>
                                     </div>
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-400 uppercase">Religion</label>
+                                        <input {...register('religion')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
+                                    </div>
                                 </div>
                                 <div className="flex justify-end gap-2 pt-2">
                                     <button type="button" onClick={() => toggleSection('personal', false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium">Cancel</button>
@@ -384,6 +388,10 @@ const UserProfile = () => {
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Marital Status</label>
                                     <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.maritalStatus || 'Not Set'}</p>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-semibold text-gray-400 uppercase">Religion</label>
+                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.religion || 'Not Set'}</p>
                                 </div>
                             </div>
                         )}

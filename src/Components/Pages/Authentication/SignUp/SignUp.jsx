@@ -18,9 +18,9 @@ const SignUp = () => {
     const [imageFile, setImageFile] = useState(null);
     const [divisions, setDivisions] = useState([]);
     const [currentDistricts, setCurrentDistricts] = useState([]);
-    const [currentUpazilas, setCurrentUpazilas] = useState([]);
+    // const [currentUpazilas, setCurrentUpazilas] = useState([]);
     const [permanentDistricts, setPermanentDistricts] = useState([]);
-    const [permanentUpazilas, setPermanentUpazilas] = useState([]);
+    // const [permanentUpazilas, setPermanentUpazilas] = useState([]);
 
     const [showOtpModal, setShowOtpModal] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -51,7 +51,7 @@ const SignUp = () => {
     useEffect(() => {
         if (!watchedCurrentDivision) {
             setCurrentDistricts([]);
-            setCurrentUpazilas([]);
+            // setCurrentUpazilas([]);
             return;
         }
         const fetchCurrentDistricts = async () => {
@@ -59,7 +59,7 @@ const SignUp = () => {
                 const response = await axios.get(`${config.geoApiUrl}/districts/${watchedCurrentDivision}`);
                 const districtsData = response.data?.data || response.data;
                 setCurrentDistricts(Array.isArray(districtsData) ? districtsData : []);
-                setCurrentUpazilas([]);
+                // setCurrentUpazilas([]);
                 setValue("currentDistrict", "");
                 setValue("currentThana", "");
             } catch (error) {
@@ -71,14 +71,14 @@ const SignUp = () => {
 
     useEffect(() => {
         if (!watchedCurrentDistrict) {
-            setCurrentUpazilas([]);
+            // setCurrentUpazilas([]);
             return;
         }
         const fetchCurrentUpazilas = async () => {
             try {
-                const response = await axios.get(`${config.geoApiUrl}/upazilas/${watchedCurrentDistrict}`);
-                const upazilasData = response.data?.data || response.data;
-                setCurrentUpazilas(Array.isArray(upazilasData) ? upazilasData : []);
+                // const response = await axios.get(`${config.geoApiUrl}/upazilas/${watchedCurrentDistrict}`);
+                // const upazilasData = response.data?.data || response.data;
+                // setCurrentUpazilas(Array.isArray(upazilasData) ? upazilasData : []);
                 setValue("currentThana", "");
             } catch (error) {
                 console.error("Error fetching current upazilas:", error);
@@ -90,7 +90,7 @@ const SignUp = () => {
     useEffect(() => {
         if (!watchedPermanentDivision) {
             setPermanentDistricts([]);
-            setPermanentUpazilas([]);
+            // setPermanentUpazilas([]);
             return;
         }
         const fetchPermanentDistricts = async () => {
@@ -98,7 +98,7 @@ const SignUp = () => {
                 const response = await axios.get(`${config.geoApiUrl}/districts/${watchedPermanentDivision}`);
                 const districtsData = response.data?.data || response.data;
                 setPermanentDistricts(Array.isArray(districtsData) ? districtsData : []);
-                setPermanentUpazilas([]);
+                // setPermanentUpazilas([]);
                 setValue("permanentDistrict", "");
                 setValue("permanentThana", "");
             } catch (error) {
@@ -110,14 +110,14 @@ const SignUp = () => {
 
     useEffect(() => {
         if (!watchedPermanentDistrict) {
-            setPermanentUpazilas([]);
+            // setPermanentUpazilas([]);
             return;
         }
         const fetchPermanentUpazilas = async () => {
             try {
-                const response = await axios.get(`${config.geoApiUrl}/upazilas/${watchedPermanentDistrict}`);
-                const upazilasData = response.data?.data || response.data;
-                setPermanentUpazilas(Array.isArray(upazilasData) ? upazilasData : []);
+                // const response = await axios.get(`${config.geoApiUrl}/upazilas/${watchedPermanentDistrict}`);
+                // const upazilasData = response.data?.data || response.data;
+                // setPermanentUpazilas(Array.isArray(upazilasData) ? upazilasData : []);
                 setValue("permanentThana", "");
             } catch (error) {
                 console.error("Error fetching permanent upazilas:", error);
@@ -138,6 +138,8 @@ const SignUp = () => {
         setLoading(true);
         try {
             const submissionData = { ...data };
+
+            console.log(submissionData)
 
             if (submissionData.birth && submissionData.birth.includes("/")) {
                 const [day, month, year] = submissionData.birth.split("/");
@@ -176,8 +178,13 @@ const SignUp = () => {
             }
 
             const response = await axios.post(`${config.backendUrl}/user/register`, formData, {
-                headers: { "Content-Type": "multipart/form-data" }
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                },
+                withCredentials: true
             });
+
+            console.log(response)
 
             if (response.status === 200 || response.status === 201) {
                 setRegisteredEmail(submissionData.email);
@@ -347,6 +354,16 @@ const SignUp = () => {
                                         <option value="NRB (Probashi)">NRB (Probashi)</option>
                                         <option value="Other">Other</option>
                                     </select>
+                                </div>
+                                <div className="space-y-2 w-full">
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Religion</label>
+                                    <input
+                                        required
+                                        {...register("religion")}
+                                        placeholder="Islam"
+                                        type="text"
+                                        className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white"
+                                    />
                                 </div>
 
                                 {watchedProfession === "Other" && (

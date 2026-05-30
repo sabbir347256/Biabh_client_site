@@ -1,7 +1,7 @@
 
 const Underconstraction = () => {
     return (
-        <div className="flex justify-center items-center min-h-screen bg-slate-50 p-4 font-sans selection:bg-warning/20">
+        <div className="flex justify-center items-center min-h-screen bg-slate-50 p-4 selection:bg-warning/20">
             <div className="card w-full max-w-md bg-base-100 shadow-xl border border-slate-100 p-8 text-center items-center">
                 <div className="text-6xl mb-6 animate-bounce">🚧</div>
                 <h1 className="text-2xl font-bold text-slate-800 mb-3">
