@@ -1,5 +1,6 @@
 import { Play } from "lucide-react";
 import logo from '../../../assets/images/logo.jpeg'
+import { NavLink } from "react-router";
 
 const HeroSection = () => {
     return (
@@ -49,9 +50,9 @@ const HeroSection = () => {
                     </p>
 
                     <div className="flex flex-wrap items-center gap-4 pt-2 w-full sm:w-auto">
-                        <button className="bg-red-600 hover:bg-red-700 text-white font-medium px-8 py-3.5 rounded-xl transition-all duration-200 active:scale-95 shadow-lg shadow-red-600/20 w-full sm:w-auto">
+                        <NavLink className="bg-red-600 text-center hover:bg-red-700 text-white font-medium px-8 py-3.5 rounded-xl transition-all duration-200 active:scale-95 shadow-lg shadow-red-600/20 w-full sm:w-auto" to='/create-account'>
                             Get Started
-                        </button>
+                        </NavLink>
                         <button className="border-2 border-red-600 text-red-600 hover:bg-red-50 font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 w-full sm:w-auto">
                             <span className="bg-red-600 text-white rounded-full p-1 flex items-center justify-center">
                                 <Play size={12} fill="currentColor" className="ml-0.5" />
@@ -65,7 +66,7 @@ const HeroSection = () => {
                     <div className="relative group">
                         <div className="bg-gradient-to-br from-red-500 to-red-600 w-64 h-64 sm:w-80 sm:h-80 lg:w-[26rem] lg:h-[26rem] rounded-[2.5rem] md:rounded-[3.5rem] flex flex-col items-center justify-center shadow-2xl relative z-10 border-4 border-white/10">
                             <div className="text-white text-4xl sm:text-5xl lg:text-6xl font-serif font-bold tracking-tight select-none">
-                               <img className="rounded-[2.5rem] md:rounded-[3.5rem]" src={logo} alt="" />
+                                <img className="rounded-[2.5rem] md:rounded-[3.5rem]" src={logo} alt="" />
                             </div>
                         </div>
                     </div>
