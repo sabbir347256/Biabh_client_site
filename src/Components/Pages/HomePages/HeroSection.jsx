@@ -23,7 +23,7 @@ const HeroSection = () => {
                         fill="#D61C1C"
                         opacity="0.15"
                     />
-                    <defs>
+                    <defs className="md:flex hidden">
                         <linearGradient id="red-gradient" x1="400" y1="200" x2="800" y2="700" gradientUnits="userSpaceOnUse">
                             <stop offset="0%" stopColor="#E62E2E" />
                             <stop offset="100%" stopColor="#B30E0E" />
@@ -61,7 +61,7 @@ const HeroSection = () => {
                     </div>
                 </div>
 
-                <div className="flex justify-center md:justify-end lg:pr-12">
+                <div className="hidden md:flex justify-center md:justify-end lg:pr-12">
                     <div className="relative group">
                         <div className="bg-gradient-to-br from-red-500 to-red-600 w-64 h-64 sm:w-80 sm:h-80 lg:w-[26rem] lg:h-[26rem] rounded-[2.5rem] md:rounded-[3.5rem] flex flex-col items-center justify-center shadow-2xl relative z-10 border-4 border-white/10">
                             <div className="text-white text-4xl sm:text-5xl lg:text-6xl font-serif font-bold tracking-tight select-none">

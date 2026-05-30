@@ -7,8 +7,8 @@ const HomeRoot = () => {
     return (
         <div>
             <HeroSection></HeroSection>
-            <WhyChooseUs></WhyChooseUs>
             <HomeProfileSection></HomeProfileSection>
+            <WhyChooseUs></WhyChooseUs>
             <CreateStory></CreateStory>
         </div>
     );
