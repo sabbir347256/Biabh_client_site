@@ -357,13 +357,19 @@ const SignUp = () => {
                                 </div>
                                 <div className="space-y-2 w-full">
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Religion</label>
-                                    <input
+                                    <select
                                         required
                                         {...register("religion")}
-                                        placeholder="Islam"
-                                        type="text"
-                                        className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white"
-                                    />
+                                        defaultValue=""
+                                       className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white text-gray-700 appearance-none cursor-pointer"
+                                    >
+                                        <option value="" disabled>Select Religion</option>
+                                        <option value="Islam">Islam</option>
+                                        <option value="Hindu">Hindu</option>
+                                        <option value="Buddhism">Buddhism</option>
+                                        <option value="Christian">Christian</option>
+                                        <option value="Others">Others</option>
+                                    </select>
                                 </div>
 
                                 {watchedProfession === "Other" && (

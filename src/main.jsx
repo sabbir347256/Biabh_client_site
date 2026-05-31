@@ -15,6 +15,7 @@ import ProfileDetails from "./Components/Pages/SpecifiqProfile/ProfileDetails";
 import UserPrivateRoute from "./Components/Pages/PrivateRoute/UserPrivateRoute";
 import Search from "./Components/Pages/Search/Search";
 import SuccessStory from "./Components/Pages/successStory/SuccessStory";
+import Contact from "./Components/Pages/Contact/Contact";
 
 
 const queryClient = new QueryClient();
@@ -44,14 +45,18 @@ const router = createBrowserRouter([
         path: "/create-account",
         element: <SignUp></SignUp>
       },
-      // {
-      //   path: "/find-match",
-      //   element: <Search></Search>
-      // },
-      // {
-      //   path: "/success-stories",
-      //   element: <SuccessStory></SuccessStory>
-      // },
+      {
+        path: "/find-match",
+        element: <Search></Search>
+      },
+      {
+        path: "/success-stories",
+        element: <SuccessStory></SuccessStory>
+      },
+      {
+        path: "/contact",
+        element: <Contact></Contact>
+      },
       {
         path: "*",
         element: <Underconstraction></Underconstraction>

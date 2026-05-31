@@ -16,8 +16,8 @@ body{
 }
 
 body {
-  /* background-color: #FDF8F8; */
-  background-color: #ffffff;
+  background-color: #FDF8F8;
+  /* background-color: #ffffff; */
 }
 
 @layer utilities {
