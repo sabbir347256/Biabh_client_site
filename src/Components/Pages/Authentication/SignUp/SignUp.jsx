@@ -139,8 +139,6 @@ const SignUp = () => {
         try {
             const submissionData = { ...data };
 
-            console.log(submissionData)
-
             if (submissionData.birth && submissionData.birth.includes("/")) {
                 const [day, month, year] = submissionData.birth.split("/");
                 submissionData.birth = `${year}-${month}-${day}`;
@@ -169,8 +167,15 @@ const SignUp = () => {
             }
 
             const formData = new FormData();
+
             Object.keys(submissionData).forEach((key) => {
-                formData.append(key, submissionData[key]);
+                if (submissionData[key] !== undefined && submissionData[key] !== null) {
+                    if (typeof submissionData[key] === 'object') {
+                        formData.append(key, JSON.stringify(submissionData[key]));
+                    } else {
+                        formData.append(key, submissionData[key]);
+                    }
+                }
             });
 
             if (imageFile) {
@@ -184,14 +189,13 @@ const SignUp = () => {
                 withCredentials: true
             });
 
-            console.log(response)
-
             if (response.status === 200 || response.status === 201) {
                 setRegisteredEmail(submissionData.email);
                 toast.success(response.data?.message || "OTP sent to your mobile phone!");
                 setShowOtpModal(true);
             }
         } catch (error) {
+            console.error(error);
             toast.error(error.response?.data?.message || "Registration initialization failed.");
         } finally {
             setLoading(false);
@@ -361,7 +365,7 @@ const SignUp = () => {
                                         required
                                         {...register("religion")}
                                         defaultValue=""
-                                       className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white text-gray-700 appearance-none cursor-pointer"
+                                        className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white text-gray-700 appearance-none cursor-pointer"
                                     >
                                         <option value="" disabled>Select Religion</option>
                                         <option value="Islam">Islam</option>
