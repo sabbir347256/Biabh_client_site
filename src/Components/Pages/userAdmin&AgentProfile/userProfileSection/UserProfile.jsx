@@ -314,6 +314,7 @@ const UserProfile = () => {
                                     <div className="flex flex-wrap gap-3 mt-1 text-black text-sm drop-shadow-sm">
                                         <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {watchedValues?.currentThana || 'Not Set'}, Bangladesh</span>
                                         <span className="flex items-center gap-1"><User className="w-4 h-4" /> ID: {watchedValues?.profileId || watchedValues?.userID || 'N/A'}</span>
+                                        <span className="flex items-center gap-1"><User className="w-4 h-4" />Referral ID: {watchedValues?.ownRefarelID || 'N/A'}</span>
                                     </div>
                                 </div>
                                 <button type="button" onClick={() => toggleSection('header', true)} className="mt-1 p-1.5 bg-white/80 hover:bg-white text-gray-700 rounded-full shadow opacity-0 group-hover:opacity-100 transition">
