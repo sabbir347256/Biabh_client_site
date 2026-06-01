@@ -13,7 +13,7 @@ const HomeProfileSection = () => {
 
     const token = localStorage.getItem("accessToken");
 
-    const { data: profileData} = useQuery({
+    const { data: profileData } = useQuery({
         queryKey: ['allUserData'],
         queryFn: async () => {
             const headers = {
@@ -87,9 +87,9 @@ const HomeProfileSection = () => {
                             </button>
                         </div>
 
-                        <button className="border border-white/30 hover:border-white/60 text-white font-semibold text-xs px-5 py-2.5 rounded-full flex items-center gap-2 transition-all active:scale-95 whitespace-nowrap">
+                        <NavLink to='/find-match' className="border border-white/30 hover:border-white/60 text-white font-semibold text-xs px-5 py-2.5 rounded-full flex items-center gap-2 transition-all active:scale-95 whitespace-nowrap">
                             VIEW ALL <ArrowRight size={14} />
-                        </button>
+                        </NavLink>
                     </div>
                 </div>
 
