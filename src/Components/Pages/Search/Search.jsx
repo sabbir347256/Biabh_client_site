@@ -1,5 +1,5 @@
 import axios from "axios";
-import {  ChevronLeft, ChevronRight, RotateCcw, SlidersHorizontal, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import config from "../utilies/envconfig";
@@ -28,13 +28,12 @@ const Search = () => {
 
     const watchedDivision = watch("currentDivision");
 
-    // প্রোফাইল থেকে ডাইনামিক এবং ইউনিক Profession লিস্ট বের করার জন্য useMemo
     const occupationOptions = useMemo(() => {
         if (!profiles || profiles.length === 0) return [];
         const professions = profiles
             .map(profile => profile.profession)
-            .filter(prof => prof && prof.trim() !== ""); // খালি ভ্যালু বাদ দেওয়ার জন্য
-        return [...new Set(professions)]; // ইউনিক ভ্যালু রাখার জন্য Set ব্যবহার
+            .filter(prof => prof && prof.trim() !== "");
+        return [...new Set(professions)];
     }, [profiles]);
 
     const fetchProfiles = useCallback(async (filters) => {
@@ -46,7 +45,6 @@ const Search = () => {
             if (filters.occupation) params.profession = filters.occupation;
             if (filters.familyStatus) params.familyStatus = filters.familyStatus;
 
-            // Division ফিল্টারিং লজিক
             if (filters.currentDivision === "Other") {
                 if (filters.customDivision) {
                     params.currentDivision = filters.customDivision;
@@ -97,7 +95,6 @@ const Search = () => {
         fetchDivisions();
     }, [fetchProfiles]);
 
-    // Division "Other" সিলেক্ট হলে কাস্টম ইনপুট ফিল্ড দেখানোর জন্য
     useEffect(() => {
         if (watchedDivision === "Other") {
             setShowCustomDivision(true);
@@ -138,12 +135,12 @@ const Search = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 py-4 px-4">
+        <div className="min-h-screen py-4 px-4">
             <div className="app-container flex flex-col lg:flex-row gap-8">
 
                 <div className={`fixed inset-0 bg-black/50 z-50 transition-opacity duration-300 lg:hidden ${isFilterOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsFilterOpen(false)} />
 
-                <aside className={`fixed top-0 bottom-0 left-0 w-full max-w-sm bg-white z-50 p-6 overflow-y-auto transform transition-transform duration-300 shadow-xl lg:static lg:w-80 lg:shadow-sm lg:transform-none lg:z-0 lg:rounded-2xl lg:border lg:border-gray-100 ${isFilterOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+                <aside className={`fixed top-0 bottom-0 left-0 w-full max-w-sm h-full bg-white z-50 p-6 overflow-y-auto transform transition-transform duration-300 shadow-xl lg:static lg:w-80 lg:shadow-sm lg:transform-none lg:z-0 lg:rounded-2xl lg:border lg:border-gray-100 ${isFilterOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xl font-bold text-gray-800">Refine Search</h2>
@@ -153,7 +150,6 @@ const Search = () => {
                             <SlidersHorizontal className="w-5 h-5 text-red-500 hidden lg:block" />
                         </div>
 
-                        {/* Religion Filter */}
                         <div className="mb-5">
                             <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Religion</label>
                             <select
@@ -169,7 +165,6 @@ const Search = () => {
                             </select>
                         </div>
 
-                        {/* Division Filter */}
                         <div className="mb-5">
                             <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Division</label>
                             <select
@@ -186,7 +181,6 @@ const Search = () => {
                             </select>
                         </div>
 
-                        {/* Custom Division Text Input */}
                         {showCustomDivision && (
                             <div className="mb-5">
                                 <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Type Division Name</label>
@@ -199,7 +193,6 @@ const Search = () => {
                             </div>
                         )}
 
-                        {/* Dynamic Occupation Filter */}
                         <div className="mb-5">
                             <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Occupation</label>
                             <select
@@ -212,8 +205,7 @@ const Search = () => {
                                 ))}
                             </select>
                         </div>
-
-                        {/* Family Status Filter */}
+                        {/* 
                         <div className="mb-6">
                             <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Family Status</label>
                             <div className="grid grid-cols-2 gap-2">
@@ -231,7 +223,7 @@ const Search = () => {
                                     </label>
                                 ))}
                             </div>
-                        </div>
+                        </div> */}
 
                         <div className="flex flex-col gap-2">
                             <button
@@ -265,7 +257,7 @@ const Search = () => {
                                 <SlidersHorizontal className="w-4 h-4 text-red-500" />
                                 Filters
                             </button>
-                            <div className="flex items-center gap-2">
+                            {/* <div className="flex items-center gap-2">
                                 <span className="text-xs text-gray-400 font-medium">Sort by:</span>
                                 <select
                                     value={watch('sort')}
@@ -276,7 +268,7 @@ const Search = () => {
                                     <option value="Newest">Newest</option>
                                     <option value="Active Recently">Active Recently</option>
                                 </select>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 
@@ -307,7 +299,7 @@ const Search = () => {
                                                     className="absolute inset-0 w-full h-full object-cover object-top"
                                                 />
                                                 <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-col gap-1">
-                                                    {profile.isVerified && (
+                                                    {profile.isActive ==='ACTIVE' && (
                                                         <span className="bg-red-600 text-white text-[7px] sm:text-[9px] font-extrabold uppercase tracking-widest px-1.5 py-0.5 rounded flex items-center gap-1 w-fit">
                                                             <span className="w-1 h-1 bg-white rounded-full"></span> <span>Verified</span>
                                                         </span>

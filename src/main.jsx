@@ -45,18 +45,18 @@ const router = createBrowserRouter([
         path: "/create-account",
         element: <SignUp></SignUp>
       },
-      {
-        path: "/find-match",
-        element: <Search></Search>
-      },
-      {
-        path: "/success-stories",
-        element: <SuccessStory></SuccessStory>
-      },
-      {
-        path: "/contact",
-        element: <Contact></Contact>
-      },
+      // {
+      //   path: "/find-match",
+      //   element: <Search></Search>
+      // },
+      // {
+      //   path: "/success-stories",
+      //   element: <SuccessStory></SuccessStory>
+      // },
+      // {
+      //   path: "/contact",
+      //   element: <Contact></Contact>
+      // },
       {
         path: "*",
         element: <Underconstraction></Underconstraction>
