@@ -34,6 +34,7 @@ const Login = () => {
             });
 
             const result = await response.json();
+            console.log(result)
 
             if (response.ok && result?.data?.accessToken) {
                 localStorage.setItem('accessToken', result.data.accessToken);

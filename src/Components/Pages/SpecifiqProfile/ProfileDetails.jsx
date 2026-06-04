@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
     User, Briefcase, Heart,
-    MapPin, CheckCircle2, X, ShieldCheck, Lock, Unlock,
+    MapPin, CheckCircle2, X, ShieldCheck, Lock, 
     Phone,
     Mail,
     Globe

@@ -13,10 +13,8 @@ import { AuthProvider } from '../../../AuthProvider/CreateContext';
 import config from '../../utilies/envconfig';
 import toast, { Toaster } from 'react-hot-toast';
 
-// const config?.backendUrl /user= 'https://api.example.com/user';
-
 const UserProfile = () => {
-    const { data: authContextData } = useContext(AuthProvider);
+    const { data: authContextData, token, refetch } = useContext(AuthProvider);
     const profileUser = authContextData?.data;
 
     console.log(profileUser)
@@ -42,6 +40,26 @@ const UserProfile = () => {
     const { register, handleSubmit, watch, reset, setValue } = useForm();
     const watchedValues = watch();
 
+
+    useEffect(() => {
+        if (profileUser) {
+            reset({
+                contactNo: profileUser?.contactNo,
+                email: profileUser?.email,
+                currentDivision: profileUser?.currentDivision,
+                currentDistrict: profileUser?.currentDistrict,
+                currentThana: profileUser?.currentThana,
+                currentCountry: profileUser?.currentCountry || "Bangladesh",
+                permanentDivision: profileUser?.permanentDivision,
+                permanentDistrict: profileUser?.permanentDistrict,
+                permanentThana: profileUser?.permanentThana,
+                permanentCountry: profileUser?.permanentCountry || "Bangladesh",
+            });
+        }
+    }, [profileUser, reset]);
+
+
+
     useEffect(() => {
         const fetchProfileData = async () => {
             try {
@@ -62,25 +80,61 @@ const UserProfile = () => {
         fetchProfileData();
     }, [reset, profileUser]);
 
+    // const [images, setImages] = useState({
+    //     avatar: profileUser?.avatarPhoto || '',
+    //     cover: profileUser?.coverPhoto || ''
+    // });
+
+    // useEffect(() => {
+    //     if (profileUser) {
+    //         setImages({
+    //             avatar: profileUser.avatarPhoto || '',
+    //             cover: profileUser.coverPhoto || ''
+    //         });
+    //     }
+    // }, [profileUser]);
+
     const handleImageChange = async (e, type) => {
         const file = e.target.files[0];
-        if (file) {
-            const localUrl = URL.createObjectURL(file);
-            setImages(prev => ({ ...prev, [type]: localUrl }));
+        if (!file) return;
 
-            const formData = new FormData();
-            formData.append(type === 'cover' ? 'coverPhoto' : 'avatarPhoto', file);
+        const localUrl = URL.createObjectURL(file);
+        setImages(prev => ({ ...prev, [type]: localUrl }));
 
-            try {
-                const response = await axios.post(`${config?.backendUrl}/user/upload-${type}`, formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
-                if (response.data.imageUrl) {
-                    setImages(prev => ({ ...prev, [type]: response.data.imageUrl }));
+        const toastId = toast.loading(`Uploading ${type === 'cover' ? 'cover' : 'avatar'} photo...`);
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const response = await axios.put(
+                `${config?.backendUrl}/user/update-image/${type}`,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'Authorization': `Bearer ${token}`
+                    }
                 }
-            } catch (error) {
-                console.error(`Error uploading ${type} image:`, error);
+            );
+
+            if (response.data?.success && response.data?.data) {
+                const updatedUser = response.data.data;
+                setImages({
+                    avatar: updatedUser.avatarPhoto || '',
+                    cover: updatedUser.coverPhoto || ''
+                });
+                toast.success(response.data.message || `${type === 'cover' ? 'Cover' : 'Avatar'} photo updated successfully!`, { id: toastId });
+                refetch();
             }
+        } catch (error) {
+            console.error(`Error uploading ${type} image:`, error);
+            const errorMessage = error.response?.data?.message || `Failed to upload ${type} image.`;
+            toast.error(errorMessage, { id: toastId });
+            setImages(prev => ({
+                ...prev,
+                [type]: type === 'cover' ? profileUser?.coverPhoto : profileUser?.avatarPhoto
+            }));
         }
     };
 
@@ -115,43 +169,6 @@ const UserProfile = () => {
         setEditSections(prev => ({ ...prev, [section]: state }));
     };
 
-    const onFormSubmit = async (formData, sectionName) => {
-        const toastId = toast.loading(`Updating ${sectionName}...`);
-
-        try {
-            const response = await axios.put(`${config?.backendUrl}/user/update`, formData);
-
-            if (response.data?.success) {
-                toast.success(response.data?.message || `${sectionName} updated successfully!`, {
-                    id: toastId,
-                });
-
-                setEditSections(prev => ({ ...prev, [sectionName]: false }));
-            }
-        } catch (error) {
-            console.error(`Error updating data for section ${sectionName}:`, error);
-
-            const errorMessage = error.response?.data?.message || `Failed to update ${sectionName}.`;
-
-            toast.error(errorMessage, {
-                id: toastId,
-            });
-        }
-    };
-
-    const handleUnlockProfile = async () => {
-        try {
-            const response = await axios.post(`${config?.backendUrl}/user/profile/unlock`);
-            if (response.status === 200) {
-                setIsProfileLocked(false);
-            }
-        } catch (error) {
-            console.error("Error unlocking profile:", error);
-        }
-    };
-
-
-
     const [divisions, setDivisions] = useState([]);
     const [currentDistricts, setCurrentDistricts] = useState([]);
     const [currentUpazilas, setCurrentUpazilas] = useState([]);
@@ -162,6 +179,7 @@ const UserProfile = () => {
     const watchedCurrentDistrict = watch("currentDistrict");
     const watchedPermanentDivision = watch("permanentDivision");
     const watchedPermanentDistrict = watch("permanentDistrict");
+
 
     useEffect(() => {
         const fetchDivisions = async () => {
@@ -176,7 +194,36 @@ const UserProfile = () => {
             }
         };
         fetchDivisions();
-    }, []);
+    }, [config.geoApiUrl]);
+
+    useEffect(() => {
+        if (profileUser) {
+            reset({
+                contactNo: profileUser?.contactNo || "",
+                email: profileUser?.email || "",
+                currentCountry: profileUser?.currentCountry || "Bangladesh",
+                permanentCountry: profileUser?.permanentCountry || "Bangladesh",
+            });
+        }
+    }, [profileUser, reset, editSections.contact]);
+
+    useEffect(() => {
+        if (profileUser?.currentDivision && divisions.length > 0) {
+            const matchedDiv = divisions.find(d => String(d.name).toLowerCase() === String(profileUser.currentDivision).toLowerCase());
+            if (matchedDiv) {
+                setValue("currentDivision", matchedDiv.id || matchedDiv._id);
+            }
+        }
+    }, [profileUser, divisions, setValue]);
+
+    useEffect(() => {
+        if (profileUser?.permanentDivision && divisions.length > 0) {
+            const matchedDiv = divisions.find(d => String(d.name).toLowerCase() === String(profileUser.permanentDivision).toLowerCase());
+            if (matchedDiv) {
+                setValue("permanentDivision", matchedDiv.id || matchedDiv._id);
+            }
+        }
+    }, [profileUser, divisions, setValue]);
 
     useEffect(() => {
         if (!watchedCurrentDivision) {
@@ -188,16 +235,21 @@ const UserProfile = () => {
             try {
                 const response = await axios.get(`${config.geoApiUrl}/districts/${watchedCurrentDivision}`);
                 const districtsData = response.data?.data || response.data;
-                setCurrentDistricts(Array.isArray(districtsData) ? districtsData : []);
-                setCurrentUpazilas([]);
-                setValue("currentDistrict", "");
-                setValue("currentThana", "");
+                const districtsArray = Array.isArray(districtsData) ? districtsData : [];
+                setCurrentDistricts(districtsArray);
+
+                if (profileUser?.currentDistrict && districtsArray.length > 0) {
+                    const matchedDist = districtsArray.find(d => String(d.name).toLowerCase() === String(profileUser.currentDistrict).toLowerCase());
+                    if (matchedDist) {
+                        setValue("currentDistrict", matchedDist.id || matchedDist._id);
+                    }
+                }
             } catch (error) {
                 console.error("Error fetching current districts:", error);
             }
         };
         fetchCurrentDistricts();
-    }, [watchedCurrentDivision, setValue]);
+    }, [watchedCurrentDivision, setValue, profileUser, config.geoApiUrl]);
 
     useEffect(() => {
         if (!watchedCurrentDistrict) {
@@ -208,14 +260,21 @@ const UserProfile = () => {
             try {
                 const response = await axios.get(`${config.geoApiUrl}/upazilas/${watchedCurrentDistrict}`);
                 const upazilasData = response.data?.data || response.data;
-                setCurrentUpazilas(Array.isArray(upazilasData) ? upazilasData : []);
-                setValue("currentThana", "");
+                const upazilasArray = Array.isArray(upazilasData) ? upazilasData : [];
+                setCurrentUpazilas(upazilasArray);
+
+                if (profileUser?.currentThana && upazilasArray.length > 0) {
+                    const matchedUpz = upazilasArray.find(u => String(u.name).toLowerCase() === String(profileUser.currentThana).toLowerCase());
+                    if (matchedUpz) {
+                        setValue("currentThana", matchedUpz.name);
+                    }
+                }
             } catch (error) {
                 console.error("Error fetching current upazilas:", error);
             }
         };
         fetchCurrentUpazilas();
-    }, [watchedCurrentDistrict, setValue]);
+    }, [watchedCurrentDistrict, setValue, profileUser, config.geoApiUrl]);
 
     useEffect(() => {
         if (!watchedPermanentDivision) {
@@ -227,16 +286,21 @@ const UserProfile = () => {
             try {
                 const response = await axios.get(`${config.geoApiUrl}/districts/${watchedPermanentDivision}`);
                 const districtsData = response.data?.data || response.data;
-                setPermanentDistricts(Array.isArray(districtsData) ? districtsData : []);
-                setPermanentUpazilas([]);
-                setValue("permanentDistrict", "");
-                setValue("permanentThana", "");
+                const districtsArray = Array.isArray(districtsData) ? districtsData : [];
+                setPermanentDistricts(districtsArray);
+
+                if (profileUser?.permanentDistrict && districtsArray.length > 0) {
+                    const matchedDist = districtsArray.find(d => String(d.name).toLowerCase() === String(profileUser.permanentDistrict).toLowerCase());
+                    if (matchedDist) {
+                        setValue("permanentDistrict", matchedDist.id || matchedDist._id);
+                    }
+                }
             } catch (error) {
                 console.error("Error fetching permanent districts:", error);
             }
         };
         fetchPermanentDistricts();
-    }, [watchedPermanentDivision, setValue]);
+    }, [watchedPermanentDivision, setValue, profileUser, config.geoApiUrl]);
 
     useEffect(() => {
         if (!watchedPermanentDistrict) {
@@ -247,15 +311,65 @@ const UserProfile = () => {
             try {
                 const response = await axios.get(`${config.geoApiUrl}/upazilas/${watchedPermanentDistrict}`);
                 const upazilasData = response.data?.data || response.data;
-                setPermanentUpazilas(Array.isArray(upazilasData) ? upazilasData : []);
-                setValue("permanentThana", "");
+                const upazilasArray = Array.isArray(upazilasData) ? upazilasData : [];
+                setPermanentUpazilas(upazilasArray);
+
+                if (profileUser?.permanentThana && upazilasArray.length > 0) {
+                    const matchedUpz = upazilasArray.find(u => String(u.name).toLowerCase() === String(profileUser.permanentThana).toLowerCase());
+                    if (matchedUpz) {
+                        setValue("permanentThana", matchedUpz.name);
+                    }
+                }
             } catch (error) {
                 console.error("Error fetching permanent upazilas:", error);
             }
         };
         fetchPermanentUpazilas();
-    }, [watchedPermanentDistrict, setValue]);
+    }, [watchedPermanentDistrict, setValue, profileUser, config.geoApiUrl]);
 
+    const onFormSubmit = async (formData, sectionName) => {
+        const toastId = toast.loading(`Updating ${sectionName}...`);
+
+        let updatedFormData = { ...formData };
+
+        if (updatedFormData?.currentCountry === "Bangladesh") {
+            const currentDivObj = divisions.find(d => String(d.id) === String(updatedFormData?.currentDivision) || String(d._id) === String(updatedFormData?.currentDivision));
+            const currentDistObj = currentDistricts.find(d => String(d.id) === String(updatedFormData?.currentDistrict) || String(d._id) === String(updatedFormData?.currentDistrict));
+            if (currentDivObj) updatedFormData.currentDivision = currentDivObj.name;
+            if (currentDistObj) updatedFormData.currentDistrict = currentDistObj.name;
+        }
+
+        if (updatedFormData?.permanentCountry === "Bangladesh") {
+            const permDivObj = divisions.find(d => String(d.id) === String(updatedFormData?.permanentDivision) || String(d._id) === String(updatedFormData?.permanentDivision));
+            const permDistObj = permanentDistricts.find(d => String(d.id) === String(updatedFormData?.permanentDistrict) || String(d._id) === String(updatedFormData?.permanentDistrict));
+            if (permDivObj) updatedFormData.permanentDivision = permDivObj.name;
+            if (permDistObj) updatedFormData.permanentDistrict = permDistObj.name;
+        }
+
+        try {
+            const response = await axios.put(`${config?.backendUrl}/user/update`, updatedFormData,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (response.data?.success) {
+                toast.success(response.data?.message || `${sectionName} updated successfully!`, {
+                    id: toastId,
+                });
+                setEditSections(prev => ({ ...prev, [sectionName]: false }));
+            }
+        } catch (error) {
+            console.error(`Error updating data for section ${sectionName}:`, error);
+            const errorMessage = error.response?.data?.message || `Failed to update ${sectionName}.`;
+            toast.error(errorMessage, {
+                id: toastId,
+            });
+        }
+    };
 
 
 
@@ -266,13 +380,17 @@ const UserProfile = () => {
             </div>
         );
     }
+
+    console.log(watchedValues)
+
+
     return (
         <div className="app-container pb-8 min-h-screen">
             <Toaster position="top-right" reverseOrder={false} />
 
             <div className="relative mb-6">
                 <div className="h-64 md:h-[32rem] w-full rounded-b-2xl overflow-hidden bg-emerald-950 relative">
-                    <img src={images.cover} className="w-full h-full object-cover opacity-40" alt="Cover" />
+                    {images.cover && <img src={images.cover} className="w-full h-full object-cover opacity-40" alt="Cover" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     <label className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 cursor-pointer transition backdrop-blur-sm">
                         <Camera className="w-4 h-4" /> Edit Cover Photo
@@ -282,15 +400,15 @@ const UserProfile = () => {
 
                 <div className="absolute -bottom-10 left-8 flex items-end space-x-4">
                     <div className="relative group">
-                        <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white overflow-hidden bg-gray-200 relative">
-                            <img src={images.avatar} className="w-full h-full object-cover" alt="Avatar" />
+                        <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white overflow-hidden bg-gray-200 relative shadow-md">
+                            {images.avatar && <img src={images.avatar} className="w-full h-full object-cover" alt="Avatar" />}
                             <label className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition cursor-pointer">
                                 <Camera className="w-5 h-5 mb-1" />
                                 <span className="text-[10px] font-medium">Change Photo</span>
                                 <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageChange(e, 'avatar')} />
                             </label>
                         </div>
-                        {watchedValues?.nidStatus === 'verified' && (
+                        {profileUser?.nidStatus === 'verified' && (
                             <div className="absolute bottom-2 right-2 bg-emerald-600 border-2 border-white text-white p-1.5 rounded-full">
                                 <ShieldCheck className="w-4 h-4" />
                             </div>
@@ -310,11 +428,11 @@ const UserProfile = () => {
                         ) : (
                             <div className="flex items-start gap-2 group">
                                 <div>
-                                    <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-md">{watchedValues?.fullName || 'No Name Set'}</h1>
+                                    <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-md">{profileUser?.fullName || 'No Name Set'}</h1>
                                     <div className="flex flex-wrap gap-3 mt-1 text-black text-sm drop-shadow-sm">
-                                        <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {watchedValues?.currentThana || 'Not Set'}, Bangladesh</span>
-                                        <span className="flex items-center gap-1"><User className="w-4 h-4" /> ID: {watchedValues?.profileId || watchedValues?.userID || 'N/A'}</span>
-                                        <span className="flex items-center gap-1"><User className="w-4 h-4" />Referral ID: {watchedValues?.ownRefarelID || 'N/A'}</span>
+                                        <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {profileUser?.currentThana || 'Not Set'}, Bangladesh</span>
+                                        <span className="flex items-center gap-1"><User className="w-4 h-4" /> ID: {profileUser?.profileId || profileUser?.userID || 'N/A'}</span>
+                                        <span className="flex items-center gap-1"><User className="w-4 h-4" />Referral ID: {profileUser?.ownRefarelID || 'N/A'}</span>
                                     </div>
                                 </div>
                                 <button type="button" onClick={() => toggleSection('header', true)} className="mt-1 p-1.5 bg-white/80 hover:bg-white text-gray-700 rounded-full shadow opacity-0 group-hover:opacity-100 transition">
@@ -341,13 +459,48 @@ const UserProfile = () => {
                             <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'personal'))} className="space-y-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
+                                        <label className="text-xs font-semibold text-gray-400 uppercase">AGE</label>
+                                        <input
+                                            required
+                                            type="text"
+                                            placeholder="YYYY-MM-DD"
+                                            maxLength={10}
+                                            {...register("birth", {
+                                                required: "Date of birth is required",
+                                                validate: value => {
+                                                    const regex = /^\d{4}-\d{2}-\d{2}$/;
+                                                    return regex.test(value) || "Please enter a valid date (YYYY-MM-DD)";
+                                                }
+                                            })}
+                                            onChange={(e) => {
+                                                let val = e.target.value.replace(/\D/g, "");
+                                                let formatted = "";
+
+                                                if (val.length > 0) {
+                                                    formatted = val.substring(0, 4);
+
+                                                    if (val.length > 4) {
+                                                        formatted += "-" + val.substring(4, 6);
+                                                    }
+
+                                                    if (val.length > 6) {
+                                                        formatted += "-" + val.substring(6, 8);
+                                                    }
+                                                }
+                                                e.target.value = formatted;
+                                                const { onChange } = register("birth");
+                                                onChange(e);
+                                            }}
+                                            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white text-gray-700"
+                                        />                                    </div>
+                                    <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Height</label>
                                         <input {...register('Height')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                     </div>
-                                    {/* <div>
+                                    <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Home District</label>
-                                        <input {...register('homeDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
-                                    </div> */}
+                                        <input {...register('currentDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
+                                    </div>
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">
                                             Marital Status
@@ -376,23 +529,23 @@ const UserProfile = () => {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Age</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.age || 'Not Set'}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{profileUser?.age || 'Not Set'}</p>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Height</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.Height || 'Not Set'}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{profileUser?.Height || 'Not Set'}</p>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Home District</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.currentDistrict || 'Not Set'}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{profileUser?.currentDistrict || 'Not Set'}</p>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Marital Status</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.maritalStatus || 'Not Set'}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{profileUser?.maritalStatus || 'Not Set'}</p>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Religion</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.religion || 'Not Set'}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{profileUser?.religion || 'Not Set'}</p>
                                 </div>
                             </div>
                         )}
@@ -430,15 +583,15 @@ const UserProfile = () => {
                                 <div className="flex gap-3 items-start">
                                     <div className="bg-red-50 p-2 rounded-xl text-red-600 mt-1"><Briefcase className="w-5 h-5" /></div>
                                     <div className="flex-1">
-                                        <p className="text-gray-800 font-semibold">{watchedValues?.profession || 'Not Set'}</p>
-                                        <p className="text-gray-500 text-sm">{watchedValues?.professionOrganization || 'No Organization'}</p>
+                                        <p className="text-gray-800 font-semibold">{profileUser?.profession || 'Not Set'}</p>
+                                        <p className="text-gray-500 text-sm">{profileUser?.professionOrganization || 'No Organization'}</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-3 items-start">
                                     <div className="bg-red-50 p-2 rounded-xl text-red-600 mt-1"><GraduationCap className="w-5 h-5" /></div>
                                     <div className="flex-1">
-                                        <p className="text-gray-800 font-semibold">{watchedValues?.education || 'Not Set'}</p>
-                                        <p className="text-gray-500 text-sm">{watchedValues?.institute || 'No Institution'}</p>
+                                        <p className="text-gray-800 font-semibold">{profileUser?.education || 'Not Set'}</p>
+                                        <p className="text-gray-500 text-sm">{profileUser?.institute || 'No Institution'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -448,20 +601,20 @@ const UserProfile = () => {
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4 relative group">
                         <div className="flex justify-between items-center mb-4 border-b pb-2">
                             <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><MapPin className="w-5 h-5" /> Contact & Address</h2>
-                            {/* {!editSections.contact && (
+                            {!editSections.contact && (
                                 <button type="button" onClick={() => toggleSection('contact', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
-                            )} */}
+                            )}
                         </div>
 
                         <div className="space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
                                     <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Phone className="w-3.5 h-3.5" /> Contact No</span>
-                                    <p className="text-gray-700 text-sm font-medium">{watchedValues?.contactNo || 'Not Set'}</p>
+                                    <p className="text-gray-700 text-sm font-medium">{profileUser?.contactNo || 'Not Set'}</p>
                                 </div>
                                 <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
                                     <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Mail className="w-3.5 h-3.5" /> Email Address</span>
-                                    <p className="text-gray-700 text-sm font-medium">{watchedValues?.email || 'Not Set'}</p>
+                                    <p className="text-gray-700 text-sm font-medium">{profileUser?.email || 'Not Set'}</p>
                                 </div>
                             </div>
 
@@ -507,8 +660,8 @@ const UserProfile = () => {
                             </div>
                         </div>
 
-                        {/* {editSections.contact ? (
-                            <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'contact'))} className="space-y-4">
+                        {editSections.contact && (
+                            <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'contact'))} className="space-y-4 mt-6 border-t pt-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Contact No</label>
@@ -528,7 +681,7 @@ const UserProfile = () => {
                                             <select {...register('currentDivision')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white">
                                                 <option value="">Select Division</option>
                                                 {divisions.map((div) => (
-                                                    <option key={div._id || div.id} value={div.id}>{div.name}</option>
+                                                    <option key={div._id || div.id} value={div.id || div._id}>{div.name}</option>
                                                 ))}
                                             </select>
                                         </div>
@@ -537,7 +690,7 @@ const UserProfile = () => {
                                             <select disabled={!watchedCurrentDivision} {...register('currentDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white disabled:opacity-50">
                                                 <option value="">Select District</option>
                                                 {currentDistricts.map((dist) => (
-                                                    <option key={dist._id || dist.id} value={dist.id}>{dist.name}</option>
+                                                    <option key={dist._id || dist.id} value={dist.id || dist._id}>{dist.name}</option>
                                                 ))}
                                             </select>
                                         </div>
@@ -565,7 +718,7 @@ const UserProfile = () => {
                                             <select {...register('permanentDivision')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white">
                                                 <option value="">Select Division</option>
                                                 {divisions.map((div) => (
-                                                    <option key={div._id || div.id} value={div.id}>{div.name}</option>
+                                                    <option key={div._id || div.id} value={div.id || div._id}>{div.name}</option>
                                                 ))}
                                             </select>
                                         </div>
@@ -574,7 +727,7 @@ const UserProfile = () => {
                                             <select disabled={!watchedPermanentDivision} {...register('permanentDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white disabled:opacity-50">
                                                 <option value="">Select District</option>
                                                 {permanentDistricts.map((dist) => (
-                                                    <option key={dist._id || dist.id} value={dist.id}>{dist.name}</option>
+                                                    <option key={dist._id || dist.id} value={dist.id || dist._id}>{dist.name}</option>
                                                 ))}
                                             </select>
                                         </div>
@@ -601,12 +754,7 @@ const UserProfile = () => {
                                     <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-medium">Save</button>
                                 </div>
                             </form>
-                        )
-                            :
-                            (
-                               
-                            )
-                        } */}
+                        )}
                     </div>
 
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4 relative group">
@@ -646,19 +794,19 @@ const UserProfile = () => {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Father's Occupation</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.fatherOccupation || 'Not Set'}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{profileUser?.fatherOccupation || 'Not Set'}</p>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Mother's Occupation</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.motherOccupation || 'Not Set'}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{profileUser?.motherOccupation || 'Not Set'}</p>
                                 </div>
                                 {/* <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Siblings</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.siblings || 'Not Set'}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{profileUser?.siblings || 'Not Set'}</p>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Family Values</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{watchedValues?.familyValues || 'Not Set'}</p>
+                                    <p className="text-gray-800 font-medium mt-0.5">{profileUser?.familyValues || 'Not Set'}</p>
                                 </div> */}
                             </div>
                         )}
@@ -692,7 +840,7 @@ const UserProfile = () => {
                                 {[1, 2, 3, 4].map((num) => (
                                     <div key={num} className="flex gap-2 items-start">
                                         <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-white/80" />
-                                        <p className="text-sm font-medium leading-relaxed">{watchedValues?.[`expectation${num}`] || 'No expectations added yet.'}</p>
+                                        <p className="text-sm font-medium leading-relaxed">{profileUser?.[`expectation${num}`] || 'No expectations added yet.'}</p>
                                     </div>
                                 ))}
                             </div>
@@ -704,7 +852,7 @@ const UserProfile = () => {
                 <div className="space-y-6">
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
                         <div className="mx-auto bg-red-50 text-red-600 w-12 h-12 rounded-full flex items-center justify-center mb-3"><Heart className="w-6 h-6" /></div>
-                        <h3 className="font-bold text-gray-800 text-lg">Connect with {watchedValues?.name || 'User'}</h3>
+                        <h3 className="font-bold text-gray-800 text-lg">Connect with {profileUser?.name || 'User'}</h3>
                         <p className="text-gray-500 text-sm mt-1 mb-4 px-4">Take the first step toward a blessed journey together.</p>
 
                         <button type="button" className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-semibold text-sm transition shadow-md shadow-red-100 mb-3 flex items-center justify-center gap-2">
@@ -718,8 +866,8 @@ const UserProfile = () => {
                         ) : (
                             <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-xl space-y-2 text-left">
                                 <p className="text-xs font-bold flex items-center gap-1 text-emerald-600 uppercase"><Unlock className="w-3.5 h-3.5" /> Contact Unlocked</p>
-                                <p className="text-sm"><strong>Phone:</strong> {watchedValues?.phone || 'N/A'}</p>
-                                <p className="text-sm"><strong>Email:</strong> {watchedValues?.email || 'N/A'}</p>
+                                <p className="text-sm"><strong>Phone:</strong> {profileUser?.phone || 'N/A'}</p>
+                                <p className="text-sm"><strong>Email:</strong> {profileUser?.email || 'N/A'}</p>
                             </div>
                         )} */}
                     </div>
@@ -728,7 +876,7 @@ const UserProfile = () => {
                         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Verification Status</h3>
                         <div className="space-y-3">
                             <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
-                                {watchedValues?.isActive === 'ACTIVE' ? (
+                                {profileUser?.isActive === 'ACTIVE' ? (
                                     <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />
                                 ) : (
                                     <X className="w-4 h-4 text-red-500" />
@@ -754,9 +902,9 @@ const UserProfile = () => {
                         ) : (
                             <div className="bg-emerald-800/40 border border-emerald-500/30 p-3 rounded-xl flex items-center justify-between">
                                 <span className="text-xs font-medium text-emerald-200">
-                                    {watchedValues?.nidStatus === 'verified' ? 'NID Verified Successfully' : 'NID Uploaded (Pending Review)'}
+                                    {profileUser?.nidStatus === 'verified' ? 'NID Verified Successfully' : 'NID Uploaded (Pending Review)'}
                                 </span>
-                                {watchedValues?.nidStatus !== 'verified' && (
+                                {profileUser?.nidStatus !== 'verified' && (
                                     <button type="button" onClick={() => setNidUploaded(false)} className="text-emerald-400 hover:text-emerald-200"><X className="w-4 h-4" /></button>
                                 )}
                             </div>
