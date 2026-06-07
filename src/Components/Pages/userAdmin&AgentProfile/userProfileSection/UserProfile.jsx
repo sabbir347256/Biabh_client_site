@@ -4,20 +4,22 @@ import axios from 'axios';
 import {
     User, Briefcase, GraduationCap, Heart, Home,
     MapPin, Edit2, CheckCircle2,
-    Upload, X, ShieldCheck, Lock, Camera, Unlock,
+    X, ShieldCheck, Camera,
     Phone,
     Mail,
-    Globe
+    Globe,
+    LucideClockFading,
+    Upload,
+    CheckCircle,
+    AlertCircle
 } from 'lucide-react';
 import { AuthProvider } from '../../../AuthProvider/CreateContext';
 import config from '../../utilies/envconfig';
 import toast, { Toaster } from 'react-hot-toast';
 
 const UserProfile = () => {
-    const { data: authContextData, token, refetch } = useContext(AuthProvider);
+    const { data: authContextData, user, token, refetch, isLoading } = useContext(AuthProvider);
     const profileUser = authContextData?.data;
-
-    console.log(profileUser)
 
     const [loading, setLoading] = useState(true);
     const [isProfileLocked, setIsProfileLocked] = useState(true);
@@ -58,6 +60,8 @@ const UserProfile = () => {
         }
     }, [profileUser, reset]);
 
+    const [nidSubmittedDb, setNidSubmittedDb] = useState(false);
+    const [nidDbStatus, setNidDbStatus] = useState(null);
 
 
     useEffect(() => {
@@ -69,6 +73,16 @@ const UserProfile = () => {
                     if (profileUser.profileImage) setImages(prev => ({ ...prev, avatar: profileUser.profileImage }));
                     if (profileUser.nidStatus) setNidUploaded(profileUser.nidStatus === 'verified' || profileUser.nidStatus === 'pending');
                     setIsProfileLocked(profileUser.isLocked !== undefined ? profileUser.isLocked : true);
+                    if (profileUser._id) {
+                        const res = await axios.get(`${config?.backendUrl}/verification/check-nid/${profileUser._id}`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+                        console.log(res.data)
+                        if (res.data?.success) {
+                            setNidSubmittedDb(res.data.exists);
+                            setNidDbStatus(res.data.status || null);
+                        }
+                    }
                 }
                 setLoading(false);
             } catch (error) {
@@ -79,6 +93,9 @@ const UserProfile = () => {
 
         fetchProfileData();
     }, [reset, profileUser]);
+
+    //    console.log(nidDbStatus)
+    //    console.log(nidSubmittedDb)
 
     // const [images, setImages] = useState({
     //     avatar: profileUser?.avatarPhoto || '',
@@ -372,16 +389,79 @@ const UserProfile = () => {
     };
 
 
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [previewImages, setPreviewImages] = useState([]);
+    const [isSubmittingNid, setIsSubmittingNid] = useState(false);
 
-    if (loading) {
+    const handleNidFileSelect = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
+        const totalFiles = [...selectedFiles, ...files].slice(0, 2);
+        setSelectedFiles(totalFiles);
+
+        const urls = totalFiles.map((file) => URL.createObjectURL(file));
+        setPreviewImages(urls);
+    };
+
+    const removeSelectedNidImage = (index) => {
+        const updatedFiles = selectedFiles.filter((_, i) => i !== index);
+        const updatedUrls = previewImages.filter((_, i) => i !== index);
+        setSelectedFiles(updatedFiles);
+        setPreviewImages(updatedUrls);
+    };
+
+    const handleCancelNidUpload = () => {
+        setSelectedFiles([]);
+        setPreviewImages([]);
+    };
+
+    const handleNidSubmit = async () => {
+        if (selectedFiles.length === 0) {
+            toast.error("Please select at least one image");
+            return;
+        }
+
+        setIsSubmittingNid(true);
+        const toastId = toast.loading("Uploading NID documents...");
+        const formData = new FormData();
+
+        selectedFiles.forEach((file) => {
+            formData.append("nidImages", file);
+        });
+
+        try {
+            const response = await axios.post(`${config?.backendUrl}/verification/upload-nid`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (response.data?.success) {
+                toast.success(response.data.message, { id: toastId });
+                setSelectedFiles([]);
+                setPreviewImages([]);
+                refetch();
+            }
+        } catch (error) {
+            console.error("Error uploading NID:", error);
+            const errorMessage = error.response?.data?.message || "Failed to upload NID documents.";
+            toast.error(errorMessage, { id: toastId });
+        } finally {
+            setIsSubmittingNid(false);
+        }
+    };
+
+
+
+    if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <span className="loading loading-spinner loading-lg text-emerald-600"></span>
+            <div>
+                <LucideClockFading></LucideClockFading>
             </div>
         );
     }
-
-    console.log(watchedValues)
 
 
     return (
@@ -390,7 +470,7 @@ const UserProfile = () => {
 
             <div className="relative mb-6">
                 <div className="h-64 md:h-[32rem] w-full rounded-b-2xl overflow-hidden bg-emerald-950 relative">
-                    {images.cover && <img src={images.cover} className="w-full h-full object-cover opacity-40" alt="Cover" />}
+                    {images.cover && <img src={images.cover} className="w-full h-full object-cover" alt="Cover" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     <label className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 cursor-pointer transition backdrop-blur-sm">
                         <Camera className="w-4 h-4" /> Edit Cover Photo
@@ -850,7 +930,7 @@ const UserProfile = () => {
                 </div>
 
                 <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
+                    {/* <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
                         <div className="mx-auto bg-red-50 text-red-600 w-12 h-12 rounded-full flex items-center justify-center mb-3"><Heart className="w-6 h-6" /></div>
                         <h3 className="font-bold text-gray-800 text-lg">Connect with {profileUser?.name || 'User'}</h3>
                         <p className="text-gray-500 text-sm mt-1 mb-4 px-4">Take the first step toward a blessed journey together.</p>
@@ -859,7 +939,7 @@ const UserProfile = () => {
                             <Heart className="w-4 h-4" /> Send Interest
                         </button>
 
-                        {/* {isProfileLocked ? (
+                        {isProfileLocked ? (
                             <button type="button" onClick={handleUnlockProfile} className="w-full border border-red-200 hover:bg-red-50 text-red-600 py-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2">
                                 <Lock className="w-4 h-4" /> Unlock Contact Details
                             </button>
@@ -869,8 +949,8 @@ const UserProfile = () => {
                                 <p className="text-sm"><strong>Phone:</strong> {profileUser?.phone || 'N/A'}</p>
                                 <p className="text-sm"><strong>Email:</strong> {profileUser?.email || 'N/A'}</p>
                             </div>
-                        )} */}
-                    </div>
+                        )}
+                    </div> */}
 
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Verification Status</h3>
@@ -890,26 +970,73 @@ const UserProfile = () => {
                         </div>
                     </div>
 
-                    {/* <div className="bg-gradient-to-br from-emerald-900 to-teal-950 text-white p-6 rounded-2xl shadow-sm relative overflow-hidden">
-                        <h3 className="font-bold text-lg mb-1">Verify Your Identity</h3>
-                        <p className="text-xs text-emerald-200/80 mb-4 leading-relaxed">Attach your National ID Card (NID) to unlock verified badge.</p>
-                        {!nidUploaded ? (
-                            <div className="border border-dashed border-emerald-500/50 rounded-xl p-4 bg-emerald-950/40 text-center hover:bg-emerald-950/60 transition cursor-pointer relative">
-                                <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleNidUpload} />
-                                <Upload className="w-5 h-5 mx-auto text-emerald-400 mb-1" />
-                                <p className="text-xs font-medium text-emerald-300">Upload NID Front & Back</p>
-                            </div>
-                        ) : (
-                            <div className="bg-emerald-800/40 border border-emerald-500/30 p-3 rounded-xl flex items-center justify-between">
-                                <span className="text-xs font-medium text-emerald-200">
-                                    {profileUser?.nidStatus === 'verified' ? 'NID Verified Successfully' : 'NID Uploaded (Pending Review)'}
-                                </span>
-                                {profileUser?.nidStatus !== 'verified' && (
-                                    <button type="button" onClick={() => setNidUploaded(false)} className="text-emerald-400 hover:text-emerald-200"><X className="w-4 h-4" /></button>
+                    <div>
+                        <div>
+                            <div className="bg-gradient-to-br from-emerald-900 to-teal-950 text-white p-6 rounded-2xl shadow-sm relative overflow-hidden">
+                                <h3 className="font-bold text-lg mb-1">Verify Your Identity</h3>
+                                <p className="text-xs text-emerald-200/80 mb-4 leading-relaxed">Attach your National ID Card (NID) to unlock verified badge.</p>
+
+                                {nidSubmittedDb ? (
+                                    <>
+                                        {nidDbStatus === "verified" && (
+                                            <div className="bg-emerald-800/40 border border-emerald-500/30 p-4 rounded-xl flex items-center gap-3">
+                                                <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+                                                <span className="text-xs font-medium text-emerald-200">Your Identity has been verified successfully.</span>
+                                            </div>
+                                        )}
+
+                                        {nidDbStatus === "pending" && (
+                                            <div className="bg-amber-800/30 border border-amber-500/30 p-4 rounded-xl flex items-center gap-3">
+                                                <LucideClockFading className="w-5 h-5 text-amber-400 shrink-0" />
+                                                <span className="text-xs font-medium text-amber-200">You have already submitted your NID document. Admin is currently reviewing your submission.</span>
+                                            </div>
+                                        )}
+
+                                        {nidDbStatus === "rejected" && (
+                                            <div className="bg-rose-800/30 border border-rose-500/30 p-4 rounded-xl flex items-center gap-3">
+                                                <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-xs font-medium text-rose-200">Your previous NID submission was rejected. Please upload valid documentation.</span>
+                                                    <button type="button" onClick={() => { setNidSubmittedDb(false); setNidDbStatus(null); }} className="text-xs text-left text-emerald-400 underline hover:text-emerald-300 mt-1">Re-upload Documents</button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        {previewImages.length === 0 ? (
+                                            <div className="border border-dashed border-emerald-500/50 rounded-xl p-4 bg-emerald-950/40 text-center hover:bg-emerald-950/60 transition cursor-pointer relative">
+                                                <input type="file" multiple accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleNidFileSelect} />
+                                                <Upload className="w-5 h-5 mx-auto text-emerald-400 mb-1" />
+                                                <p className="text-xs font-medium text-emerald-300">Upload NID Front & Back</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-4">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    {previewImages.map((url, index) => (
+                                                        <div key={index} className="relative aspect-[1.6/1] border border-emerald-500/30 rounded-xl overflow-hidden bg-emerald-950/40">
+                                                            <img src={url} alt={`NID Preview ${index + 1}`} className="w-full h-full object-cover" />
+                                                            <button type="button" onClick={() => removeSelectedNidImage(index)} className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 p-1 rounded-full text-white transition">
+                                                                <X className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <div className="flex gap-3 justify-end text-xs font-medium">
+                                                    <button type="button" onClick={handleCancelNidUpload} disabled={isSubmittingNid} className="px-4 py-2 rounded-lg border border-emerald-500/30 text-emerald-300 hover:bg-emerald-950/40 transition disabled:opacity-50">
+                                                        Cancel
+                                                    </button>
+                                                    <button type="button" onClick={handleNidSubmit} disabled={isSubmittingNid} className="px-4 py-2 rounded-lg bg-emerald-500 text-emerald-950 font-semibold hover:bg-emerald-400 transition disabled:opacity-50">
+                                                        {isSubmittingNid ? "Submitting..." : "Submit Document"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
-                        )}
-                    </div> */}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
