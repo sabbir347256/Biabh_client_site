@@ -36,7 +36,6 @@ const HomeProfileSection = () => {
     });
 
     const allProfileData = profileData?.data;
-    console.log(profileData)
 
 
     const checkScrollBounds = () => {
@@ -101,7 +100,7 @@ const HomeProfileSection = () => {
                 >
                     {allProfileData?.map((profile) => (
                         <NavLink to={`/${profile?.fullName}/${profile?._id}`}
-                            key={profile.id}
+                            key={profile._id}
                             className="bg-[#240101] border border-white/5 rounded-3xl p-4 min-w-[260px] sm:min-w-[280px] max-w-[280px] snap-start flex flex-col justify-between shadow-xl"
                         >
                             <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden mb-4 bg-[#140000]">

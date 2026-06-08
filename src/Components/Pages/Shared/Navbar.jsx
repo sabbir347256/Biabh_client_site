@@ -54,6 +54,49 @@ const Navbar = () => {
         }
     };
 
+
+    const [loadingPayment, setLoadingPayment] = useState(false);
+
+    const onRechargeSubmit = async (formData) => {
+        setLoadingPayment(true);
+        const token = localStorage.getItem("accessToken");
+
+        try {
+            const paymentPayload = {
+                userObjectId: user?.userId,
+                userId: user?.userProfileId,
+                amount: formData.amount,
+                name: user?.name,
+                email: user?.email,
+                phone: user?.phone,
+                originUrl: window.location.origin
+            };
+
+            const response = await axios.post(
+                `${config?.backendUrl}/transaction/initiate-paystation`,
+                paymentPayload,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (response.data.success && response.data.payment_url) {
+                toast.success("Redirecting to PayStation...");
+                window.location.assign(response.data.payment_url);
+            } else {
+                toast.error("Could not initiate payment");
+            }
+        } catch (error) {
+            toast.error(error?.response?.data?.message || "Payment initialization failed");
+        } finally {
+            setLoadingPayment(false);
+            setIsRechargeOpen(false);
+            reset();
+        }
+    };
+
     const handleLogout = () => {
         localStorage.removeItem("accessToken");
         window.location.reload();
@@ -93,12 +136,18 @@ const Navbar = () => {
         };
     }, []);
 
+
     const mainAmount = data?.data?.mainWalletBalance || 0;
     const bonusAmount = data?.data?.isActive === 'INACTIVE' ? 0 : data?.data?.bonusWalletPoints;
     const referralAmount = user?.wallet?.referralBalance || 0;
-    const totalAmount = user
-        ? (mainAmount || 0) + (bonusAmount || 0) + (referralAmount || 0)
-        : 0;
+    const totalAmount = user ? (mainAmount + bonusAmount + referralAmount) : 0;
+
+    // const mainAmount = data?.data?.mainWalletBalance || 0;
+    // const bonusAmount = data?.data?.isActive === 'INACTIVE' ? 0 : data?.data?.bonusWalletPoints;
+    // const referralAmount = user?.wallet?.referralBalance || 0;
+    // const totalAmount = user
+    //     ? (mainAmount || 0) + (bonusAmount || 0) + (referralAmount || 0)
+    //     : 0;
 
 
     return (
@@ -135,25 +184,21 @@ const Navbar = () => {
                             onClick={() => setIsWalletOpen(!isWalletOpen)}
                             className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-xl transition-all duration-200 active:scale-95 shadow-md shadow-amber-100"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                            </svg>
+                            {/* ওয়ানলেট আইকন ও ব্যালেন্স টেক্সট */}
                             <div className="text-left leading-tight">
                                 <span className="block text-[9px] uppercase tracking-wider opacity-90">Wallet</span>
                                 <span className="text-xs font-bold">৳ {totalAmount}</span>
                             </div>
-                            <svg xmlns="http://www.w3.org/2000/svg" className={`h-3.5 w-3.5 transition-transform duration-200 ${isWalletOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
                         </button>
 
+                        {/* ওয়ালেট ড্রপডাউন */}
                         {user && isWalletOpen && (
                             <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 py-4 px-4 z-50">
                                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Balance Details</h4>
-                                <div className="space-y-2">
+                                <div className="space-y-2 text-neutral">
                                     <div className="flex justify-between items-center py-1.5 border-b border-gray-50">
                                         <span className="text-sm text-gray-600">Main Balance</span>
-                                        <span className="font-semibold text-gray-900">৳ {mainAmount}</span>
+                                        <span className="font-semibold">৳ {mainAmount}</span>
                                     </div>
                                     <div className="flex justify-between items-center py-1.5 border-b border-gray-50">
                                         <span className="text-sm text-gray-600">Bonus Balance</span>
@@ -165,10 +210,10 @@ const Navbar = () => {
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => setIsRechargeOpen(true)}
-                                    className="bg-red-600 text-white hover:bg-red-800 duration-100 p-2 rounded-xl w-full mt-2"
+                                    onClick={() => { setIsRechargeOpen(true); setIsWalletOpen(false); }}
+                                    className="bg-red-600 text-white hover:bg-red-800 duration-100 p-2 rounded-xl w-full mt-4 font-semibold"
                                 >
-                                    Recharge
+                                    Recharge Wallet
                                 </button>
                             </div>
                         )}
@@ -349,67 +394,36 @@ const Navbar = () => {
             </nav>
 
             {isRechargeOpen && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] px-4">
-                    <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+                <div className="modal modal-open fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                    <div className="modal-box bg-white max-w-sm rounded-2xl p-6 relative border border-gray-100 shadow-2xl">
                         <button
                             onClick={() => setIsRechargeOpen(false)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold"
-                        >
-                            &times;
-                        </button>
-                        <h3 className="text-lg font-bold text-gray-990 mb-2">Recharge Account</h3>
-                        <p className="text-sm text-gray-600 bg-red-50 text-red-800 p-3 rounded-xl mb-4 font-medium">
-                            Please Payment to <span className="font-bold text-red-600">01711651471</span> via bKash, then submit your Transaction ID and Mobile Number below.
-                        </p>
+                            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 text-gray-500"
+                        >✕</button>
 
-                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Mobile Number</label>
-                                <input
-                                    type="text"
-                                    placeholder="01XXXXXXXXX"
-                                    {...register("phoneNumber", { required: "Mobile number is required" })}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-red-500 text-sm"
-                                />
-                                {errors.phoneNumber && <p className="text-red-500 text-xs mt-1">{errors.phoneNumber.message}</p>}
-                            </div>
+                        <h3 className="font-bold text-lg text-gray-800 text-center mb-4">Recharge Your Wallet</h3>
 
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Transaction ID</label>
-                                <input
-                                    type="text"
-                                    placeholder="TxnID"
-                                    {...register("transactionId", { required: "Transaction ID is required" })}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-red-500 text-sm"
-                                />
-                                {errors.transactionId && <p className="text-red-500 text-xs mt-1">{errors.transactionId.message}</p>}
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Amount</label>
+                        <form onSubmit={handleSubmit(onRechargeSubmit)} className="space-y-4">
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-medium text-gray-600">Enter Amount (BDT)</span>
+                                </label>
                                 <input
                                     type="number"
-                                    placeholder="Enter amount"
-                                    {...register("amount", { required: "Amount is required" })}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-red-500 text-sm"
+                                    placeholder="e.g. 500"
+                                    className={`input input-bordered w-full bg-gray-50 text-gray-900 focus:outline-none focus:border-red-500 ${errors.amount ? 'input-error' : ''}`}
+                                    {...register("amount", { required: "Amount is required", })}
                                 />
-                                {errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount.message}</p>}
+                                {errors.amount && <span className="text-xs text-red-500 mt-1">{errors.amount.message}</span>}
                             </div>
 
-                            <div className="flex gap-2 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsRechargeOpen(false)}
-                                    className="w-1/2 border border-gray-200 text-gray-600 py-2 rounded-xl text-sm font-medium hover:bg-gray-50"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="w-1/2 bg-red-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-red-700"
-                                >
-                                    Submit
-                                </button>
-                            </div>
+                            <button
+                                type="submit"
+                                disabled={loadingPayment}
+                                className={`btn bg-red-600 hover:bg-red-700 text-white w-full rounded-xl border-none mt-2 ${loadingPayment ? 'loading' : ''}`}
+                            >
+                                {loadingPayment ? "Processing..." : "Proceed to Payment"}
+                            </button>
                         </form>
                     </div>
                 </div>
