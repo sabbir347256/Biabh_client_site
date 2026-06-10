@@ -182,37 +182,62 @@ const Navbar = () => {
                     <div className="relative" ref={walletRef}>
                         <button
                             onClick={() => setIsWalletOpen(!isWalletOpen)}
-                            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-xl transition-all duration-200 active:scale-95 shadow-md shadow-amber-100"
+                            className="flex items-center gap-3 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-medium px-4 py-2 rounded-xl transition-all duration-300 active:scale-95 shadow-md shadow-red-100 border border-red-500/10"
                         >
-                            {/* ওয়ানলেট আইকন ও ব্যালেন্স টেক্সট */}
-                            <div className="text-left leading-tight">
-                                <span className="block text-[9px] uppercase tracking-wider opacity-90">Wallet</span>
-                                <span className="text-xs font-bold">৳ {totalAmount}</span>
+                            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-white">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6A2.25 2.25 0 0 1 18.75 20H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3" />
+                                </svg>
                             </div>
+                            <div className="text-left leading-tight pr-1">
+                                <span className="block text-[10px] font-semibold uppercase tracking-wider text-red-100">Wallet</span>
+                                <span className="text-sm font-extrabold tracking-wide">৳ {totalAmount}</span>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={`w-3 h-3 text-red-100 transition-transform duration-300 ${isWalletOpen ? 'rotate-180' : ''}`}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                            </svg>
                         </button>
 
-                        {/* ওয়ালেট ড্রপডাউন */}
                         {user && isWalletOpen && (
-                            <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 py-4 px-4 z-50">
-                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Balance Details</h4>
-                                <div className="space-y-2 text-neutral">
-                                    <div className="flex justify-between items-center py-1.5 border-b border-gray-50">
-                                        <span className="text-sm text-gray-600">Main Balance</span>
-                                        <span className="font-semibold">৳ {mainAmount}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center py-1.5 border-b border-gray-50">
-                                        <span className="text-sm text-gray-600">Bonus Balance</span>
-                                        <span className="font-semibold text-emerald-600">৳ {bonusAmount}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center py-1.5">
-                                        <span className="text-sm text-gray-600">Referral Earn</span>
-                                        <span className="font-semibold text-indigo-600">৳ {referralAmount}</span>
-                                    </div>
+                            <div className="absolute right-0 mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100/80 p-5 z-50 transform origin-top-right transition-all duration-200 ease-out animate-in fade-in slide-in-from-top-2">
+                                <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+                                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Balance Details</h4>
+                                    <span className="bg-red-50 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-red-100/50">Active Account</span>
                                 </div>
+
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center p-2.5 rounded-xl bg-gray-50/60 hover:bg-gray-50 transition-colors">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+                                            <span className="text-sm font-medium text-gray-600">Main Balance</span>
+                                        </div>
+                                        <span className="font-bold text-gray-900">৳ {mainAmount}</span>
+                                    </div>
+
+                                    <div className="flex justify-between items-center p-2.5 rounded-xl bg-emerald-50/40 hover:bg-emerald-50/70 transition-colors">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                            <span className="text-sm font-medium text-emerald-700">Bonus Balance</span>
+                                        </div>
+                                        <span className="font-bold text-emerald-600">৳ {bonusAmount}</span>
+                                    </div>
+
+                                    {/* <div className="flex justify-between items-center p-2.5 rounded-xl bg-indigo-50/40 hover:bg-indigo-50/70 transition-colors">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                                            <span className="text-sm font-medium text-indigo-700">Referral Earn</span>
+                                        </div>
+                                        <span className="font-bold text-indigo-600">৳ {referralAmount}</span>
+                                    </div> */}
+                                </div>
+
                                 <button
                                     onClick={() => { setIsRechargeOpen(true); setIsWalletOpen(false); }}
-                                    className="bg-red-600 text-white hover:bg-red-800 duration-100 p-2 rounded-xl w-full mt-4 font-semibold"
+                                    className="group flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-rose-500 text-white hover:from-red-700 hover:to-rose-600 active:scale-[0.98] transition-all duration-200 py-3 px-4 rounded-xl w-full mt-5 font-bold text-sm shadow-md shadow-red-100"
                                 >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 transition-transform group-hover:translate-x-0.5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
                                     Recharge Wallet
                                 </button>
                             </div>
@@ -302,6 +327,7 @@ const Navbar = () => {
                                 >
                                     Recharge
                                 </button>
+                                
                             </div>
 
                         )}
@@ -394,35 +420,70 @@ const Navbar = () => {
             </nav>
 
             {isRechargeOpen && (
-                <div className="modal modal-open fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                    <div className="modal-box bg-white max-w-sm rounded-2xl p-6 relative border border-gray-100 shadow-2xl">
+                <div className="modal modal-open fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
+                    <div className="modal-box bg-white max-w-sm w-full rounded-2xl p-6 relative border border-gray-100 shadow-2xl transform transition-all scale-100 animate-in fade-in zoom-in-95 duration-200">
                         <button
                             onClick={() => setIsRechargeOpen(false)}
-                            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 text-gray-500"
-                        >✕</button>
+                            className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                        >
+                            ✕
+                        </button>
 
-                        <h3 className="font-bold text-lg text-gray-800 text-center mb-4">Recharge Your Wallet</h3>
+                        <div className="flex flex-col items-center mb-6">
+                            <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center text-red-600 mb-3 border border-red-100/50">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6A2.25 2.25 0 0 1 18.75 20H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3" />
+                                </svg>
+                            </div>
+                            <h3 className="font-extrabold text-xl text-gray-800 text-center">Recharge Wallet</h3>
+                            <p className="text-xs text-gray-400 text-center mt-1">Add funds securely to your account</p>
+                        </div>
 
-                        <form onSubmit={handleSubmit(onRechargeSubmit)} className="space-y-4">
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text font-medium text-gray-600">Enter Amount (BDT)</span>
+                        <form onSubmit={handleSubmit(onRechargeSubmit)} className="space-y-5">
+                            <div className="form-control w-full">
+                                <label className="label py-1">
+                                    <span className="label-text font-semibold text-gray-600 text-xs uppercase tracking-wider">Enter Amount (BDT)</span>
                                 </label>
-                                <input
-                                    type="number"
-                                    placeholder="e.g. 500"
-                                    className={`input input-bordered w-full bg-gray-50 text-gray-900 focus:outline-none focus:border-red-500 ${errors.amount ? 'input-error' : ''}`}
-                                    {...register("amount", { required: "Amount is required", })}
-                                />
-                                {errors.amount && <span className="text-xs text-red-500 mt-1">{errors.amount.message}</span>}
+                                <div className="relative flex items-center">
+                                    <span className="absolute left-4 text-gray-400 font-bold text-lg select-none">৳</span>
+                                    <input
+                                        type="number"
+                                        placeholder="e.g. 500"
+                                        className={`input w-full pl-9 pr-4 py-6 bg-gray-50/80 text-gray-900 font-bold text-lg rounded-xl border border-gray-200 focus:outline-none focus:border-red-500 focus:bg-white transition-all duration-200 ${errors.amount ? 'border-red-500 bg-red-50/10 focus:border-red-500' : ''}`}
+                                        {...register("amount", {
+                                            required: "Amount is required",
+                                            // min: { value: 10, message: "Minimum recharge amount is ৳10" }
+                                        })}
+                                    />
+                                </div>
+                                {errors.amount && (
+                                    <div className="flex items-center gap-1 mt-1.5 text-red-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clipRule="evenodd" />
+                                        </svg>
+                                        <span className="text-xs font-medium">{errors.amount.message}</span>
+                                    </div>
+                                )}
                             </div>
 
                             <button
                                 type="submit"
                                 disabled={loadingPayment}
-                                className={`btn bg-red-600 hover:bg-red-700 text-white w-full rounded-xl border-none mt-2 ${loadingPayment ? 'loading' : ''}`}
+                                className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-rose-500 text-white hover:from-red-700 hover:to-rose-600 active:scale-[0.98] transition-all duration-200 py-3.5 px-4 rounded-xl w-full font-bold text-sm shadow-md shadow-red-100 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none`}
                             >
-                                {loadingPayment ? "Processing..." : "Proceed to Payment"}
+                                {loadingPayment ? (
+                                    <div className="flex items-center gap-2">
+                                        <span className="loading loading-spinner loading-sm"></span>
+                                        <span>Processing Payment...</span>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <span>Proceed to Payment</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 transition-transform group-hover:translate-x-0.5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                        </svg>
+                                    </>
+                                )}
                             </button>
                         </form>
                     </div>
