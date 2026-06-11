@@ -11,16 +11,19 @@ import {
     LucideClockFading,
     Upload,
     CheckCircle,
-    AlertCircle
+    AlertCircle,
+    CreditCard
 } from 'lucide-react';
 import { AuthProvider } from '../../../AuthProvider/CreateContext';
 import config from '../../utilies/envconfig';
 import toast, { Toaster } from 'react-hot-toast';
+import { useSearchParams } from 'react-router';
 
 const UserProfile = () => {
-    const { data: authContextData, user, token, refetch, isLoading } = useContext(AuthProvider);
+    const { data: authContextData, token, refetch, isLoading } = useContext(AuthProvider);
     const profileUser = authContextData?.data;
 
+    const [searchParams, setSearchParams] = useSearchParams();
     const [loading, setLoading] = useState(true);
     const [isProfileLocked, setIsProfileLocked] = useState(true);
     const [editSections, setEditSections] = useState({
@@ -38,16 +41,88 @@ const UserProfile = () => {
     });
 
     const [nidUploaded, setNidUploaded] = useState(false);
+    const [nidSubmittedDb, setNidSubmittedDb] = useState(false);
+    const [nidDbStatus, setNidDbStatus] = useState(null);
+
+    const [isNidPaid, setIsNidPaid] = useState(false);
+    const [isFieldPaid, setIsFieldPaid] = useState(false);
+    const [fieldVerificationStatus, setFieldVerificationStatus] = useState('NOT_STARTED');
+
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [previewImages, setPreviewImages] = useState([]);
+    const [isSubmittingNid, setIsSubmittingNid] = useState(false);
+
+    const [divisions, setDivisions] = useState([]);
+    const [currentDistricts, setCurrentDistricts] = useState([]);
+    const [currentUpazilas, setCurrentUpazilas] = useState([]);
+    const [permanentDistricts, setPermanentDistricts] = useState([]);
+    const [permanentUpazilas, setPermanentUpazilas] = useState([]);
 
     const { register, handleSubmit, watch, reset, setValue } = useForm();
-    const watchedValues = watch();
 
+    const watchedCurrentDivision = watch("currentDivision");
+    const watchedCurrentDistrict = watch("currentDistrict");
+    const watchedPermanentDivision = watch("permanentDivision");
+    const watchedPermanentDistrict = watch("permanentDistrict");
+
+    const getProfileCompletion = () => {
+        let percentage = 0;
+        if (profileUser?.isActive === 'ACTIVE') {
+            percentage = 30;
+            if (profileUser?.isDocumentVerification || profileUser?.nidStatus === 'verified') {
+                percentage = 60;
+                if (profileUser?.isFieldVerification || fieldVerificationStatus === 'VERIFIED') {
+                    percentage = 100;
+                }
+            }
+        }
+        return percentage;
+    };
+
+    useEffect(() => {
+        const paymentStatus = searchParams.get('paymentStatus');
+        const purpose = searchParams.get('purpose');
+
+        if (!paymentStatus) return;
+
+        if (paymentStatus === 'success') {
+            refetch();
+
+            if (purpose === 'NID_VERIFICATION') {
+                toast.success('Your NID verification payment was successful! Admin will review and approve it within 30 minutes.', {
+                    id: 'nid-success',
+                    duration: 4000
+                });
+            } else if (purpose === 'FIELD_VERIFICATION') {
+                toast.success('Your field verification payment was successful! Admin will review and approve it within 30 minutes.', {
+                    id: 'field-success',
+                    duration: 4000
+                });
+            } else {
+                toast.success('Payment completed successfully!', {
+                    id: 'general-success',
+                    duration: 3000
+                });
+            }
+        } else if (paymentStatus === 'fail') {
+            toast.error('Payment process failed or declined.', {
+                id: 'payment-fail',
+                duration: 3000
+            });
+        }
+
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+
+        setSearchParams({}, { replace: true });
+
+    }, [searchParams, setSearchParams, refetch]);
 
     useEffect(() => {
         if (profileUser) {
             reset({
-                contactNo: profileUser?.contactNo,
-                email: profileUser?.email,
+                contactNo: profileUser?.contactNo || "",
+                email: profileUser?.email || "",
                 currentDivision: profileUser?.currentDivision,
                 currentDistrict: profileUser?.currentDistrict,
                 currentThana: profileUser?.currentThana,
@@ -60,24 +135,23 @@ const UserProfile = () => {
         }
     }, [profileUser, reset]);
 
-    const [nidSubmittedDb, setNidSubmittedDb] = useState(false);
-    const [nidDbStatus, setNidDbStatus] = useState(null);
-
-
     useEffect(() => {
         const fetchProfileData = async () => {
             try {
                 if (profileUser) {
-                    reset(profileUser);
                     if (profileUser.coverImage) setImages(prev => ({ ...prev, cover: profileUser.coverImage }));
                     if (profileUser.profileImage) setImages(prev => ({ ...prev, avatar: profileUser.profileImage }));
                     if (profileUser.nidStatus) setNidUploaded(profileUser.nidStatus === 'verified' || profileUser.nidStatus === 'pending');
                     setIsProfileLocked(profileUser.isLocked !== undefined ? profileUser.isLocked : true);
+
+                    setIsNidPaid(!!profileUser.isNidPaid);
+                    setIsFieldPaid(!!profileUser.isFieldPaid);
+                    if (profileUser.fieldStatus) setFieldVerificationStatus(profileUser.fieldStatus);
+
                     if (profileUser._id) {
                         const res = await axios.get(`${config?.backendUrl}/verification/check-nid/${profileUser._id}`, {
                             headers: { Authorization: `Bearer ${token}` }
                         });
-                        console.log(res.data)
                         if (res.data?.success) {
                             setNidSubmittedDb(res.data.exists);
                             setNidDbStatus(res.data.status || null);
@@ -86,159 +160,36 @@ const UserProfile = () => {
                 }
                 setLoading(false);
             } catch (error) {
-                console.error("Error fetching profile data:", error);
-
+                console.error(error);
             }
         };
-
         fetchProfileData();
-    }, [reset, profileUser]);
-
-    //    console.log(nidDbStatus)
-    //    console.log(nidSubmittedDb)
-
-    // const [images, setImages] = useState({
-    //     avatar: profileUser?.avatarPhoto || '',
-    //     cover: profileUser?.coverPhoto || ''
-    // });
-
-    // useEffect(() => {
-    //     if (profileUser) {
-    //         setImages({
-    //             avatar: profileUser.avatarPhoto || '',
-    //             cover: profileUser.coverPhoto || ''
-    //         });
-    //     }
-    // }, [profileUser]);
-
-    const handleImageChange = async (e, type) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const localUrl = URL.createObjectURL(file);
-        setImages(prev => ({ ...prev, [type]: localUrl }));
-
-        const toastId = toast.loading(`Uploading ${type === 'cover' ? 'cover' : 'avatar'} photo...`);
-
-        const formData = new FormData();
-        formData.append('image', file);
-
-        try {
-            const response = await axios.put(
-                `${config?.backendUrl}/user/update-image/${type}`,
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                        'Authorization': `Bearer ${token}`
-                    }
-                }
-            );
-
-            if (response.data?.success && response.data?.data) {
-                const updatedUser = response.data.data;
-                setImages({
-                    avatar: updatedUser.avatarPhoto || '',
-                    cover: updatedUser.coverPhoto || ''
-                });
-                toast.success(response.data.message || `${type === 'cover' ? 'Cover' : 'Avatar'} photo updated successfully!`, { id: toastId });
-                refetch();
-            }
-        } catch (error) {
-            console.error(`Error uploading ${type} image:`, error);
-            const errorMessage = error.response?.data?.message || `Failed to upload ${type} image.`;
-            toast.error(errorMessage, { id: toastId });
-            setImages(prev => ({
-                ...prev,
-                [type]: type === 'cover' ? profileUser?.coverPhoto : profileUser?.avatarPhoto
-            }));
-        }
-    };
-
-    const handleNidUpload = async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setNidUploaded(true);
-            const formData = new FormData();
-            formData.append('nidDocument', file);
-
-            try {
-                await axios.post(`${config?.backendUrl}/user/upload-nid`, formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
-            } catch (error) {
-                console.error("Error uploading NID:", error);
-                setNidUploaded(false);
-            }
-        }
-    };
-
-    const toggleSection = async (section, state) => {
-        if (!state) {
-            try {
-                const response = await axios.get(`${config?.backendUrl}/user/profile`);
-                reset(response.data);
-            } catch (error) {
-                if (profileUser) reset(profileUser);
-                console.error("Error reverting changes:", error);
-            }
-        }
-        setEditSections(prev => ({ ...prev, [section]: state }));
-    };
-
-    const [divisions, setDivisions] = useState([]);
-    const [currentDistricts, setCurrentDistricts] = useState([]);
-    const [currentUpazilas, setCurrentUpazilas] = useState([]);
-    const [permanentDistricts, setPermanentDistricts] = useState([]);
-    const [permanentUpazilas, setPermanentUpazilas] = useState([]);
-
-    const watchedCurrentDivision = watch("currentDivision");
-    const watchedCurrentDistrict = watch("currentDistrict");
-    const watchedPermanentDivision = watch("permanentDivision");
-    const watchedPermanentDistrict = watch("permanentDistrict");
-
+    }, [profileUser, token, config]);
 
     useEffect(() => {
         const fetchDivisions = async () => {
             try {
                 const response = await axios.get(`${config.geoApiUrl}/divisions`);
                 const divisionsData = response.data?.data || response.data;
-                if (Array.isArray(divisionsData)) {
-                    setDivisions(divisionsData);
-                }
+                if (Array.isArray(divisionsData)) setDivisions(divisionsData);
             } catch (error) {
-                console.error("Error fetching divisions:", error);
+                console.error(error);
             }
         };
         fetchDivisions();
     }, [config.geoApiUrl]);
 
     useEffect(() => {
-        if (profileUser) {
-            reset({
-                contactNo: profileUser?.contactNo || "",
-                email: profileUser?.email || "",
-                currentCountry: profileUser?.currentCountry || "Bangladesh",
-                permanentCountry: profileUser?.permanentCountry || "Bangladesh",
-            });
-        }
-    }, [profileUser, reset, editSections.contact]);
-
-    useEffect(() => {
         if (profileUser?.currentDivision && divisions.length > 0) {
             const matchedDiv = divisions.find(d => String(d.name).toLowerCase() === String(profileUser.currentDivision).toLowerCase());
-            if (matchedDiv) {
-                setValue("currentDivision", matchedDiv.id || matchedDiv._id);
-            }
+            if (matchedDiv) setValue("currentDivision", matchedDiv.id || matchedDiv._id);
         }
     }, [profileUser, divisions, setValue]);
 
     useEffect(() => {
         if (profileUser?.permanentDivision && divisions.length > 0) {
             const matchedDiv = divisions.find(d => String(d.name).toLowerCase() === String(profileUser.permanentDivision).toLowerCase());
-            if (matchedDiv) {
-                setValue("permanentDivision", matchedDiv.id || matchedDiv._id);
-            }
+            if (matchedDiv) setValue("permanentDivision", matchedDiv.id || matchedDiv._id);
         }
     }, [profileUser, divisions, setValue]);
 
@@ -257,12 +208,10 @@ const UserProfile = () => {
 
                 if (profileUser?.currentDistrict && districtsArray.length > 0) {
                     const matchedDist = districtsArray.find(d => String(d.name).toLowerCase() === String(profileUser.currentDistrict).toLowerCase());
-                    if (matchedDist) {
-                        setValue("currentDistrict", matchedDist.id || matchedDist._id);
-                    }
+                    if (matchedDist) setValue("currentDistrict", matchedDist.id || matchedDist._id);
                 }
             } catch (error) {
-                console.error("Error fetching current districts:", error);
+                console.error(error);
             }
         };
         fetchCurrentDistricts();
@@ -282,12 +231,10 @@ const UserProfile = () => {
 
                 if (profileUser?.currentThana && upazilasArray.length > 0) {
                     const matchedUpz = upazilasArray.find(u => String(u.name).toLowerCase() === String(profileUser.currentThana).toLowerCase());
-                    if (matchedUpz) {
-                        setValue("currentThana", matchedUpz.name);
-                    }
+                    if (matchedUpz) setValue("currentThana", matchedUpz.name);
                 }
             } catch (error) {
-                console.error("Error fetching current upazilas:", error);
+                console.error(error);
             }
         };
         fetchCurrentUpazilas();
@@ -308,12 +255,10 @@ const UserProfile = () => {
 
                 if (profileUser?.permanentDistrict && districtsArray.length > 0) {
                     const matchedDist = districtsArray.find(d => String(d.name).toLowerCase() === String(profileUser.permanentDistrict).toLowerCase());
-                    if (matchedDist) {
-                        setValue("permanentDistrict", matchedDist.id || matchedDist._id);
-                    }
+                    if (matchedDist) setValue("permanentDistrict", matchedDist.id || matchedDist._id);
                 }
             } catch (error) {
-                console.error("Error fetching permanent districts:", error);
+                console.error(error);
             }
         };
         fetchPermanentDistricts();
@@ -333,73 +278,55 @@ const UserProfile = () => {
 
                 if (profileUser?.permanentThana && upazilasArray.length > 0) {
                     const matchedUpz = upazilasArray.find(u => String(u.name).toLowerCase() === String(profileUser.permanentThana).toLowerCase());
-                    if (matchedUpz) {
-                        setValue("permanentThana", matchedUpz.name);
-                    }
+                    if (matchedUpz) setValue("permanentThana", matchedUpz.name);
                 }
             } catch (error) {
-                console.error("Error fetching permanent upazilas:", error);
+                console.error(error);
             }
         };
         fetchPermanentUpazilas();
     }, [watchedPermanentDistrict, setValue, profileUser, config.geoApiUrl]);
 
-    const onFormSubmit = async (formData, sectionName) => {
-        const toastId = toast.loading(`Updating ${sectionName}...`);
+    const handleImageChange = async (e, type) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-        let updatedFormData = { ...formData };
-
-        if (updatedFormData?.currentCountry === "Bangladesh") {
-            const currentDivObj = divisions.find(d => String(d.id) === String(updatedFormData?.currentDivision) || String(d._id) === String(updatedFormData?.currentDivision));
-            const currentDistObj = currentDistricts.find(d => String(d.id) === String(updatedFormData?.currentDistrict) || String(d._id) === String(updatedFormData?.currentDistrict));
-            if (currentDivObj) updatedFormData.currentDivision = currentDivObj.name;
-            if (currentDistObj) updatedFormData.currentDistrict = currentDistObj.name;
-        }
-
-        if (updatedFormData?.permanentCountry === "Bangladesh") {
-            const permDivObj = divisions.find(d => String(d.id) === String(updatedFormData?.permanentDivision) || String(d._id) === String(updatedFormData?.permanentDivision));
-            const permDistObj = permanentDistricts.find(d => String(d.id) === String(updatedFormData?.permanentDistrict) || String(d._id) === String(updatedFormData?.permanentDistrict));
-            if (permDivObj) updatedFormData.permanentDivision = permDivObj.name;
-            if (permDistObj) updatedFormData.permanentDistrict = permDistObj.name;
-        }
+        const localUrl = URL.createObjectURL(file);
+        setImages(prev => ({ ...prev, [type]: localUrl }));
+        const toastId = toast.loading(`Uploading ${type === 'cover' ? 'cover' : 'avatar'} photo...`);
+        const formData = new FormData();
+        formData.append('image', file);
 
         try {
-            const response = await axios.put(`${config?.backendUrl}/user/update`, updatedFormData,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+            const response = await axios.put(`${config?.backendUrl}/user/update-image/${type}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`
                 }
-            );
-
-            if (response.data?.success) {
-                toast.success(response.data?.message || `${sectionName} updated successfully!`, {
-                    id: toastId,
+            });
+            if (response.data?.success && response.data?.data) {
+                const updatedUser = response.data.data;
+                setImages({
+                    avatar: updatedUser.avatarPhoto || '',
+                    cover: updatedUser.coverPhoto || ''
                 });
-                setEditSections(prev => ({ ...prev, [sectionName]: false }));
+                toast.success(response.data.message || `${type === 'cover' ? 'Cover' : 'Avatar'} photo updated!`, { id: toastId });
+                refetch();
             }
         } catch (error) {
-            console.error(`Error updating data for section ${sectionName}:`, error);
-            const errorMessage = error.response?.data?.message || `Failed to update ${sectionName}.`;
-            toast.error(errorMessage, {
-                id: toastId,
-            });
+            toast.error("Failed to upload image", { id: toastId });
+            setImages(prev => ({
+                ...prev,
+                [type]: type === 'cover' ? profileUser?.coverPhoto : profileUser?.avatarPhoto
+            }));
         }
     };
-
-
-    const [selectedFiles, setSelectedFiles] = useState([]);
-    const [previewImages, setPreviewImages] = useState([]);
-    const [isSubmittingNid, setIsSubmittingNid] = useState(false);
 
     const handleNidFileSelect = (e) => {
         const files = Array.from(e.target.files);
         if (files.length === 0) return;
-
         const totalFiles = [...selectedFiles, ...files].slice(0, 2);
         setSelectedFiles(totalFiles);
-
         const urls = totalFiles.map((file) => URL.createObjectURL(file));
         setPreviewImages(urls);
     };
@@ -421,11 +348,9 @@ const UserProfile = () => {
             toast.error("Please select at least one image");
             return;
         }
-
         setIsSubmittingNid(true);
         const toastId = toast.loading("Uploading NID documents...");
         const formData = new FormData();
-
         selectedFiles.forEach((file) => {
             formData.append("nidImages", file);
         });
@@ -437,7 +362,6 @@ const UserProfile = () => {
                     Authorization: `Bearer ${token}`,
                 },
             });
-
             if (response.data?.success) {
                 toast.success(response.data.message, { id: toastId });
                 setSelectedFiles([]);
@@ -445,7 +369,6 @@ const UserProfile = () => {
                 refetch();
             }
         } catch (error) {
-            console.error("Error uploading NID:", error);
             const errorMessage = error.response?.data?.message || "Failed to upload NID documents.";
             toast.error(errorMessage, { id: toastId });
         } finally {
@@ -453,6 +376,106 @@ const UserProfile = () => {
         }
     };
 
+    const handleNidPaymentProcess = async () => {
+        const toastId = toast.loading("Connecting to PayStation...");
+        try {
+            const res = await axios.post(`${config?.backendUrl}/nidtransaction/initiate`, {
+                userObjectId: profileUser?._id,
+                userId: profileUser?.userId || profileUser?._id,
+                amount: 390,
+                name: profileUser?.name,
+                email: profileUser?.email,
+                phone: profileUser?.contactNo,
+                originUrl: window.location.origin + window.location.pathname
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (res.data?.success && res.data?.payment_url) {
+                toast.dismiss(toastId);
+                window.location.href = res.data.payment_url;
+            } else {
+                toast.error("Failed to generate payment url", { id: toastId });
+            }
+        } catch (error) {
+            toast.error("NID payment initialization failed.", { id: toastId });
+        }
+    };
+
+    const handleFieldPaymentProcess = async () => {
+        const toastId = toast.loading("Connecting to PayStation...");
+        try {
+            const res = await axios.post(`${config?.backendUrl}/fieldTransaction/transaction-initiate`, {
+                userObjectId: profileUser?._id,
+                userId: profileUser?.userId || profileUser?._id,
+                amount: 2340,
+                name: profileUser?.name,
+                email: profileUser?.email,
+                phone: profileUser?.contactNo,
+                originUrl: window.location.origin + window.location.pathname
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (res.data?.success && res.data?.payment_url) {
+                toast.dismiss(toastId);
+                window.location.href = res.data.payment_url;
+            } else {
+                toast.error("Failed to generate payment url", { id: toastId });
+            }
+        } catch (error) {
+            toast.error("Field payment initialization failed.", { id: toastId });
+        }
+    };
+
+    const toggleSection = async (section, state) => {
+        if (!state) {
+            try {
+                const response = await axios.get(`${config?.backendUrl}/user/profile`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                reset(response.data);
+            } catch (error) {
+                if (profileUser) reset(profileUser);
+            }
+        }
+        setEditSections(prev => ({ ...prev, [section]: state }));
+    };
+
+    const onFormSubmit = async (formData, sectionName) => {
+        const toastId = toast.loading(`Updating ${sectionName}...`);
+        let updatedFormData = { ...formData };
+
+        if (updatedFormData?.currentCountry === "Bangladesh") {
+            const currentDivObj = divisions.find(d => String(d.id) === String(updatedFormData?.currentDivision) || String(d._id) === String(updatedFormData?.currentDivision));
+            const currentDistObj = currentDistricts.find(d => String(d.id) === String(updatedFormData?.currentDistrict) || String(d._id) === String(updatedFormData?.currentDistrict));
+            if (currentDivObj) updatedFormData.currentDivision = currentDivObj.name;
+            if (currentDistObj) updatedFormData.currentDistrict = currentDistObj.name;
+        }
+
+        if (updatedFormData?.permanentCountry === "Bangladesh") {
+            const permDivObj = divisions.find(d => String(d.id) === String(updatedFormData?.permanentDivision) || String(d._id) === String(updatedFormData?.permanentDivision));
+            const permDistObj = permanentDistricts.find(d => String(d.id) === String(updatedFormData?.permanentDistrict) || String(d._id) === String(updatedFormData?.permanentDistrict));
+            if (permDivObj) updatedFormData.permanentDivision = permDivObj.name;
+            if (permDistObj) updatedFormData.permanentDistrict = permDistObj.name;
+        }
+
+        try {
+            const response = await axios.put(`${config?.backendUrl}/user/update`, updatedFormData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.data?.success) {
+                toast.success(`${sectionName} updated successfully!`, { id: toastId });
+                setEditSections(prev => ({ ...prev, [sectionName]: false }));
+                refetch();
+            }
+        } catch (error) {
+            toast.error("Failed to update.", { id: toastId });
+        }
+    };
 
 
     if (isLoading) {
@@ -952,88 +975,199 @@ const UserProfile = () => {
                         )}
                     </div> */}
 
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Verification Status</h3>
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
-                                {profileUser?.isActive === 'ACTIVE' ? (
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />
-                                ) : (
-                                    <X className="w-4 h-4 text-red-500" />
-                                )}
-                                <span>Profile Activation</span>
+                    <div className="space-y-6">
+                        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Verification Status</h3>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-semibold text-gray-500">Profile Progress:</span>
+                                    <div className="w-24 bg-gray-200 h-2 rounded-full overflow-hidden">
+                                        <div
+                                            className="bg-emerald-500 h-full transition-all duration-500"
+                                            style={{ width: `${getProfileCompletion()}%` }}
+                                        ></div>
+                                    </div>
+                                    <span className="text-xs font-bold text-emerald-600">{getProfileCompletion()}%</span>
+                                </div>
                             </div>
-                            {/* <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
-                                {nidUploaded ? <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" /> : <X className="w-4 h-4 text-gray-300" />}
-                                <span>Official ID Document Verified</span>
-                            </div> */}
-                        </div>
-                    </div>
 
-                    <div>
-                        <div>
-                            <div className="bg-gradient-to-br from-emerald-900 to-teal-950 text-white p-6 rounded-2xl shadow-sm relative overflow-hidden">
-                                <h3 className="font-bold text-lg mb-1">Verify Your Identity</h3>
-                                <p className="text-xs text-emerald-200/80 mb-4 leading-relaxed">Attach your National ID Card (NID) to unlock verified badge.</p>
-
-                                {nidSubmittedDb ? (
-                                    <>
-                                        {nidDbStatus === "verified" && (
-                                            <div className="bg-emerald-800/40 border border-emerald-500/30 p-4 rounded-xl flex items-center gap-3">
-                                                <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
-                                                <span className="text-xs font-medium text-emerald-200">Your Identity has been verified successfully.</span>
-                                            </div>
-                                        )}
-
-                                        {nidDbStatus === "pending" && (
-                                            <div className="bg-amber-800/30 border border-amber-500/30 p-4 rounded-xl flex items-center gap-3">
-                                                <LucideClockFading className="w-5 h-5 text-amber-400 shrink-0" />
-                                                <span className="text-xs font-medium text-amber-200">You have already submitted your NID document. Admin is currently reviewing your submission.</span>
-                                            </div>
-                                        )}
-
-                                        {nidDbStatus === "rejected" && (
-                                            <div className="bg-rose-800/30 border border-rose-500/30 p-4 rounded-xl flex items-center gap-3">
-                                                <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-xs font-medium text-rose-200">Your previous NID submission was rejected. Please upload valid documentation.</span>
-                                                    <button type="button" onClick={() => { setNidSubmittedDb(false); setNidDbStatus(null); }} className="text-xs text-left text-emerald-400 underline hover:text-emerald-300 mt-1">Re-upload Documents</button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </>
-                                ) : (
-                                    <>
-                                        {previewImages.length === 0 ? (
-                                            <div className="border border-dashed border-emerald-500/50 rounded-xl p-4 bg-emerald-950/40 text-center hover:bg-emerald-950/60 transition cursor-pointer relative">
-                                                <input type="file" multiple accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleNidFileSelect} />
-                                                <Upload className="w-5 h-5 mx-auto text-emerald-400 mb-1" />
-                                                <p className="text-xs font-medium text-emerald-300">Upload NID Front & Back</p>
-                                            </div>
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between border-b pb-2">
+                                    <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                                        {profileUser?.isActive === 'ACTIVE' ? (
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />
                                         ) : (
-                                            <div className="space-y-4">
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    {previewImages.map((url, index) => (
-                                                        <div key={index} className="relative aspect-[1.6/1] border border-emerald-500/30 rounded-xl overflow-hidden bg-emerald-950/40">
-                                                            <img src={url} alt={`NID Preview ${index + 1}`} className="w-full h-full object-cover" />
-                                                            <button type="button" onClick={() => removeSelectedNidImage(index)} className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 p-1 rounded-full text-white transition">
-                                                                <X className="w-3 h-3" />
+                                            <X className="w-4 h-4 text-red-500" />
+                                        )}
+                                        <span>Profile Activation</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between border-b pb-2">
+                                    <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                                        {(profileUser?.isDocumentVerification || profileUser?.nidStatus === 'verified') ? (
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />
+                                        ) : profileUser?.nidStatus === 'pending' ? (
+                                            <LucideClockFading className="w-4 h-4 text-amber-500" />
+                                        ) : (
+                                            <X className="w-4 h-4 text-gray-400" />
+                                        )}
+                                        <span>Document Verification</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between pt-1">
+                                    <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                                        {(profileUser?.isFieldVerification || fieldVerificationStatus === 'VERIFIED') ? (
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />
+                                        ) : fieldVerificationStatus === 'PENDING' ? (
+                                            <LucideClockFading className="w-4 h-4 text-amber-500" />
+                                        ) : (
+                                            <X className="w-4 h-4 text-gray-400" />
+                                        )}
+                                        <span>Field Verification</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-gradient-to-br from-emerald-900 to-teal-950 text-white p-6 rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[280px]">
+                                <div>
+                                    <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
+                                        <ShieldCheck className="w-5 h-5 text-emerald-400" /> Identity Verification
+                                    </h3>
+                                    <p className="text-xs text-emerald-200/80 mb-4 leading-relaxed">Attach your National ID Card (NID) to unlock verified badge.</p>
+                                </div>
+
+                                <div className="mt-auto w-full">
+                                    {!isNidPaid ? (
+                                        <div className="bg-emerald-950/60 border border-emerald-500/30 p-4 rounded-xl text-center">
+                                            <p className="text-xs text-emerald-200 mb-3">Verification Fee: <span className="font-bold text-sm text-white">390 TK</span></p>
+                                            <button
+                                                type="button"
+                                                onClick={handleNidPaymentProcess}
+                                                className="w-full py-2 px-4 rounded-lg bg-emerald-500 text-emerald-950 font-bold text-xs hover:bg-emerald-400 transition flex items-center justify-center gap-2"
+                                            >
+                                                <CreditCard className="w-4 h-4" /> Pay 390 TK
+                                            </button>
+                                        </div>
+                                    ) : nidSubmittedDb ? (
+                                        <>
+                                            {nidDbStatus === "verified" && (
+                                                <div className="bg-emerald-800/40 border border-emerald-500/30 p-4 rounded-xl flex items-center gap-3">
+                                                    <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+                                                    <span className="text-xs font-medium text-emerald-200">Your Identity has been verified successfully.</span>
+                                                </div>
+                                            )}
+
+                                            {nidDbStatus === "pending" && (
+                                                <div className="bg-amber-800/30 border border-amber-500/30 p-4 rounded-xl flex items-center gap-3">
+                                                    <LucideClockFading className="w-5 h-5 text-amber-400 shrink-0" />
+                                                    <span className="text-xs font-medium text-amber-200">Documents submitted. Admin reviewing submission.</span>
+                                                </div>
+                                            )}
+
+                                            {nidDbStatus === "rejected" && (
+                                                <div className="bg-rose-800/30 border border-rose-500/30 p-4 rounded-xl flex items-center gap-3">
+                                                    <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                                                    <div className="flex flex-col gap-1">
+                                                        <span className="text-xs font-medium text-rose-200">Submission rejected. Upload valid documentation.</span>
+                                                        <button type="button" onClick={() => { setNidSubmittedDb(false); setNidDbStatus(null); }} className="text-xs text-left text-emerald-400 underline hover:text-emerald-300 mt-1">Re-upload Documents</button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <div className="bg-emerald-950/80 border border-emerald-500/30 p-3 rounded-xl text-center mb-1">
+                                                <p className="text-[11px] text-emerald-200 font-medium">tmr payment document er jonno successfull hoyeche admin check kore 30 minute er modhe apporve kore dibe</p>
+                                            </div>
+                                            <form onSubmit={handleSubmit(handleNidSubmit)}>
+                                                {previewImages.length === 0 ? (
+                                                    <div className="border border-dashed border-emerald-500/50 rounded-xl p-4 bg-emerald-950/40 text-center hover:bg-emerald-950/60 transition cursor-pointer relative">
+                                                        <input
+                                                            type="file"
+                                                            multiple
+                                                            accept="image/*"
+                                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                                            {...register("nidDocuments", {
+                                                                required: true,
+                                                                onChange: handleNidFileSelect
+                                                            })}
+                                                        />
+                                                        <Upload className="w-5 h-5 mx-auto text-emerald-400 mb-1" />
+                                                        <p className="text-xs font-medium text-emerald-300">Upload NID Front & Back</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-4">
+                                                        <div className="grid grid-cols-2 gap-3">
+                                                            {previewImages.map((url, index) => (
+                                                                <div key={index} className="relative aspect-[1.6/1] border border-emerald-500/30 rounded-xl overflow-hidden bg-emerald-950/40">
+                                                                    <img src={url} alt={`NID Preview ${index + 1}`} className="w-full h-full object-cover" />
+                                                                    <button type="button" onClick={() => removeSelectedNidImage(index)} className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 p-1 rounded-full text-white transition">
+                                                                        <X className="w-3 h-3" />
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        <div className="flex gap-3 justify-end text-xs font-medium">
+                                                            <button type="button" onClick={handleCancelNidUpload} disabled={isSubmittingNid} className="px-4 py-2 rounded-lg border border-emerald-500/30 text-emerald-300 hover:bg-emerald-950/40 transition disabled:opacity-50">
+                                                                Cancel
+                                                            </button>
+                                                            <button type="submit" disabled={isSubmittingNid} className="px-4 py-2 rounded-lg bg-emerald-500 text-emerald-950 font-semibold hover:bg-emerald-400 transition disabled:opacity-50">
+                                                                {isSubmittingNid ? "Submitting..." : "Submit Document"}
                                                             </button>
                                                         </div>
-                                                    ))}
-                                                </div>
-                                                <div className="flex gap-3 justify-end text-xs font-medium">
-                                                    <button type="button" onClick={handleCancelNidUpload} disabled={isSubmittingNid} className="px-4 py-2 rounded-lg border border-emerald-500/30 text-emerald-300 hover:bg-emerald-950/40 transition disabled:opacity-50">
-                                                        Cancel
-                                                    </button>
-                                                    <button type="button" onClick={handleNidSubmit} disabled={isSubmittingNid} className="px-4 py-2 rounded-lg bg-emerald-500 text-emerald-950 font-semibold hover:bg-emerald-400 transition disabled:opacity-50">
-                                                        {isSubmittingNid ? "Submitting..." : "Submit Document"}
-                                                    </button>
-                                                </div>
+                                                    </div>
+                                                )}
+                                            </form>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="bg-gradient-to-br from-slate-900 to-slate-950 text-white p-6 rounded-2xl shadow-sm border border-slate-800 flex flex-col justify-between min-h-[280px]">
+                                <div>
+                                    <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
+                                        <ShieldCheck className="w-5 h-5 text-blue-400" /> Field Verification
+                                    </h3>
+                                    <p className="text-xs text-slate-400 mb-4 leading-relaxed">Request on-site structural and background verification checks for full access authority.</p>
+                                </div>
+
+                                <div className="mt-auto w-full">
+                                    {!isFieldPaid ? (
+                                        <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+                                            <p className="text-xs text-slate-400 mb-3">Verification Fee: <span className="font-bold text-sm text-white">2340 TK</span></p>
+                                            <button
+                                                type="button"
+                                                onClick={handleFieldPaymentProcess}
+                                                className="w-full py-2 px-4 rounded-lg bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 transition flex items-center justify-center gap-2"
+                                            >
+                                                <CreditCard className="w-4 h-4" /> Pay 2340 TK
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <div className="bg-blue-950/40 border border-blue-500/30 p-4 rounded-xl flex items-center gap-3">
+                                                {(profileUser?.isFieldVerification || fieldVerificationStatus === 'VERIFIED') ? (
+                                                    <>
+                                                        <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+                                                        <span className="text-xs font-medium text-emerald-200">Field Verification Completed.</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <LucideClockFading className="w-5 h-5 text-blue-400 shrink-0" />
+                                                        <span className="text-xs font-medium text-blue-300">Payment Processed. Field audit queue sequence assigned.</span>
+                                                    </>
+                                                )}
                                             </div>
-                                        )}
-                                    </>
-                                )}
+                                            {fieldVerificationStatus === 'PENDING' && (
+                                                <div className="bg-slate-900 border border-slate-700 p-3 rounded-xl text-center">
+                                                    <p className="text-[11px] text-slate-300 font-medium">tmr payment document er jonno successfull hoyeche admin check kore 30 minute er modhe apporve kore dibe</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
