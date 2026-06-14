@@ -89,26 +89,25 @@ const UserProfile = () => {
             refetch();
 
             if (purpose === 'NID_VERIFICATION') {
-                toast.success('Your NID verification payment was successful! Admin will review and approve it within 30 minutes.', {
-                    id: 'nid-success',
-                    duration: 4000
-                });
-            } else if (purpose === 'FIELD_VERIFICATION') {
-                toast.success('Your field verification payment was successful! Admin will review and approve it within 30 minutes.', {
-                    id: 'field-success',
-                    duration: 4000
-                });
-            } else {
-                toast.success('Payment completed successfully!', {
-                    id: 'general-success',
-                    duration: 3000
-                });
+                setTimeout(() => {
+                    toast.success('Your payment was successful! Admin will review and approve it within 30 minutes.');
+                }, 3000);
             }
+            // else if (purpose === 'FIELD_VERIFICATION') {
+            //     toast.success('Your field verification payment was successful! Admin will review and approve it within 30 minutes.', {
+            //         id: 'field-success',
+            //         duration: 4000
+            //     });
+            // } else {
+            //     toast.success('Payment completed successfully!', {
+            //         id: 'general-success',
+            //         duration: 3000
+            //     });
+            // }
         } else if (paymentStatus === 'fail') {
-            toast.error('Payment process failed or declined.', {
-                id: 'payment-fail',
-                duration: 3000
-            });
+            setTimeout(() => {
+                toast.error('Payment process failed or declined.');
+            }, 3000);
         }
 
         const cleanUrl = window.location.origin + window.location.pathname;
