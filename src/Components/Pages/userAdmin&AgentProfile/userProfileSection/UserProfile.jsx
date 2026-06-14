@@ -383,7 +383,7 @@ const UserProfile = () => {
             const res = await axios.post(`${config?.backendUrl}/nidtransaction/initiate`, {
                 userObjectId: profileUser?._id,
                 userId: profileUser?.userID,
-                amount: 1,
+                amount: 390,
                 name: profileUser?.name,
                 email: profileUser?.email,
                 phone: profileUser?.contactNo,
