@@ -79,13 +79,11 @@ const ProfileDetails = () => {
                     contactNo: response.data.data.contactNo,
                     email: response.data.data.email
                 }));
-                setMessage({ type: 'success', text: response.data.message });
+                toast.success(response.data.message)
+                // setMessage({ type: 'success', text: response.data.message });
             }
         } catch (error) {
-            setMessage({
-                type: 'error',
-                text: error.response?.data?.message || "কিছু একটা সমস্যা হয়েছে।"
-            });
+           toast.error(error.response?.data?.message)
         }
     };
 
@@ -242,7 +240,7 @@ const ProfileDetails = () => {
                 </div>
 
                 <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
+                    {/* <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
                         <div className="mx-auto bg-red-50 text-red-600 w-12 h-12 rounded-full flex items-center justify-center mb-3">
                             <Heart className="w-6 h-6" />
                         </div>
@@ -257,7 +255,7 @@ const ProfileDetails = () => {
                             <Heart className="w-4 h-4" /> Send Interest
                         </button>
 
-                        {/* {isProfileLocked ? (
+                        {isProfileLocked ? (
                             <button
                                 type="button"
                                 onClick={handleUnlockProfile}
@@ -269,8 +267,8 @@ const ProfileDetails = () => {
                             <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-xl text-center animate-fadeIn font-semibold text-sm flex items-center justify-center gap-1.5">
                                 <Unlock className="w-4 h-4 text-emerald-600" /> Contact Details Unlocked
                             </div>
-                        )} */}
-                    </div>
+                        )}
+                    </div> */}
 
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Verification Status</h3>

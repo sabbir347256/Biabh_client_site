@@ -376,13 +376,14 @@ const UserProfile = () => {
     };
 
     console.log(profileUser)
+
     const handleNidPaymentProcess = async () => {
         const toastId = toast.loading("Connecting to PayStation...");
         try {
             const res = await axios.post(`${config?.backendUrl}/nidtransaction/initiate`, {
                 userObjectId: profileUser?._id,
                 userId: profileUser?.userID,
-                amount: 390,
+                amount: 1,
                 name: profileUser?.name,
                 email: profileUser?.email,
                 phone: profileUser?.contactNo,
