@@ -1,3 +1,5 @@
+import { NavLink } from "react-router";
+
 const CreateStory = () => {
     return (
         <section className="py-16 w-full">
@@ -17,12 +19,14 @@ const CreateStory = () => {
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-                            <button className="bg-white hover:bg-gray-50 text-[#C20E0E] font-bold px-8 py-3.5 rounded-xl shadow-md transition-all duration-200 active:scale-95 w-full sm:w-auto text-sm">
-                                Create Your Biodata
-                            </button>
-                            <button className="border-2 border-white/40 hover:border-white text-white font-semibold px-8 py-3 rounded-xl transition-all duration-200 active:scale-95 w-full sm:w-auto text-sm">
+                            <NavLink to='/create-account' className="bg-white hover:bg-gray-50 text-[#C20E0E] font-bold px-8 py-3.5 rounded-xl shadow-md transition-all duration-200 active:scale-95 w-full sm:w-auto text-sm">
+                                <button>
+                                    Create Your Biodata
+                                </button>
+                            </NavLink>
+                            {/* <button className="border-2 border-white/40 hover:border-white text-white font-semibold px-8 py-3 rounded-xl transition-all duration-200 active:scale-95 w-full sm:w-auto text-sm">
                                 Learn More
-                            </button>
+                            </button> */}
                         </div>
                     </div>
 

@@ -72,7 +72,7 @@ const Footer = () => {
 
                 <div className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/40 font-medium">
                     <p>
-                        &copy; 2026 Bibah Matrimony. Premium Bangladeshi Muslim Matchmaking.
+                        &copy; 2026 Bibah Matrimony. Premium Bangladeshi Matchmaking. Developed by HUMTECH
                     </p>
                 </div>
 

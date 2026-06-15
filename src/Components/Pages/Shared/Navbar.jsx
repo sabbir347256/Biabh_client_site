@@ -107,7 +107,7 @@ const Navbar = () => {
         { name: 'Find Match', path: '/find-match' },
         // { name: 'Membership', path: '/membership' },
         { name: 'Success Stories', path: '/success-stories' },
-        { name: 'Blog', path: '/blog' },
+        // { name: 'Blog', path: '/blog' },
         { name: 'Contact', path: '/contact' }
     ];
 
