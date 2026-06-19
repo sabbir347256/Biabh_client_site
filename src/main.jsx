@@ -16,6 +16,7 @@ import UserPrivateRoute from "./Components/Pages/PrivateRoute/UserPrivateRoute";
 import Search from "./Components/Pages/Search/Search";
 import SuccessStory from "./Components/Pages/successStory/SuccessStory";
 import Contact from "./Components/Pages/Contact/Contact";
+import ForgotPass from "./Components/Pages/Authentication/ForgotPass/ForgotPass";
 
 
 const queryClient = new QueryClient();
@@ -48,6 +49,10 @@ const router = createBrowserRouter([
       {
         path: "/find-match",
         element: <Search></Search>
+      },
+      {
+        path: "/forgot-password",
+        element: <ForgotPass></ForgotPass>
       },
       // {
       //   path: "/success-stories",

@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import loginImage from '../../../../assets/images/loginPageImage.jpg';
 import Button from '../../utilies/Button';
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { NavLink, useNavigate } from 'react-router';
 import toast, { Toaster } from 'react-hot-toast';
 import config from '../../utilies/envconfig';
 
@@ -109,7 +109,12 @@ const Login = () => {
                         <div>
                             <div className="flex justify-between mb-2">
                                 <label className="text-sm font-medium text-gray-700">Password</label>
-                                <a href="#" className="text-xs font-semibold text-[#b30000] hover:underline">Forgot Password?</a>
+                                <NavLink
+                                    to="/forgot-password"
+                                    className="text-xs font-semibold text-[#b30000] hover:underline"
+                                >
+                                    Forgot Password?
+                                </NavLink>
                             </div>
                             <div className="relative">
                                 <input
