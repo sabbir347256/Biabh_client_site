@@ -14,9 +14,10 @@ import Underconstraction from "./Components/Pages/Shared/Underconstraction";
 import ProfileDetails from "./Components/Pages/SpecifiqProfile/ProfileDetails";
 import UserPrivateRoute from "./Components/Pages/PrivateRoute/UserPrivateRoute";
 import Search from "./Components/Pages/Search/Search";
-import SuccessStory from "./Components/Pages/successStory/SuccessStory";
-import Contact from "./Components/Pages/Contact/Contact";
+// import SuccessStory from "./Components/Pages/successStory/SuccessStory";
+// import Contact from "./Components/Pages/Contact/Contact";
 import ForgotPass from "./Components/Pages/Authentication/ForgotPass/ForgotPass";
+import LoginSuccess from "./Components/Pages/Authentication/Login/LoginSuccess";
 
 
 const queryClient = new QueryClient();
@@ -53,6 +54,10 @@ const router = createBrowserRouter([
       {
         path: "/forgot-password",
         element: <ForgotPass></ForgotPass>
+      },
+      {
+        path: "/login-success",
+        element: <LoginSuccess></LoginSuccess>
       },
       // {
       //   path: "/success-stories",

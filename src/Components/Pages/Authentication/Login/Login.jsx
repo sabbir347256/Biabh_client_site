@@ -54,6 +54,10 @@ const Login = () => {
         }
     };
 
+    // const handleGoogleLogin = () => {
+    //     window.location.href = `${config?.backendUrl}/auth/google`;
+    // };
+
     return (
         <div className="flex min-h-screen text-gray-800 ">
             <Toaster position="top-right" reverseOrder={false} />
@@ -159,14 +163,17 @@ const Login = () => {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <button className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 hover:bg-gray-50">
+                        {/* <button
+                            onClick={handleGoogleLogin}
+                            className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 hover:bg-gray-50 w-full"
+                        >
                             <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="h-5 w-5" alt="Google" />
                             <span className="text-sm font-semibold">Google</span>
-                        </button>
-                        <button className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 hover:bg-gray-50">
+                        </button> */}
+                        {/* <button className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 hover:bg-gray-50">
                             <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" className="h-5 w-5" alt="Facebook" />
                             <span className="text-sm font-semibold">Facebook</span>
-                        </button>
+                        </button> */}
                     </div>
 
                     <p className="mt-8 text-center text-sm text-gray-600">
