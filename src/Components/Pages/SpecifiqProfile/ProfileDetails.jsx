@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
     User, Briefcase, Heart,
-    MapPin, CheckCircle2, X, ShieldCheck, Lock, 
+    MapPin, CheckCircle2, X, ShieldCheck, Lock,
     Phone,
     Mail,
     Globe
@@ -16,8 +16,10 @@ const ProfileDetails = () => {
     const { id } = useParams();
     const [profileUser, setProfileUser] = useState(null);
     const [isProfileLocked, setIsProfileLocked] = useState(true);
+    const [isPhoneLocked, setIsPhoneLocked] = useState(true);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState({ type: '', text: '' });
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -37,6 +39,7 @@ const ProfileDetails = () => {
                 if (response.data.success) {
                     setProfileUser(response.data.data.profile);
                     setIsProfileLocked(response.data.data.isProfileLocked);
+                    setIsPhoneLocked(response.data.data.isPhoneLocked !== undefined ? response.data.data.isPhoneLocked : true);
                 }
             } catch (error) {
                 console.error(error);
@@ -50,13 +53,10 @@ const ProfileDetails = () => {
         }
     }, [id]);
 
-    const navigate = useNavigate();
-
     const handleUnlockProfile = async () => {
         const token = localStorage.getItem("accessToken");
         if (!token) {
-            setMessage({ type: 'error', text: 'প্রোফাইল আনলক করতে প্রথমে লগইন করুন।' });
-            navigate("/login");
+            toast.error('প্রোফাইল আনলক করতে প্রথমে লগইন করুন।');
             return;
         }
 
@@ -65,25 +65,54 @@ const ProfileDetails = () => {
             const response = await axios.post(
                 `${config.backendUrl}/user/unlock`,
                 { targetUserId: id },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
+                { headers: { Authorization: `Bearer ${token}` } }
             );
 
             if (response.data.success) {
                 setIsProfileLocked(false);
                 setProfileUser(prev => ({
                     ...prev,
-                    contactNo: response.data.data.contactNo,
-                    email: response.data.data.email
+                    email: response.data.data.email,
+                    currentThana: response.data.data.currentThana,
+                    currentDistrict: response.data.data.currentDistrict,
+                    currentDivision: response.data.data.currentDivision,
+                    currentCountry: response.data.data.currentCountry,
+                    permanentThana: response.data.data.permanentThana,
+                    permanentDistrict: response.data.data.permanentDistrict,
+                    permanentDivision: response.data.data.permanentDivision,
+                    permanentCountry: response.data.data.permanentCountry,
                 }));
-                toast.success(response.data.message)
-                // setMessage({ type: 'success', text: response.data.message });
+                toast.success(response.data.message);
             }
         } catch (error) {
-           toast.error(error.response?.data?.message)
+            toast.error(error.response?.data?.message);
+        }
+    };
+
+    const handleUnlockPhone = async () => {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+            toast.error('ফোন নাম্বার আনলক করতে প্রথমে লগইন করুন।');
+            return;
+        }
+
+        try {
+            const response = await axios.post(
+                `${config.backendUrl}/user/unlock-phone`,
+                { targetUserId: id },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            if (response.data.success) {
+                setIsPhoneLocked(false);
+                setProfileUser(prev => ({
+                    ...prev,
+                    contactNo: response.data.data.contactNo
+                }));
+                toast.success(response.data.message || "Phone number unlocked successfully!");
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to unlock phone number");
         }
     };
 
@@ -94,7 +123,6 @@ const ProfileDetails = () => {
     if (loading) {
         return <div className="min-h-screen flex items-center justify-center text-lg font-semibold">Loading Profile Details...</div>;
     }
-
     return (
         <div className="app-container pb-8 min-h-screen bg-gray-50/50">
             <Toaster position="top-right" reverseOrder={false} />
@@ -202,12 +230,28 @@ const ProfileDetails = () => {
                         ) : (
                             <div className="space-y-4 animate-fadeIn">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className="border border-emerald-100 p-4 rounded-xl bg-emerald-50/20">
-                                        <span className="text-xs font-bold text-emerald-600 flex items-center gap-1 uppercase mb-1">
-                                            <Phone className="w-3.5 h-3.5" /> Phone Number
-                                        </span>
-                                        <p className="text-gray-800 text-sm font-semibold">{profileUser?.contactNo || 'Not Set'}</p>
+
+                                    <div className="border border-emerald-100 p-4 rounded-xl bg-emerald-50/20 flex flex-col justify-between min-h-[95px]">
+                                        <div>
+                                            <span className="text-xs font-bold text-emerald-600 flex items-center gap-1 uppercase mb-1">
+                                                <Phone className="w-3.5 h-3.5" /> Phone Number
+                                            </span>
+                                            {!isPhoneLocked && (
+                                                <p className="text-gray-800 text-sm font-semibold animate-fadeIn">{profileUser?.contactNo || 'Not Set'}</p>
+                                            )}
+                                        </div>
+
+                                        {isPhoneLocked && (
+                                            <button
+                                                type="button"
+                                                onClick={handleUnlockPhone}
+                                                className="mt-2 w-full text-center bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-xl font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-sm shadow-amber-100"
+                                            >
+                                                <Lock className="w-3 h-3" /> Pay 77 TK to Unlock Phone Number
+                                            </button>
+                                        )}
                                     </div>
+
                                     <div className="border border-emerald-100 p-4 rounded-xl bg-emerald-50/20">
                                         <span className="text-xs font-bold text-emerald-600 flex items-center gap-1 uppercase mb-1">
                                             <Mail className="w-3.5 h-3.5" /> Email Address
