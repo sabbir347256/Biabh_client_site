@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import logo from '../../../assets/images/logo.jpeg'
-import { LogOut, Menu, UserIcon, X } from "lucide-react";
+import { LogOut, Menu, ShieldCheck, Sparkles, UserIcon, X } from "lucide-react";
 import Button from "../utilies/Button";
 import { NavLink, useLocation, useNavigate } from "react-router";
 import { AuthProvider } from "../../AuthProvider/CreateContext";
@@ -150,6 +150,44 @@ const Navbar = () => {
     //     : 0;
 
 
+    const [premiumon, setpremiumon] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const handlePremiumPayment = async () => {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+            toast.error("প্রিমিয়াম ফিচার কিনতে প্রথমে লগইন করুন।");
+            return;
+        }
+
+        try {
+            setLoading(true);
+            // ফ্রন্টেন্ডের অবজেক্টে শুধু window.location.origin পাঠান
+            const response = await axios.post(
+                `${config.backendUrl}/premiumPayment/initiate-payment`,
+                {
+                    userObjectId: data?.data?._id,
+                    name: data?.data?.fullName,
+                    email: data?.data?.email,
+                    phone: data?.data?.contactNo,
+                    originUrl: window.location.origin // এটি নিশ্চিত করুন (যেমন: http://localhost:5173)
+                },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            if (response.data.success && response.data.payment_url) {
+                window.location.href = response.data.payment_url;
+            } else {
+                toast.error("পেমেন্ট গেটওয়ে লোড করা সম্ভব হয়নি।");
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Something went wrong!");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
     return (
         <div className="border-b relative z-50 bg-white">
             <Toaster position="top-right" reverseOrder={false} />
@@ -161,6 +199,7 @@ const Navbar = () => {
                         <div className="text-gray-500 text-xs mt-1 tracking-wide">A Perfect Partner</div>
                     </div>
                 </NavLink>
+
 
                 <div className="hidden md:flex items-center space-x-8">
                     {navLinks.map((link) => {
@@ -177,7 +216,17 @@ const Navbar = () => {
                         );
                     })}
                 </div>
-
+                {
+                    user?.role === 'USER' && (
+                        <button
+                            type="button"
+                            onClick={() => setpremiumon(true)}
+                            className="bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-bold text-sm py-2.5 px-2 mr-2 rounded-xl transition all duration-300 flex items-center gap-2 shadow-md shadow-red-100 "
+                        >
+                            <Sparkles className="w-4 h-4 hidden md:flex" /> Get Premium Feature
+                        </button>
+                    )
+                }
                 <div className="hidden md:flex items-center gap-4">
                     <div className="relative" ref={walletRef}>
                         <button
@@ -293,6 +342,54 @@ const Navbar = () => {
                     )}
                 </div>
 
+
+                {premiumon && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+                        <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative border border-rose-50 animate-scaleUp">
+
+                            <button
+                                type="button"
+                                onClick={() => setpremiumon(false)}
+                                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+
+                            <div className="text-center mt-2">
+                                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <ShieldCheck className="w-6 h-6 text-red-600" />
+                                </div>
+
+                                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                                    প্রিমিয়াম মেম্বারশিপ আপগ্রেড
+                                </h3>
+
+                                <p className="text-gray-600 text-sm leading-relaxed px-2 bg-rose-50/50 py-3 rounded-xl border border-rose-100/50 font-medium">
+                                    এই ফিচারটি একবার নিলে পরবর্তীতে প্রোফাইল ভেরিফিকেশন বা ফোন নাম্বার আনলক করার জন্য কোনো রকম আর কোনো চার্জ প্রদান করতে হবে না। সবকিছু আজীবন আনলিমিটেড উপভোগ করুন!
+                                </p>
+                            </div>
+
+                            <div className="mt-6 border-t border-gray-100 pt-4 text-center">
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                                    Total Payable Amount
+                                </span>
+                                <div className="text-3xl font-black text-gray-900 mb-4">
+                                    9,999 <span className="text-lg font-bold text-red-600">TK</span>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={handlePremiumPayment}
+                                    disabled={loading}
+                                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg shadow-red-200 text-sm tracking-wide disabled:opacity-50"
+                                >
+                                    {loading ? "Processing..." : "PAY NOW"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="md:hidden flex items-center gap-3">
                     <div className="relative" ref={mobileWalletRef}>
                         <button
@@ -327,7 +424,7 @@ const Navbar = () => {
                                 >
                                     Recharge
                                 </button>
-                                
+
                             </div>
 
                         )}

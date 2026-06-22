@@ -18,6 +18,7 @@ import { AuthProvider } from '../../../AuthProvider/CreateContext';
 import config from '../../utilies/envconfig';
 import toast, { Toaster } from 'react-hot-toast';
 import { useSearchParams } from 'react-router';
+import PhotoGalleryView from './PhotoGalleryView';
 
 const UserProfile = () => {
     const { data: authContextData, token, refetch, isLoading } = useContext(AuthProvider);
@@ -478,6 +479,8 @@ const UserProfile = () => {
         }
     };
 
+    const [activeTab, setActiveTab] = useState("info");
+
 
     if (isLoading) {
         return (
@@ -548,339 +551,350 @@ const UserProfile = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-12">
-                <div className="lg:col-span-2 space-y-6">
+            <div className="flex items-center gap-4 mt-16 border-b border-gray-200 px-8">
+                <button type="button" onClick={() => setActiveTab("info")} className={`pb-3 text-sm font-semibold border-b-2 transition ${activeTab === "info" ? "border-emerald-600 text-emerald-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
+                    Profile Info
+                </button>
+                <button type="button" onClick={() => setActiveTab("photos")} className={`pb-3 text-sm font-semibold border-b-2 transition ${activeTab === "photos" ? "border-emerald-600 text-emerald-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
+                    Photos
+                </button>
+            </div>
 
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4 relative group">
-                        <div className="flex justify-between items-center mb-4 border-b pb-2">
-                            <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><User className="w-5 h-5" /> Personal Information</h2>
-                            {!editSections.personal && (
-                                <button type="button" onClick={() => toggleSection('personal', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
-                            )}
-                        </div>
+            <div className="pt-6">
+                {activeTab === "info" ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 space-y-6">
 
-                        {editSections.personal ? (
-                            <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'personal'))} className="space-y-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-400 uppercase">AGE</label>
-                                        <input
-                                            required
-                                            type="text"
-                                            placeholder="YYYY-MM-DD"
-                                            maxLength={10}
-                                            {...register("birth", {
-                                                required: "Date of birth is required",
-                                                validate: value => {
-                                                    const regex = /^\d{4}-\d{2}-\d{2}$/;
-                                                    return regex.test(value) || "Please enter a valid date (YYYY-MM-DD)";
-                                                }
-                                            })}
-                                            onChange={(e) => {
-                                                let val = e.target.value.replace(/\D/g, "");
-                                                let formatted = "";
+                            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4 relative group">
+                                <div className="flex justify-between items-center mb-4 border-b pb-2">
+                                    <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><User className="w-5 h-5" /> Personal Information</h2>
+                                    {!editSections.personal && (
+                                        <button type="button" onClick={() => toggleSection('personal', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
+                                    )}
+                                </div>
 
-                                                if (val.length > 0) {
-                                                    formatted = val.substring(0, 4);
+                                {editSections.personal ? (
+                                    <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'personal'))} className="space-y-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-400 uppercase">AGE</label>
+                                                <input
+                                                    required
+                                                    type="text"
+                                                    placeholder="YYYY-MM-DD"
+                                                    maxLength={10}
+                                                    {...register("birth", {
+                                                        required: "Date of birth is required",
+                                                        validate: value => {
+                                                            const regex = /^\d{4}-\d{2}-\d{2}$/;
+                                                            return regex.test(value) || "Please enter a valid date (YYYY-MM-DD)";
+                                                        }
+                                                    })}
+                                                    onChange={(e) => {
+                                                        let val = e.target.value.replace(/\D/g, "");
+                                                        let formatted = "";
 
-                                                    if (val.length > 4) {
-                                                        formatted += "-" + val.substring(4, 6);
-                                                    }
+                                                        if (val.length > 0) {
+                                                            formatted = val.substring(0, 4);
 
-                                                    if (val.length > 6) {
-                                                        formatted += "-" + val.substring(6, 8);
-                                                    }
-                                                }
-                                                e.target.value = formatted;
-                                                const { onChange } = register("birth");
-                                                onChange(e);
-                                            }}
-                                            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white text-gray-700"
-                                        />                                    </div>
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-400 uppercase">Height</label>
-                                        <input {...register('Height')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
+                                                            if (val.length > 4) {
+                                                                formatted += "-" + val.substring(4, 6);
+                                                            }
+
+                                                            if (val.length > 6) {
+                                                                formatted += "-" + val.substring(6, 8);
+                                                            }
+                                                        }
+                                                        e.target.value = formatted;
+                                                        const { onChange } = register("birth");
+                                                        onChange(e);
+                                                    }}
+                                                    className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white text-gray-700"
+                                                />                                    </div>
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-400 uppercase">Height</label>
+                                                <input {...register('Height')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-400 uppercase">Home District</label>
+                                                <input {...register('currentDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">
+                                                    Marital Status
+                                                </label>
+                                                <select
+                                                    {...register('maritalStatus')}
+                                                    className="w-full mt-1 p-2 border rounded-lg text-sm bg-white text-gray-700 outline-none cursor-pointer focus:border-[#C20E0E]"
+                                                >
+                                                    <option value="">Select Status</option>
+                                                    <option value="Unmarried">Unmarried</option>
+                                                    <option value="Married">Married</option>
+                                                    <option value="Divorced">Divorced</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-400 uppercase">Religion</label>
+                                                <input {...register('religion')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-end gap-2 pt-2">
+                                            <button type="button" onClick={() => toggleSection('personal', false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium">Cancel</button>
+                                            <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-medium">Save</button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-400 uppercase">Age</label>
+                                            <p className="text-gray-800 font-medium mt-0.5">{profileUser?.age || 'Not Set'}</p>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-400 uppercase">Height</label>
+                                            <p className="text-gray-800 font-medium mt-0.5">{profileUser?.Height || 'Not Set'}</p>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-400 uppercase">Home District</label>
+                                            <p className="text-gray-800 font-medium mt-0.5">{profileUser?.currentDistrict || 'Not Set'}</p>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-400 uppercase">Marital Status</label>
+                                            <p className="text-gray-800 font-medium mt-0.5">{profileUser?.maritalStatus || 'Not Set'}</p>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-400 uppercase">Religion</label>
+                                            <p className="text-gray-800 font-medium mt-0.5">{profileUser?.religion || 'Not Set'}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-400 uppercase">Home District</label>
-                                        <input {...register('currentDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">
-                                            Marital Status
-                                        </label>
-                                        <select
-                                            {...register('maritalStatus')}
-                                            className="w-full mt-1 p-2 border rounded-lg text-sm bg-white text-gray-700 outline-none cursor-pointer focus:border-[#C20E0E]"
-                                        >
-                                            <option value="">Select Status</option>
-                                            <option value="Unmarried">Unmarried</option>
-                                            <option value="Married">Married</option>
-                                            <option value="Divorced">Divorced</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-400 uppercase">Religion</label>
-                                        <input {...register('religion')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
-                                    </div>
-                                </div>
-                                <div className="flex justify-end gap-2 pt-2">
-                                    <button type="button" onClick={() => toggleSection('personal', false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium">Cancel</button>
-                                    <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-medium">Save</button>
-                                </div>
-                            </form>
-                        ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-400 uppercase">Age</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{profileUser?.age || 'Not Set'}</p>
-                                </div>
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-400 uppercase">Height</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{profileUser?.Height || 'Not Set'}</p>
-                                </div>
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-400 uppercase">Home District</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{profileUser?.currentDistrict || 'Not Set'}</p>
-                                </div>
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-400 uppercase">Marital Status</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{profileUser?.maritalStatus || 'Not Set'}</p>
-                                </div>
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-400 uppercase">Religion</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{profileUser?.religion || 'Not Set'}</p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4 relative group">
-                        <div className="flex justify-between items-center mb-4 border-b pb-2">
-                            <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><Briefcase className="w-5 h-5" /> Professional & Education</h2>
-                            {!editSections.professional && (
-                                <button type="button" onClick={() => toggleSection('professional', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
-                            )}
-                        </div>
-
-                        {editSections.professional ? (
-                            <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'professional'))} className="space-y-4">
-                                <div className="space-y-3">
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-400 uppercase">Profession</label>
-                                        <input {...register('profession')} className="w-full mt-1 p-2 border rounded-lg text-sm mb-2 bg-white" placeholder="Profession" />
-                                        <input {...register('professionOrganization')} className="w-full p-2 border rounded-lg text-sm bg-white" placeholder="Organization" />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-400 uppercase">Education</label>
-                                        <input {...register('education')} className="w-full mt-1 p-2 border rounded-lg text-sm mb-2 bg-white" placeholder="Education" />
-                                        <input {...register('institute')} className="w-full p-2 border rounded-lg text-sm bg-white" placeholder="Institution" />
-                                    </div>
-                                </div>
-                                <div className="flex justify-end gap-2 pt-2">
-                                    <button type="button" onClick={() => toggleSection('professional', false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium">Cancel</button>
-                                    <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-medium">Save</button>
-                                </div>
-                            </form>
-                        ) : (
-                            <div className="space-y-4">
-                                <div className="flex gap-3 items-start">
-                                    <div className="bg-red-50 p-2 rounded-xl text-red-600 mt-1"><Briefcase className="w-5 h-5" /></div>
-                                    <div className="flex-1">
-                                        <p className="text-gray-800 font-semibold">{profileUser?.profession || 'Not Set'}</p>
-                                        <p className="text-gray-500 text-sm">{profileUser?.professionOrganization || 'No Organization'}</p>
-                                    </div>
-                                </div>
-                                <div className="flex gap-3 items-start">
-                                    <div className="bg-red-50 p-2 rounded-xl text-red-600 mt-1"><GraduationCap className="w-5 h-5" /></div>
-                                    <div className="flex-1">
-                                        <p className="text-gray-800 font-semibold">{profileUser?.education || 'Not Set'}</p>
-                                        <p className="text-gray-500 text-sm">{profileUser?.institute || 'No Institution'}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4 relative group">
-                        <div className="flex justify-between items-center mb-4 border-b pb-2">
-                            <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><MapPin className="w-5 h-5" /> Contact & Address</h2>
-                            {!editSections.contact && (
-                                <button type="button" onClick={() => toggleSection('contact', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
-                            )}
-                        </div>
-
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                    <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Phone className="w-3.5 h-3.5" /> Contact No</span>
-                                    <p className="text-gray-700 text-sm font-medium">{profileUser?.contactNo || 'Not Set'}</p>
-                                </div>
-                                <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                    <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Mail className="w-3.5 h-3.5" /> Email Address</span>
-                                    <p className="text-gray-700 text-sm font-medium">{profileUser?.email || 'Not Set'}</p>
-                                </div>
+                                )}
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                    <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><MapPin className="w-3.5 h-3.5" /> Current Address</span>
-                                    <p className="text-gray-700 text-sm font-medium">
-                                        {
-                                            (() => {
-                                                const addressParts = [
-                                                    profileUser?.currentThana,
-                                                    profileUser?.currentDistrict,
-                                                    profileUser?.currentDivision,
-                                                    profileUser?.currentCountry
-                                                ].filter(Boolean);
-
-                                                return addressParts.length > 0
-                                                    ? addressParts.join(", ")
-                                                    : "No set text";
-                                            })()
-                                        }
-                                    </p>
-                                </div>
-                                <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                    <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Globe className="w-3.5 h-3.5" /> Permanent Address</span>
-                                    <p className="text-gray-700 text-sm font-medium">
-                                        {
-                                            (() => {
-                                                const addressParts = [
-                                                    profileUser?.permanentThana,
-                                                    profileUser?.permanentDistrict,
-                                                    profileUser?.permanentDivision,
-                                                    profileUser?.permanentCountry
-                                                ].filter(Boolean);
-
-                                                return addressParts.length > 0
-                                                    ? addressParts.join(", ")
-                                                    : "No set text";
-                                            })()
-                                        }
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {editSections.contact && (
-                            <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'contact'))} className="space-y-4 mt-6 border-t pt-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-400 uppercase">Contact No</label>
-                                        <input {...register('contactNo')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-400 uppercase">Email</label>
-                                        <input {...register('email')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
-                                    </div>
+                            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4 relative group">
+                                <div className="flex justify-between items-center mb-4 border-b pb-2">
+                                    <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><Briefcase className="w-5 h-5" /> Professional & Education</h2>
+                                    {!editSections.professional && (
+                                        <button type="button" onClick={() => toggleSection('professional', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
+                                    )}
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-4">
+                                {editSections.professional ? (
+                                    <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'professional'))} className="space-y-4">
+                                        <div className="space-y-3">
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-400 uppercase">Profession</label>
+                                                <input {...register('profession')} className="w-full mt-1 p-2 border rounded-lg text-sm mb-2 bg-white" placeholder="Profession" />
+                                                <input {...register('professionOrganization')} className="w-full p-2 border rounded-lg text-sm bg-white" placeholder="Organization" />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-400 uppercase">Education</label>
+                                                <input {...register('education')} className="w-full mt-1 p-2 border rounded-lg text-sm mb-2 bg-white" placeholder="Education" />
+                                                <input {...register('institute')} className="w-full p-2 border rounded-lg text-sm bg-white" placeholder="Institution" />
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-end gap-2 pt-2">
+                                            <button type="button" onClick={() => toggleSection('professional', false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium">Cancel</button>
+                                            <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-medium">Save</button>
+                                        </div>
+                                    </form>
+                                ) : (
                                     <div className="space-y-4">
-                                        <h3 className="text-sm font-bold text-gray-700">Current Address</h3>
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-400 uppercase">Division</label>
-                                            <select {...register('currentDivision')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white">
-                                                <option value="">Select Division</option>
-                                                {divisions.map((div) => (
-                                                    <option key={div._id || div.id} value={div.id || div._id}>{div.name}</option>
-                                                ))}
-                                            </select>
+                                        <div className="flex gap-3 items-start">
+                                            <div className="bg-red-50 p-2 rounded-xl text-red-600 mt-1"><Briefcase className="w-5 h-5" /></div>
+                                            <div className="flex-1">
+                                                <p className="text-gray-800 font-semibold">{profileUser?.profession || 'Not Set'}</p>
+                                                <p className="text-gray-500 text-sm">{profileUser?.professionOrganization || 'No Organization'}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-400 uppercase">District</label>
-                                            <select disabled={!watchedCurrentDivision} {...register('currentDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white disabled:opacity-50">
-                                                <option value="">Select District</option>
-                                                {currentDistricts.map((dist) => (
-                                                    <option key={dist._id || dist.id} value={dist.id || dist._id}>{dist.name}</option>
-                                                ))}
-                                            </select>
+                                        <div className="flex gap-3 items-start">
+                                            <div className="bg-red-50 p-2 rounded-xl text-red-600 mt-1"><GraduationCap className="w-5 h-5" /></div>
+                                            <div className="flex-1">
+                                                <p className="text-gray-800 font-semibold">{profileUser?.education || 'Not Set'}</p>
+                                                <p className="text-gray-500 text-sm">{profileUser?.institute || 'No Institution'}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-400 uppercase">Thana / Upazila</label>
-                                            <select disabled={!watchedCurrentDistrict} {...register('currentThana')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white disabled:opacity-50">
-                                                <option value="">Select Thana</option>
-                                                {currentUpazilas.map((upz) => (
-                                                    <option key={upz._id || upz.id} value={upz.name}>{upz.name}</option>
-                                                ))}
-                                            </select>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4 relative group">
+                                <div className="flex justify-between items-center mb-4 border-b pb-2">
+                                    <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><MapPin className="w-5 h-5" /> Contact & Address</h2>
+                                    {!editSections.contact && (
+                                        <button type="button" onClick={() => toggleSection('contact', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
+                                    )}
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                            <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Phone className="w-3.5 h-3.5" /> Contact No</span>
+                                            <p className="text-gray-700 text-sm font-medium">{profileUser?.contactNo || 'Not Set'}</p>
                                         </div>
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-400 uppercase">Country</label>
-                                            <select {...register('currentCountry')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white">
-                                                <option value="Bangladesh">Bangladesh</option>
-                                            </select>
+                                        <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                            <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Mail className="w-3.5 h-3.5" /> Email Address</span>
+                                            <p className="text-gray-700 text-sm font-medium">{profileUser?.email || 'Not Set'}</p>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-4">
-                                        <h3 className="text-sm font-bold text-gray-700">Permanent Address</h3>
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-400 uppercase">Division</label>
-                                            <select {...register('permanentDivision')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white">
-                                                <option value="">Select Division</option>
-                                                {divisions.map((div) => (
-                                                    <option key={div._id || div.id} value={div.id || div._id}>{div.name}</option>
-                                                ))}
-                                            </select>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                            <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><MapPin className="w-3.5 h-3.5" /> Current Address</span>
+                                            <p className="text-gray-700 text-sm font-medium">
+                                                {
+                                                    (() => {
+                                                        const addressParts = [
+                                                            profileUser?.currentThana,
+                                                            profileUser?.currentDistrict,
+                                                            profileUser?.currentDivision,
+                                                            profileUser?.currentCountry
+                                                        ].filter(Boolean);
+
+                                                        return addressParts.length > 0
+                                                            ? addressParts.join(", ")
+                                                            : "No set text";
+                                                    })()
+                                                }
+                                            </p>
                                         </div>
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-400 uppercase">District</label>
-                                            <select disabled={!watchedPermanentDivision} {...register('permanentDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white disabled:opacity-50">
-                                                <option value="">Select District</option>
-                                                {permanentDistricts.map((dist) => (
-                                                    <option key={dist._id || dist.id} value={dist.id || dist._id}>{dist.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-400 uppercase">Thana / Upazila</label>
-                                            <select disabled={!watchedPermanentDistrict} {...register('permanentThana')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white disabled:opacity-50">
-                                                <option value="">Select Thana</option>
-                                                {permanentUpazilas.map((upz) => (
-                                                    <option key={upz._id || upz.id} value={upz.name}>{upz.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-400 uppercase">Country</label>
-                                            <select {...register('permanentCountry')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white">
-                                                <option value="Bangladesh">Bangladesh</option>
-                                            </select>
+                                        <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                            <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Globe className="w-3.5 h-3.5" /> Permanent Address</span>
+                                            <p className="text-gray-700 text-sm font-medium">
+                                                {
+                                                    (() => {
+                                                        const addressParts = [
+                                                            profileUser?.permanentThana,
+                                                            profileUser?.permanentDistrict,
+                                                            profileUser?.permanentDivision,
+                                                            profileUser?.permanentCountry
+                                                        ].filter(Boolean);
+
+                                                        return addressParts.length > 0
+                                                            ? addressParts.join(", ")
+                                                            : "No set text";
+                                                    })()
+                                                }
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex justify-end gap-2 pt-2">
-                                    <button type="button" onClick={() => toggleSection('contact', false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium">Cancel</button>
-                                    <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-medium">Save</button>
+                                {editSections.contact && (
+                                    <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'contact'))} className="space-y-4 mt-6 border-t pt-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-400 uppercase">Contact No</label>
+                                                <input {...register('contactNo')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-400 uppercase">Email</label>
+                                                <input {...register('email')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-4">
+                                            <div className="space-y-4">
+                                                <h3 className="text-sm font-bold text-gray-700">Current Address</h3>
+                                                <div>
+                                                    <label className="text-xs font-semibold text-gray-400 uppercase">Division</label>
+                                                    <select {...register('currentDivision')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white">
+                                                        <option value="">Select Division</option>
+                                                        {divisions.map((div) => (
+                                                            <option key={div._id || div.id} value={div.id || div._id}>{div.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-semibold text-gray-400 uppercase">District</label>
+                                                    <select disabled={!watchedCurrentDivision} {...register('currentDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white disabled:opacity-50">
+                                                        <option value="">Select District</option>
+                                                        {currentDistricts.map((dist) => (
+                                                            <option key={dist._id || dist.id} value={dist.id || dist._id}>{dist.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-semibold text-gray-400 uppercase">Thana / Upazila</label>
+                                                    <select disabled={!watchedCurrentDistrict} {...register('currentThana')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white disabled:opacity-50">
+                                                        <option value="">Select Thana</option>
+                                                        {currentUpazilas.map((upz) => (
+                                                            <option key={upz._id || upz.id} value={upz.name}>{upz.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-semibold text-gray-400 uppercase">Country</label>
+                                                    <select {...register('currentCountry')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white">
+                                                        <option value="Bangladesh">Bangladesh</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <h3 className="text-sm font-bold text-gray-700">Permanent Address</h3>
+                                                <div>
+                                                    <label className="text-xs font-semibold text-gray-400 uppercase">Division</label>
+                                                    <select {...register('permanentDivision')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white">
+                                                        <option value="">Select Division</option>
+                                                        {divisions.map((div) => (
+                                                            <option key={div._id || div.id} value={div.id || div._id}>{div.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-semibold text-gray-400 uppercase">District</label>
+                                                    <select disabled={!watchedPermanentDivision} {...register('permanentDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white disabled:opacity-50">
+                                                        <option value="">Select District</option>
+                                                        {permanentDistricts.map((dist) => (
+                                                            <option key={dist._id || dist.id} value={dist.id || dist._id}>{dist.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-semibold text-gray-400 uppercase">Thana / Upazila</label>
+                                                    <select disabled={!watchedPermanentDistrict} {...register('permanentThana')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white disabled:opacity-50">
+                                                        <option value="">Select Thana</option>
+                                                        {permanentUpazilas.map((upz) => (
+                                                            <option key={upz._id || upz.id} value={upz.name}>{upz.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-semibold text-gray-400 uppercase">Country</label>
+                                                    <select {...register('permanentCountry')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white">
+                                                        <option value="Bangladesh">Bangladesh</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-end gap-2 pt-2">
+                                            <button type="button" onClick={() => toggleSection('contact', false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium">Cancel</button>
+                                            <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-medium">Save</button>
+                                        </div>
+                                    </form>
+                                )}
+                            </div>
+
+                            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4 relative group">
+                                <div className="flex justify-between items-center mb-4 border-b pb-2">
+                                    <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><Home className="w-5 h-5" /> Family Background</h2>
+                                    {!editSections.family && (
+                                        <button type="button" onClick={() => toggleSection('family', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
+                                    )}
                                 </div>
-                            </form>
-                        )}
-                    </div>
 
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4 relative group">
-                        <div className="flex justify-between items-center mb-4 border-b pb-2">
-                            <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><Home className="w-5 h-5" /> Family Background</h2>
-                            {!editSections.family && (
-                                <button type="button" onClick={() => toggleSection('family', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
-                            )}
-                        </div>
-
-                        {editSections.family ? (
-                            <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'family'))} className="space-y-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-400 uppercase">Father's Occupation</label>
-                                        <input {...register('fatherOccupation')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-400 uppercase">Mother's Occupation</label>
-                                        <input {...register('motherOccupation')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
-                                    </div>
-                                    {/* <div>
+                                {editSections.family ? (
+                                    <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'family'))} className="space-y-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-400 uppercase">Father's Occupation</label>
+                                                <input {...register('fatherOccupation')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-400 uppercase">Mother's Occupation</label>
+                                                <input {...register('motherOccupation')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
+                                            </div>
+                                            {/* <div>
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Siblings</label>
                                         <input {...register('siblings')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                     </div>
@@ -888,23 +902,23 @@ const UserProfile = () => {
                                         <label className="text-xs font-semibold text-gray-400 uppercase">Family Values</label>
                                         <input {...register('familyValues')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                     </div> */}
-                                </div>
-                                <div className="flex justify-end gap-2 pt-2">
-                                    <button type="button" onClick={() => toggleSection('family', false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium">Cancel</button>
-                                    <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-medium">Save</button>
-                                </div>
-                            </form>
-                        ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-400 uppercase">Father's Occupation</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{profileUser?.fatherOccupation || 'Not Set'}</p>
-                                </div>
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-400 uppercase">Mother's Occupation</label>
-                                    <p className="text-gray-800 font-medium mt-0.5">{profileUser?.motherOccupation || 'Not Set'}</p>
-                                </div>
-                                {/* <div>
+                                        </div>
+                                        <div className="flex justify-end gap-2 pt-2">
+                                            <button type="button" onClick={() => toggleSection('family', false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium">Cancel</button>
+                                            <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-medium">Save</button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-400 uppercase">Father's Occupation</label>
+                                            <p className="text-gray-800 font-medium mt-0.5">{profileUser?.fatherOccupation || 'Not Set'}</p>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-400 uppercase">Mother's Occupation</label>
+                                            <p className="text-gray-800 font-medium mt-0.5">{profileUser?.motherOccupation || 'Not Set'}</p>
+                                        </div>
+                                        {/* <div>
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Siblings</label>
                                     <p className="text-gray-800 font-medium mt-0.5">{profileUser?.siblings || 'Not Set'}</p>
                                 </div>
@@ -912,49 +926,49 @@ const UserProfile = () => {
                                     <label className="text-xs font-semibold text-gray-400 uppercase">Family Values</label>
                                     <p className="text-gray-800 font-medium mt-0.5">{profileUser?.familyValues || 'Not Set'}</p>
                                 </div> */}
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
 
-                    <div className="bg-red-600 text-white p-6 rounded-2xl shadow-sm relative group">
-                        <div className="flex justify-between items-center mb-4 border-b border-white/20 pb-2">
-                            <h2 className="text-lg font-bold flex items-center gap-2"><Heart className="w-5 h-5" /> Partner Expectations</h2>
-                            {!editSections.expectations && (
-                                <button type="button" onClick={() => toggleSection('expectations', true)} className="p-1.5 bg-white/20 hover:bg-white/30 text-white rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
-                            )}
+                            <div className="bg-red-600 text-white p-6 rounded-2xl shadow-sm relative group">
+                                <div className="flex justify-between items-center mb-4 border-b border-white/20 pb-2">
+                                    <h2 className="text-lg font-bold flex items-center gap-2"><Heart className="w-5 h-5" /> Partner Expectations</h2>
+                                    {!editSections.expectations && (
+                                        <button type="button" onClick={() => toggleSection('expectations', true)} className="p-1.5 bg-white/20 hover:bg-white/30 text-white rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
+                                    )}
+                                </div>
+
+                                {editSections.expectations ? (
+                                    <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'expectations'))} className="space-y-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {[1, 2, 3, 4].map((num) => (
+                                                <div key={num} className="w-full">
+                                                    <label className="text-xs font-semibold opacity-80 uppercase">Expectation {num}</label>
+                                                    <textarea {...register(`expectation${num}`)} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white text-gray-800" rows={2} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="flex justify-end gap-2 pt-2">
+                                            <button type="button" onClick={() => toggleSection('expectations', false)} className="px-4 py-2 bg-white/20 text-white rounded-xl text-xs font-medium">Cancel</button>
+                                            <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-medium">Save</button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {[1, 2, 3, 4].map((num) => (
+                                            <div key={num} className="flex gap-2 items-start">
+                                                <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-white/80" />
+                                                <p className="text-sm font-medium leading-relaxed">{profileUser?.[`expectation${num}`] || 'No expectations added yet.'}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
                         </div>
 
-                        {editSections.expectations ? (
-                            <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'expectations'))} className="space-y-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {[1, 2, 3, 4].map((num) => (
-                                        <div key={num} className="w-full">
-                                            <label className="text-xs font-semibold opacity-80 uppercase">Expectation {num}</label>
-                                            <textarea {...register(`expectation${num}`)} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white text-gray-800" rows={2} />
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="flex justify-end gap-2 pt-2">
-                                    <button type="button" onClick={() => toggleSection('expectations', false)} className="px-4 py-2 bg-white/20 text-white rounded-xl text-xs font-medium">Cancel</button>
-                                    <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-medium">Save</button>
-                                </div>
-                            </form>
-                        ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {[1, 2, 3, 4].map((num) => (
-                                    <div key={num} className="flex gap-2 items-start">
-                                        <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-white/80" />
-                                        <p className="text-sm font-medium leading-relaxed">{profileUser?.[`expectation${num}`] || 'No expectations added yet.'}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                </div>
-
-                <div className="space-y-6">
-                    {/* <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
+                        <div className="space-y-6">
+                            {/* <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
                         <div className="mx-auto bg-red-50 text-red-600 w-12 h-12 rounded-full flex items-center justify-center mb-3"><Heart className="w-6 h-6" /></div>
                         <h3 className="font-bold text-gray-800 text-lg">Connect with {profileUser?.name || 'User'}</h3>
                         <p className="text-gray-500 text-sm mt-1 mb-4 px-4">Take the first step toward a blessed journey together.</p>
@@ -976,204 +990,210 @@ const UserProfile = () => {
                         )}
                     </div> */}
 
-                    <div className="space-y-6">
-                        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Verification Status</h3>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-semibold text-gray-500">Profile Progress:</span>
-                                    <div className="w-24 bg-gray-200 h-2 rounded-full overflow-hidden">
-                                        <div
-                                            className="bg-emerald-500 h-full transition-all duration-500"
-                                            style={{ width: `${getProfileCompletion()}%` }}
-                                        ></div>
-                                    </div>
-                                    <span className="text-xs font-bold text-emerald-600">{getProfileCompletion()}%</span>
-                                </div>
-                            </div>
-
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between border-b pb-2">
-                                    <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
-                                        {profileUser?.isActive === 'ACTIVE' ? (
-                                            <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />
-                                        ) : (
-                                            <X className="w-4 h-4 text-red-500" />
-                                        )}
-                                        <span>Profile Activation</span>
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between border-b pb-2">
-                                    <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
-                                        {(profileUser?.isDocumentVerification || profileUser?.nidStatus === 'verified') ? (
-                                            <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />
-                                        ) : profileUser?.nidStatus === 'pending' ? (
-                                            <LucideClockFading className="w-4 h-4 text-amber-500" />
-                                        ) : (
-                                            <X className="w-4 h-4 text-gray-400" />
-                                        )}
-                                        <span>Document Verification</span>
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between pt-1">
-                                    <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
-                                        {(profileUser?.isFieldVerification || fieldVerificationStatus === 'VERIFIED') ? (
-                                            <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />
-                                        ) : fieldVerificationStatus === 'PENDING' ? (
-                                            <LucideClockFading className="w-4 h-4 text-amber-500" />
-                                        ) : (
-                                            <X className="w-4 h-4 text-gray-400" />
-                                        )}
-                                        <span>Field Verification</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="bg-gradient-to-br from-emerald-900 to-teal-950 text-white p-6 rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[280px]">
-                                <div>
-                                    <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
-                                        <ShieldCheck className="w-5 h-5 text-emerald-400" /> Identity Verification
-                                    </h3>
-                                    <p className="text-xs text-emerald-200/80 mb-4 leading-relaxed">Attach your National ID Card (NID) to unlock verified badge.</p>
-                                </div>
-
-                                <div className="mt-auto w-full">
-                                    {!isNidPaid ? (
-                                        <div className="bg-emerald-950/60 border border-emerald-500/30 p-4 rounded-xl text-center">
-                                            <p className="text-xs text-emerald-200 mb-3">Verification Fee: <span className="font-bold text-sm text-white">390 TK</span></p>
-                                            <button
-                                                type="button"
-                                                onClick={handleNidPaymentProcess}
-                                                className="w-full py-2 px-4 rounded-lg bg-emerald-500 text-emerald-950 font-bold text-xs hover:bg-emerald-400 transition flex items-center justify-center gap-2"
-                                            >
-                                                <CreditCard className="w-4 h-4" /> Pay 390 TK
-                                            </button>
-                                        </div>
-                                    ) : nidSubmittedDb ? (
-                                        <>
-                                            {nidDbStatus === "verified" && (
-                                                <div className="bg-emerald-800/40 border border-emerald-500/30 p-4 rounded-xl flex items-center gap-3">
-                                                    <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
-                                                    <span className="text-xs font-medium text-emerald-200">Your Identity has been verified successfully.</span>
-                                                </div>
-                                            )}
-
-                                            {nidDbStatus === "pending" && (
-                                                <div className="bg-amber-800/30 border border-amber-500/30 p-4 rounded-xl flex items-center gap-3">
-                                                    <LucideClockFading className="w-5 h-5 text-amber-400 shrink-0" />
-                                                    <span className="text-xs font-medium text-amber-200">Documents submitted. Admin reviewing submission.</span>
-                                                </div>
-                                            )}
-
-                                            {nidDbStatus === "rejected" && (
-                                                <div className="bg-rose-800/30 border border-rose-500/30 p-4 rounded-xl flex items-center gap-3">
-                                                    <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
-                                                    <div className="flex flex-col gap-1">
-                                                        <span className="text-xs font-medium text-rose-200">Submission rejected. Upload valid documentation.</span>
-                                                        <button type="button" onClick={() => { setNidSubmittedDb(false); setNidDbStatus(null); }} className="text-xs text-left text-emerald-400 underline hover:text-emerald-300 mt-1">Re-upload Documents</button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            <div className="bg-emerald-950/80 border border-emerald-500/30 p-3 rounded-xl text-center mb-1">
-                                                <p className="text-[11px] text-emerald-200 font-medium">tmr payment document er jonno successfull hoyeche admin check kore 30 minute er modhe apporve kore dibe</p>
+                            <div className="space-y-6">
+                                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Verification Status</h3>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-semibold text-gray-500">Profile Progress:</span>
+                                            <div className="w-24 bg-gray-200 h-2 rounded-full overflow-hidden">
+                                                <div
+                                                    className="bg-emerald-500 h-full transition-all duration-500"
+                                                    style={{ width: `${getProfileCompletion()}%` }}
+                                                ></div>
                                             </div>
-                                            <form onSubmit={handleSubmit(handleNidSubmit)}>
-                                                {previewImages.length === 0 ? (
-                                                    <div className="border border-dashed border-emerald-500/50 rounded-xl p-4 bg-emerald-950/40 text-center hover:bg-emerald-950/60 transition cursor-pointer relative">
-                                                        <input
-                                                            type="file"
-                                                            multiple
-                                                            accept="image/*"
-                                                            className="absolute inset-0 opacity-0 cursor-pointer"
-                                                            {...register("nidDocuments", {
-                                                                required: true,
-                                                                onChange: handleNidFileSelect
-                                                            })}
-                                                        />
-                                                        <Upload className="w-5 h-5 mx-auto text-emerald-400 mb-1" />
-                                                        <p className="text-xs font-medium text-emerald-300">Upload NID Front & Back</p>
-                                                    </div>
+                                            <span className="text-xs font-bold text-emerald-600">{getProfileCompletion()}%</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between border-b pb-2">
+                                            <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                                                {profileUser?.isActive === 'ACTIVE' ? (
+                                                    <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />
                                                 ) : (
-                                                    <div className="space-y-4">
-                                                        <div className="grid grid-cols-2 gap-3">
-                                                            {previewImages.map((url, index) => (
-                                                                <div key={index} className="relative aspect-[1.6/1] border border-emerald-500/30 rounded-xl overflow-hidden bg-emerald-950/40">
-                                                                    <img src={url} alt={`NID Preview ${index + 1}`} className="w-full h-full object-cover" />
-                                                                    <button type="button" onClick={() => removeSelectedNidImage(index)} className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 p-1 rounded-full text-white transition">
-                                                                        <X className="w-3 h-3" />
+                                                    <X className="w-4 h-4 text-red-500" />
+                                                )}
+                                                <span>Profile Activation</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between border-b pb-2">
+                                            <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                                                {(profileUser?.isDocumentVerification || profileUser?.nidStatus === 'verified') ? (
+                                                    <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />
+                                                ) : profileUser?.nidStatus === 'pending' ? (
+                                                    <LucideClockFading className="w-4 h-4 text-amber-500" />
+                                                ) : (
+                                                    <X className="w-4 h-4 text-gray-400" />
+                                                )}
+                                                <span>Document Verification</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between pt-1">
+                                            <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                                                {(profileUser?.isFieldVerification || fieldVerificationStatus === 'VERIFIED') ? (
+                                                    <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />
+                                                ) : fieldVerificationStatus === 'PENDING' ? (
+                                                    <LucideClockFading className="w-4 h-4 text-amber-500" />
+                                                ) : (
+                                                    <X className="w-4 h-4 text-gray-400" />
+                                                )}
+                                                <span>Field Verification</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="bg-gradient-to-br from-emerald-900 to-teal-950 text-white p-6 rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[280px]">
+                                        <div>
+                                            <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
+                                                <ShieldCheck className="w-5 h-5 text-emerald-400" /> Identity Verification
+                                            </h3>
+                                            <p className="text-xs text-emerald-200/80 mb-4 leading-relaxed">Attach your National ID Card (NID) to unlock verified badge.</p>
+                                        </div>
+
+                                        <div className="mt-auto w-full">
+                                            {!isNidPaid ? (
+                                                <div className="bg-emerald-950/60 border border-emerald-500/30 p-4 rounded-xl text-center">
+                                                    <p className="text-xs text-emerald-200 mb-3">Verification Fee: <span className="font-bold text-sm text-white">390 TK</span></p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleNidPaymentProcess}
+                                                        className="w-full py-2 px-4 rounded-lg bg-emerald-500 text-emerald-950 font-bold text-xs hover:bg-emerald-400 transition flex items-center justify-center gap-2"
+                                                    >
+                                                        <CreditCard className="w-4 h-4" /> Pay 390 TK
+                                                    </button>
+                                                </div>
+                                            ) : nidSubmittedDb ? (
+                                                <>
+                                                    {nidDbStatus === "verified" && (
+                                                        <div className="bg-emerald-800/40 border border-emerald-500/30 p-4 rounded-xl flex items-center gap-3">
+                                                            <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+                                                            <span className="text-xs font-medium text-emerald-200">Your Identity has been verified successfully.</span>
+                                                        </div>
+                                                    )}
+
+                                                    {nidDbStatus === "pending" && (
+                                                        <div className="bg-amber-800/30 border border-amber-500/30 p-4 rounded-xl flex items-center gap-3">
+                                                            <LucideClockFading className="w-5 h-5 text-amber-400 shrink-0" />
+                                                            <span className="text-xs font-medium text-amber-200">Documents submitted. Admin reviewing submission.</span>
+                                                        </div>
+                                                    )}
+
+                                                    {nidDbStatus === "rejected" && (
+                                                        <div className="bg-rose-800/30 border border-rose-500/30 p-4 rounded-xl flex items-center gap-3">
+                                                            <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                                                            <div className="flex flex-col gap-1">
+                                                                <span className="text-xs font-medium text-rose-200">Submission rejected. Upload valid documentation.</span>
+                                                                <button type="button" onClick={() => { setNidSubmittedDb(false); setNidDbStatus(null); }} className="text-xs text-left text-emerald-400 underline hover:text-emerald-300 mt-1">Re-upload Documents</button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    <div className="bg-emerald-950/80 border border-emerald-500/30 p-3 rounded-xl text-center mb-1">
+                                                        <p className="text-[11px] text-emerald-200 font-medium">tmr payment document er jonno successfull hoyeche admin check kore 30 minute er modhe apporve kore dibe</p>
+                                                    </div>
+                                                    <form onSubmit={handleSubmit(handleNidSubmit)}>
+                                                        {previewImages.length === 0 ? (
+                                                            <div className="border border-dashed border-emerald-500/50 rounded-xl p-4 bg-emerald-950/40 text-center hover:bg-emerald-950/60 transition cursor-pointer relative">
+                                                                <input
+                                                                    type="file"
+                                                                    multiple
+                                                                    accept="image/*"
+                                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                                    {...register("nidDocuments", {
+                                                                        required: true,
+                                                                        onChange: handleNidFileSelect
+                                                                    })}
+                                                                />
+                                                                <Upload className="w-5 h-5 mx-auto text-emerald-400 mb-1" />
+                                                                <p className="text-xs font-medium text-emerald-300">Upload NID Front & Back</p>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="space-y-4">
+                                                                <div className="grid grid-cols-2 gap-3">
+                                                                    {previewImages.map((url, index) => (
+                                                                        <div key={index} className="relative aspect-[1.6/1] border border-emerald-500/30 rounded-xl overflow-hidden bg-emerald-950/40">
+                                                                            <img src={url} alt={`NID Preview ${index + 1}`} className="w-full h-full object-cover" />
+                                                                            <button type="button" onClick={() => removeSelectedNidImage(index)} className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 p-1 rounded-full text-white transition">
+                                                                                <X className="w-3 h-3" />
+                                                                            </button>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                                <div className="flex gap-3 justify-end text-xs font-medium">
+                                                                    <button type="button" onClick={handleCancelNidUpload} disabled={isSubmittingNid} className="px-4 py-2 rounded-lg border border-emerald-500/30 text-emerald-300 hover:bg-emerald-950/40 transition disabled:opacity-50">
+                                                                        Cancel
+                                                                    </button>
+                                                                    <button type="submit" disabled={isSubmittingNid} className="px-4 py-2 rounded-lg bg-emerald-500 text-emerald-950 font-semibold hover:bg-emerald-400 transition disabled:opacity-50">
+                                                                        {isSubmittingNid ? "Submitting..." : "Submit Document"}
                                                                     </button>
                                                                 </div>
-                                                            ))}
-                                                        </div>
-                                                        <div className="flex gap-3 justify-end text-xs font-medium">
-                                                            <button type="button" onClick={handleCancelNidUpload} disabled={isSubmittingNid} className="px-4 py-2 rounded-lg border border-emerald-500/30 text-emerald-300 hover:bg-emerald-950/40 transition disabled:opacity-50">
-                                                                Cancel
-                                                            </button>
-                                                            <button type="submit" disabled={isSubmittingNid} className="px-4 py-2 rounded-lg bg-emerald-500 text-emerald-950 font-semibold hover:bg-emerald-400 transition disabled:opacity-50">
-                                                                {isSubmittingNid ? "Submitting..." : "Submit Document"}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </form>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="bg-gradient-to-br from-slate-900 to-slate-950 text-white p-6 rounded-2xl shadow-sm border border-slate-800 flex flex-col justify-between min-h-[280px]">
-                                <div>
-                                    <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
-                                        <ShieldCheck className="w-5 h-5 text-blue-400" /> Field Verification
-                                    </h3>
-                                    <p className="text-xs text-slate-400 mb-4 leading-relaxed">Request on-site structural and background verification checks for full access authority.</p>
-                                </div>
-
-                                <div className="mt-auto w-full">
-                                    {!isFieldPaid ? (
-                                        <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
-                                            <p className="text-xs text-slate-400 mb-3">Verification Fee: <span className="font-bold text-sm text-white">2340 TK</span></p>
-                                            <button
-                                                type="button"
-                                                onClick={handleFieldPaymentProcess}
-                                                className="w-full py-2 px-4 rounded-lg bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 transition flex items-center justify-center gap-2"
-                                            >
-                                                <CreditCard className="w-4 h-4" /> Pay 2340 TK
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            <div className="bg-blue-950/40 border border-blue-500/30 p-4 rounded-xl flex items-center gap-3">
-                                                {(profileUser?.isFieldVerification || fieldVerificationStatus === 'VERIFIED') ? (
-                                                    <>
-                                                        <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
-                                                        <span className="text-xs font-medium text-emerald-200">Field Verification Completed.</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <LucideClockFading className="w-5 h-5 text-blue-400 shrink-0" />
-                                                        <span className="text-xs font-medium text-blue-300">Payment Processed. Field audit queue sequence assigned.</span>
-                                                    </>
-                                                )}
-                                            </div>
-                                            {fieldVerificationStatus === 'PENDING' && (
-                                                <div className="bg-slate-900 border border-slate-700 p-3 rounded-xl text-center">
-                                                    <p className="text-[11px] text-slate-300 font-medium">tmr payment document er jonno successfull hoyeche admin check kore 30 minute er modhe apporve kore dibe</p>
+                                                            </div>
+                                                        )}
+                                                    </form>
                                                 </div>
                                             )}
                                         </div>
-                                    )}
+                                    </div>
+
+                                    <div className="bg-gradient-to-br from-slate-900 to-slate-950 text-white p-6 rounded-2xl shadow-sm border border-slate-800 flex flex-col justify-between min-h-[280px]">
+                                        <div>
+                                            <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
+                                                <ShieldCheck className="w-5 h-5 text-blue-400" /> Field Verification
+                                            </h3>
+                                            <p className="text-xs text-slate-400 mb-4 leading-relaxed">Request on-site structural and background verification checks for full access authority.</p>
+                                        </div>
+
+                                        <div className="mt-auto w-full">
+                                            {!isFieldPaid ? (
+                                                <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+                                                    <p className="text-xs text-slate-400 mb-3">Verification Fee: <span className="font-bold text-sm text-white">2340 TK</span></p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleFieldPaymentProcess}
+                                                        className="w-full py-2 px-4 rounded-lg bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 transition flex items-center justify-center gap-2"
+                                                    >
+                                                        <CreditCard className="w-4 h-4" /> Pay 2340 TK
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    <div className="bg-blue-950/40 border border-blue-500/30 p-4 rounded-xl flex items-center gap-3">
+                                                        {(profileUser?.isFieldVerification || fieldVerificationStatus === 'VERIFIED') ? (
+                                                            <>
+                                                                <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+                                                                <span className="text-xs font-medium text-emerald-200">Field Verification Completed.</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <LucideClockFading className="w-5 h-5 text-blue-400 shrink-0" />
+                                                                <span className="text-xs font-medium text-blue-300">Payment Processed. Field audit queue sequence assigned.</span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    {fieldVerificationStatus === 'PENDING' && (
+                                                        <div className="bg-slate-900 border border-slate-700 p-3 rounded-xl text-center">
+                                                            <p className="text-[11px] text-slate-300 font-medium">tmr payment document er jonno successfull hoyeche admin check kore 30 minute er modhe apporve kore dibe</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <PhotoGalleryView profileUser={profileUser} token={token} config={config} />
+                )}
             </div>
+
+          
         </div>
     );
 };

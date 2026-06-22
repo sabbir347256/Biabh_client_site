@@ -15,7 +15,7 @@ const UserPrivateRoute = ({children}) => {
         );
     }
 
-    if (user && user.role === 'USER') {
+    if (user && user.role === 'USER' || user?.role === 'PREMIUM') {
         return children;
     }
 

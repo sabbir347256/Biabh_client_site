@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import {
     User, Briefcase, Heart,
@@ -10,9 +10,11 @@ import {
 import config from '../utilies/envconfig';
 import { useNavigate, useParams } from 'react-router';
 import toast, { Toaster } from 'react-hot-toast';
+import { AuthProvider } from './../../AuthProvider/CreateContext';
 
 
 const ProfileDetails = () => {
+    const {data,user} = useContext(AuthProvider);
     const { id } = useParams();
     const [profileUser, setProfileUser] = useState(null);
     const [isProfileLocked, setIsProfileLocked] = useState(true);
@@ -98,27 +100,32 @@ const ProfileDetails = () => {
 
         try {
             const response = await axios.post(
-                `${config.backendUrl}/user/unlock-phone`,
-                { targetUserId: id },
+                `${config.backendUrl}/phoneunlock/initiate-payment`,
+                {
+                    buyerUserObjectId: data?.data?._id,
+                    targetUserObjectId: id,
+                    name: data?.data?.fullName,
+                    email: data?.data?.email,
+                    phone: data?.data?.contactNo,
+                    originUrl: window.location.href
+                },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            if (response.data.success) {
-                setIsPhoneLocked(false);
-                setProfileUser(prev => ({
-                    ...prev,
-                    contactNo: response.data.data.contactNo
-                }));
-                toast.success(response.data.message || "Phone number unlocked successfully!");
+            if (response.data.success && response.data.payment_url) {
+                window.location.href = response.data.payment_url;
+            } else {
+                toast.error("পেমেন্ট গেটওয়ে চালু করা যায়নি।");
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || "Failed to unlock phone number");
+            toast.error(error.response?.data?.message || "Failed to initiate payment");
         }
     };
 
     const handleSendInterest = () => {
         toast.error("This feature is currently under development. Please check back later!");
     };
+    
 
     if (loading) {
         return <div className="min-h-screen flex items-center justify-center text-lg font-semibold">Loading Profile Details...</div>;
