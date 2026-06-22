@@ -25,16 +25,14 @@ const PhotoGalleryView = ({ profileUser, token }) => {
     }, [profileUser?._id]);
 
     const handlePhotoUpload = async (e) => {
-        const files = Array.from(e.target.files);
-        if (files.length === 0) return;
+        const file = e.target.files[0];
+        if (!file) return;
 
-        const toastId = toast.loading("Uploading images to gallery...");
+        const toastId = toast.loading("Uploading image to gallery...");
         setUploading(true);
 
         const formData = new FormData();
-        files.forEach((file) => {
-            formData.append("galleryImages", file);
-        });
+        formData.append("galleryImage", file);
         formData.append("userObjectId", profileUser?._id);
 
         try {
@@ -45,7 +43,7 @@ const PhotoGalleryView = ({ profileUser, token }) => {
                 }
             });
             if (res.data?.success) {
-                toast.success("Images uploaded to your gallery!", { id: toastId });
+                toast.success("Image uploaded to your gallery!", { id: toastId });
                 fetchPhotos();
             }
         } catch (error) {
@@ -69,6 +67,7 @@ const PhotoGalleryView = ({ profileUser, token }) => {
             toast.error("Failed to delete image", { id: toastId });
         }
     };
+
     return (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b">
@@ -78,8 +77,8 @@ const PhotoGalleryView = ({ profileUser, token }) => {
                     </h2>
                 </div>
                 <label className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium cursor-pointer transition shadow-sm">
-                    <Upload className="w-4 h-4" /> Upload Photos
-                    <input type="file" multiple accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+                    <Upload className="w-4 h-4" /> Upload Photo
+                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
                 </label>
             </div>
 
