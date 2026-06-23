@@ -11,6 +11,8 @@ import config from "../utilies/envconfig";
 
 const Navbar = () => {
     const { user, data } = useContext(AuthProvider);
+    const userProfile = data?.data;
+    console.log(userProfile);
     const [isOpen, setIsOpen] = useState(false);
     const [isWalletOpen, setIsWalletOpen] = useState(false);
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -217,11 +219,11 @@ const Navbar = () => {
                     })}
                 </div>
                 {
-                    user?.role === 'USER' && (
+                    userProfile?.role !== 'PREMIUM' && (
                         <button
                             type="button"
                             onClick={() => setpremiumon(true)}
-                            className="bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-bold text-sm py-2.5 px-2 mr-2 rounded-xl transition all duration-300 flex items-center gap-2 shadow-md shadow-red-100 "
+                            className="bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-bold text-sm py-2.5 px-2 mr-2 rounded-xl transition all duration-300 flex items-center gap-2 shadow-md shadow-red-100"
                         >
                             <Sparkles className="w-4 h-4 hidden md:flex" /> Get Premium Feature
                         </button>

@@ -12,7 +12,8 @@ import {
     Upload,
     CheckCircle,
     AlertCircle,
-    CreditCard
+    CreditCard,
+    Sparkles
 } from 'lucide-react';
 import { AuthProvider } from '../../../AuthProvider/CreateContext';
 import config from '../../utilies/envconfig';
@@ -376,7 +377,6 @@ const UserProfile = () => {
         }
     };
 
-    console.log(profileUser)
 
     const handleNidPaymentProcess = async () => {
         const toastId = toast.loading("Connecting to PayStation...");
@@ -496,53 +496,59 @@ const UserProfile = () => {
             <Toaster position="top-right" reverseOrder={false} />
 
             <div className="relative mb-6">
-                <div className="h-64 md:h-[32rem] w-full rounded-b-2xl overflow-hidden bg-emerald-950 relative">
+                <div className={`h-64 md:h-[32rem] w-full rounded-b-2xl overflow-hidden relative ${profileUser?.role === 'PREMIUM' ? 'bg-gradient-to-br from-neutral-950 via-red-950 to-neutral-950 ring-4 ring-red-600 ring-offset-4 ring-offset-neutral-950 shadow-2xl shadow-red-600/30' : 'bg-emerald-950'}`}>
                     {images.cover && <img src={images.cover} className="w-full h-full object-cover" alt="Cover" />}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    <label className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 cursor-pointer transition backdrop-blur-sm">
+                    <div className={`absolute inset-0 ${profileUser?.role === 'PREMIUM' ? 'bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent' : 'bg-gradient-to-t from-black/60 via-transparent to-transparent'}`} />
+                    <label className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 cursor-pointer transition backdrop-blur-sm z-10">
                         <Camera className="w-4 h-4" /> Edit Cover Photo
                         <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageChange(e, 'cover')} />
                     </label>
+                    {profileUser?.role === 'PREMIUM' && (
+                        <div className="absolute top-4 left-4 bg-gradient-to-r from-red-600 to-rose-500 text-white font-black text-[11px] uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-lg shadow-red-600/40 flex items-center gap-1.5 border border-red-500/30 z-10">
+                            <Sparkles className="w-3.5 h-3.5 text-white animate-spin" /> Premium Member
+                        </div>
+                    )}
                 </div>
 
-                <div className="absolute -bottom-10 left-8 flex items-end space-x-4">
-                    <div className="relative group">
-                        <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white overflow-hidden bg-gray-200 relative shadow-md">
-                            {images.avatar && <img src={images.avatar} className="w-full h-full object-cover" alt="Avatar" />}
-                            <label className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition cursor-pointer">
+                <div className="absolute -bottom-12 left-8 flex items-end space-x-4 z-20 w-[calc(100%-4rem)]">
+                    <div className="relative group flex-shrink-0">
+                        <div className={`w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden bg-neutral-800 relative shadow-xl ${profileUser?.role === 'PREMIUM' ? 'border-4 border-red-600 ring-4 ring-rose-500/40 ring-offset-2' : 'border-4 border-white'}`}>
+                            {images.avatar && <img src={images.avatar} className="w-full h-full object-cover rounded-full" alt="Avatar" />}
+                            <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition cursor-pointer rounded-full">
                                 <Camera className="w-5 h-5 mb-1" />
                                 <span className="text-[10px] font-medium">Change Photo</span>
                                 <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageChange(e, 'avatar')} />
                             </label>
                         </div>
                         {profileUser?.nidStatus === 'verified' && (
-                            <div className="absolute bottom-2 right-2 bg-emerald-600 border-2 border-white text-white p-1.5 rounded-full">
+                            <div className={`absolute bottom-2 right-2 border-2 border-neutral-950 text-white p-1.5 rounded-full shadow-lg ${profileUser?.role === 'PREMIUM' ? 'bg-red-600' : 'bg-emerald-600'}`}>
                                 <ShieldCheck className="w-4 h-4" />
                             </div>
                         )}
                     </div>
 
-                    <div className="mb-4">
+                    <div className="mb-4 flex-1 min-w-0 bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-lg max-w-xl">
                         {editSections.header ? (
-                            <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'header'))} className="bg-black/70 p-3 rounded-xl space-y-2 backdrop-blur-sm min-w-[250px]">
+                            <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'header'))} className="space-y-2 min-w-[250px]">
                                 <input {...register('fullName')} className="w-full p-1.5 text-sm bg-white text-gray-800 rounded border" placeholder="Name" />
-                                {/* <input {...register('homeDistrict')} className="w-full p-1.5 text-sm bg-white text-gray-800 rounded border" placeholder="District" /> */}
                                 <div className="flex gap-2">
-                                    <button type="submit" className="bg-emerald-600 text-white px-2 py-1 text-xs rounded font-medium flex-1">Save</button>
+                                    <button type="submit" className="bg-red-600 text-white px-2 py-1 text-xs rounded font-medium flex-1">Save</button>
                                     <button type="button" onClick={() => toggleSection('header', false)} className="bg-gray-500 text-white px-2 py-1 text-xs rounded font-medium flex-1">Cancel</button>
                                 </div>
                             </form>
                         ) : (
-                            <div className="flex items-start gap-2 group">
-                                <div>
-                                    <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-md">{profileUser?.fullName || 'No Name Set'}</h1>
-                                    <div className="flex flex-wrap gap-3 mt-1 text-black text-sm drop-shadow-sm">
-                                        <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {profileUser?.currentThana || 'Not Set'}, Bangladesh</span>
-                                        <span className="flex items-center gap-1"><User className="w-4 h-4" /> ID: {profileUser?.profileId || profileUser?.userID || 'N/A'}</span>
-                                        <span className="flex items-center gap-1"><User className="w-4 h-4" />Referral ID: {profileUser?.ownRefarelID || 'N/A'}</span>
+                            <div className="flex items-start justify-between gap-2 group">
+                                <div className="min-w-0">
+                                    <h1 className={`text-2xl sm:text-3xl font-extrabold truncate drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${profileUser?.role === 'PREMIUM' ? 'text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-400 to-orange-400' : 'text-white'}`}>
+                                        {profileUser?.fullName || 'No Name Set'}
+                                    </h1>
+                                    <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2 text-xs sm:text-sm font-medium text-gray-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                        <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-red-500" /> {profileUser?.currentThana || 'Not Set'}, Bangladesh</span>
+                                        <span className="flex items-center gap-1.5"><User className="w-4 h-4 text-red-500" /> <span className="text-gray-400">ID:</span> {profileUser?.profileId || profileUser?.userID || 'N/A'}</span>
+                                        <span className="flex items-center gap-1.5"><User className="w-4 h-4 text-red-500" /> <span className="text-gray-400">Referral:</span> {profileUser?.ownRefarelID || 'N/A'}</span>
                                     </div>
                                 </div>
-                                <button type="button" onClick={() => toggleSection('header', true)} className="mt-1 p-1.5 bg-white/80 hover:bg-white text-gray-700 rounded-full shadow opacity-0 group-hover:opacity-100 transition">
+                                <button type="button" onClick={() => toggleSection('header', true)} className="p-1.5 bg-neutral-800/80 hover:bg-neutral-700 text-white rounded-xl shadow border border-white/10 opacity-0 group-hover:opacity-100 transition flex-shrink-0">
                                     <Edit2 className="w-3.5 h-3.5" />
                                 </button>
                             </div>
@@ -1193,7 +1199,7 @@ const UserProfile = () => {
                 )}
             </div>
 
-          
+
         </div>
     );
 };

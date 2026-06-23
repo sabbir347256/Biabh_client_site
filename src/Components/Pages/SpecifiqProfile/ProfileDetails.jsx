@@ -1,27 +1,27 @@
 import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import {
-    User, Briefcase, Heart,
+    User, Briefcase,
     MapPin, CheckCircle2, X, ShieldCheck, Lock,
     Phone,
     Mail,
-    Globe
+    Globe,
+    Sparkles
 } from 'lucide-react';
 import config from '../utilies/envconfig';
-import { useNavigate, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import toast, { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './../../AuthProvider/CreateContext';
 
 
 const ProfileDetails = () => {
-    const {data,user} = useContext(AuthProvider);
+    const { data } = useContext(AuthProvider);
     const { id } = useParams();
     const [profileUser, setProfileUser] = useState(null);
     const [isProfileLocked, setIsProfileLocked] = useState(true);
     const [isPhoneLocked, setIsPhoneLocked] = useState(true);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState({ type: '', text: '' });
-    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -54,6 +54,7 @@ const ProfileDetails = () => {
             fetchProfileData();
         }
     }, [id]);
+
 
     const handleUnlockProfile = async () => {
         const token = localStorage.getItem("accessToken");
@@ -122,10 +123,11 @@ const ProfileDetails = () => {
         }
     };
 
-    const handleSendInterest = () => {
-        toast.error("This feature is currently under development. Please check back later!");
-    };
-    
+    // const handleSendInterest = () => {
+    //     toast.error("This feature is currently under development. Please check back later!");
+    // };
+
+
 
     if (loading) {
         return <div className="min-h-screen flex items-center justify-center text-lg font-semibold">Loading Profile Details...</div>;
@@ -134,35 +136,43 @@ const ProfileDetails = () => {
         <div className="app-container pb-8 min-h-screen bg-gray-50/50">
             <Toaster position="top-right" reverseOrder={false} />
             {message.text && (
-                <div className={`fixed top-4 right-4 z-50 p-4 rounded-xl text-sm font-medium shadow-md transition-all ${message.type === 'success' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-100 text-red-800 border border-red-200'
-                    }`}>
+                <div className={`fixed top-4 right-4 z-50 p-4 rounded-xl text-sm font-medium shadow-md transition-all ${message.type === 'success' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
                     {message.text}
                 </div>
             )}
 
             <div className="relative mb-6">
-                <div className="h-64 md:h-[24rem] w-full rounded-b-2xl overflow-hidden bg-emerald-950 relative">
-                    <img src={profileUser?.coverImage} className="w-full h-full object-cover opacity-40" alt="Cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className={`h-64 md:h-[24rem] w-full rounded-b-2xl overflow-hidden relative ${profileUser?.role === 'PREMIUM' ? 'bg-gradient-to-br from-neutral-950 via-red-950 to-neutral-950 ring-4 ring-red-600 ring-offset-4 ring-offset-neutral-950 shadow-2xl shadow-red-600/30' : 'bg-emerald-950'}`}>
+                    <img src={profileUser?.coverImage} className={`w-full h-full object-cover ${profileUser?.role === 'PREMIUM' ? 'opacity-30' : 'opacity-40'}`} alt="Cover" />
+                    <div className={`absolute inset-0 ${profileUser?.role === 'PREMIUM' ? 'bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent' : 'bg-gradient-to-t from-black/60 via-transparent to-transparent'}`} />
+                    {profileUser?.role === 'PREMIUM' && (
+                        <div className="absolute top-4 left-4 bg-gradient-to-r from-red-600 to-rose-500 text-white font-black text-[11px] uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-lg shadow-red-600/40 flex items-center gap-1.5 border border-red-500/30 z-10">
+                            <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" /> Premium Member
+                        </div>
+                    )}
                 </div>
 
-                <div className="absolute -bottom-10 left-8 flex items-end space-x-4">
-                    <div className="relative group">
-                        <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white overflow-hidden bg-gray-200 relative shadow-md">
+                <div className="absolute -bottom-12 left-8 flex items-end space-x-4 z-20 w-[calc(100%-4rem)]">
+                    <div className="relative group flex-shrink-0">
+                        <div className={`w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden bg-neutral-800 relative shadow-xl ${profileUser?.role === 'PREMIUM' ? 'border-4 border-red-600 ring-4 ring-rose-500/40 ring-offset-2' : 'border-4 border-white'}`}>
                             <img src={profileUser?.profileImage} className="w-full h-full object-cover" alt="Avatar" />
                         </div>
                         {profileUser?.isVerified && (
-                            <div className="absolute bottom-2 right-2 bg-emerald-600 border-2 border-white text-white p-1.5 rounded-full shadow">
+                            <div className={`absolute bottom-2 right-2 border-2 text-white p-1.5 rounded-full shadow-lg ${profileUser?.role === 'PREMIUM' ? 'bg-red-600 border-neutral-950' : 'bg-emerald-600 border-white'}`}>
                                 <ShieldCheck className="w-4 h-4" />
                             </div>
                         )}
                     </div>
 
-                    <div className="mb-4">
-                        <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-md">{profileUser?.fullName || 'No Name Set'}</h1>
-                        <div className="flex flex-wrap gap-3 mt-1 text-black text-sm drop-shadow-sm opacity-90">
-                            <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {profileUser?.currentThana || 'Not Set'}, Bangladesh</span>
-                            <span className="flex items-center gap-1"><User className="w-4 h-4" /> ID: {profileUser?.userID || 'N/A'}</span>
+                    <div className="mb-4 flex-1 min-w-0 bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-lg max-w-xl">
+                        <div className="min-w-0">
+                            <h1 className={`text-2xl sm:text-3xl font-extrabold truncate drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${profileUser?.role === 'PREMIUM' ? 'text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-400 to-orange-400' : 'text-white'}`}>
+                                {profileUser?.fullName || 'No Name Set'}
+                            </h1>
+                            <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2 text-xs sm:text-sm font-medium text-gray-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                <span className="flex items-center gap-1.5"><MapPin className={`w-4 h-4 ${profileUser?.role === 'PREMIUM' ? 'text-red-500' : 'text-emerald-500'}`} /> {profileUser?.currentThana || 'Not Set'}, Bangladesh</span>
+                                <span className="flex items-center gap-1.5"><User className={`w-4 h-4 ${profileUser?.role === 'PREMIUM' ? 'text-red-500' : 'text-emerald-500'}`} /> <span className="text-gray-400">ID:</span> {profileUser?.userID || 'N/A'}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -170,9 +180,9 @@ const ProfileDetails = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-16">
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4">
+                    <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${profileUser?.role === 'PREMIUM' ? 'border-l-red-600' : 'border-l-emerald-600'}`}>
                         <div className="flex justify-between items-center mb-4 border-b pb-2">
-                            <h2 className="text-lg font-bold text-red-600 flex items-center gap-2">
+                            <h2 className={`text-lg font-bold flex items-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
                                 <User className="w-5 h-5" /> Personal Information
                             </h2>
                         </div>
@@ -196,15 +206,15 @@ const ProfileDetails = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4">
+                    <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${profileUser?.role === 'PREMIUM' ? 'border-l-red-600' : 'border-l-emerald-600'}`}>
                         <div className="flex justify-between items-center mb-4 border-b pb-2">
-                            <h2 className="text-lg font-bold text-red-600 flex items-center gap-2">
+                            <h2 className={`text-lg font-bold flex items-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
                                 <Briefcase className="w-5 h-5" /> Professional & Education
                             </h2>
                         </div>
                         <div className="space-y-4">
                             <div className="flex gap-3 items-start">
-                                <div className="bg-red-50 p-2 rounded-xl text-red-600 mt-1">
+                                <div className={`p-2 rounded-xl mt-1 ${profileUser?.role === 'PREMIUM' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
                                     <Briefcase className="w-5 h-5" />
                                 </div>
                                 <div className="flex-1">
@@ -215,21 +225,21 @@ const ProfileDetails = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4">
+                    <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${profileUser?.role === 'PREMIUM' ? 'border-l-red-600' : 'border-l-emerald-600'}`}>
                         <div className="flex justify-between items-center mb-4 border-b pb-2">
-                            <h2 className="text-lg font-bold text-red-600 flex items-center gap-2">
+                            <h2 className={`text-lg font-bold flex items-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
                                 <Phone className="w-5 h-5" /> Contact Information
                             </h2>
                         </div>
                         {isProfileLocked ? (
                             <div className="flex flex-col items-center justify-center py-6 border border-dashed border-gray-200 rounded-xl bg-gray-50/50 px-4 text-center">
-                                <Lock className="w-8 h-8 text-red-400 mb-2" />
+                                <Lock className={`w-8 h-8 mb-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-400' : 'text-emerald-400'}`} />
                                 <p className="text-sm font-semibold text-gray-700 mb-1">Contact Details are Locked</p>
                                 <p className="text-xs text-gray-500 mb-4">Please unlock to view Phone, Email, Current and Permanent address.</p>
                                 <button
                                     type="button"
                                     onClick={handleUnlockProfile}
-                                    className="w-full sm:w-auto px-6 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-semibold text-sm transition shadow-md shadow-red-100 flex items-center justify-center gap-2"
+                                    className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-semibold text-sm transition shadow-md flex items-center justify-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-100' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100'}`}
                                 >
                                     <Lock className="w-4 h-4" /> Unlock Contact Details (Paid 7 TK)
                                 </button>
@@ -237,30 +247,28 @@ const ProfileDetails = () => {
                         ) : (
                             <div className="space-y-4 animate-fadeIn">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                                    <div className="border border-emerald-100 p-4 rounded-xl bg-emerald-50/20 flex flex-col justify-between min-h-[95px]">
+                                    <div className={`border p-4 rounded-xl flex flex-col justify-between min-h-[95px] ${profileUser?.role === 'PREMIUM' ? 'border-red-100 bg-red-50/10' : 'border-emerald-100 bg-emerald-50/20'}`}>
                                         <div>
-                                            <span className="text-xs font-bold text-emerald-600 flex items-center gap-1 uppercase mb-1">
+                                            <span className={`text-xs font-bold flex items-center gap-1 uppercase mb-1 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
                                                 <Phone className="w-3.5 h-3.5" /> Phone Number
                                             </span>
                                             {!isPhoneLocked && (
                                                 <p className="text-gray-800 text-sm font-semibold animate-fadeIn">{profileUser?.contactNo || 'Not Set'}</p>
                                             )}
                                         </div>
-
                                         {isPhoneLocked && (
                                             <button
                                                 type="button"
                                                 onClick={handleUnlockPhone}
-                                                className="mt-2 w-full text-center bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-xl font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-sm shadow-amber-100"
+                                                className={`mt-2 w-full text-center text-white py-2 px-4 rounded-xl font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-sm ${profileUser?.role === 'PREMIUM' ? 'bg-red-500 hover:bg-red-600 shadow-red-100' : 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-100'}`}
                                             >
                                                 <Lock className="w-3 h-3" /> Pay 77 TK to Unlock Phone Number
                                             </button>
                                         )}
                                     </div>
 
-                                    <div className="border border-emerald-100 p-4 rounded-xl bg-emerald-50/20">
-                                        <span className="text-xs font-bold text-emerald-600 flex items-center gap-1 uppercase mb-1">
+                                    <div className={`border p-4 rounded-xl ${profileUser?.role === 'PREMIUM' ? 'border-red-100 bg-red-50/10' : 'border-emerald-100 bg-emerald-50/20'}`}>
+                                        <span className={`text-xs font-bold flex items-center gap-1 uppercase mb-1 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
                                             <Mail className="w-3.5 h-3.5" /> Email Address
                                         </span>
                                         <p className="text-gray-800 text-sm font-semibold">{profileUser?.email || 'Not Set'}</p>
@@ -269,7 +277,7 @@ const ProfileDetails = () => {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                                     <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                        <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1">
+                                        <span className={`text-xs font-bold flex items-center gap-1 uppercase mb-1 ${profileUser?.role === 'PREMIUM' ? 'text-red-500' : 'text-emerald-600'}`}>
                                             <MapPin className="w-3.5 h-3.5" /> Current Address
                                         </span>
                                         <p className="text-gray-700 text-sm font-medium">
@@ -277,7 +285,7 @@ const ProfileDetails = () => {
                                         </p>
                                     </div>
                                     <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                        <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1">
+                                        <span className={`text-xs font-bold flex items-center gap-1 uppercase mb-1 ${profileUser?.role === 'PREMIUM' ? 'text-red-500' : 'text-emerald-600'}`}>
                                             <Globe className="w-3.5 h-3.5" /> Permanent Address
                                         </span>
                                         <p className="text-gray-700 text-sm font-medium">
@@ -291,42 +299,12 @@ const ProfileDetails = () => {
                 </div>
 
                 <div className="space-y-6">
-                    {/* <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
-                        <div className="mx-auto bg-red-50 text-red-600 w-12 h-12 rounded-full flex items-center justify-center mb-3">
-                            <Heart className="w-6 h-6" />
-                        </div>
-                        <h3 className="font-bold text-gray-800 text-lg">Connect with {profileUser?.fullName || 'User'}</h3>
-                        <p className="text-gray-500 text-sm mt-1 mb-4 px-4">Take the first step toward a blessed journey together.</p>
-
-                        <button
-                            type="button"
-                            onClick={handleSendInterest}
-                            className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-semibold text-sm transition shadow-md shadow-red-100 mb-3 flex items-center justify-center gap-2"
-                        >
-                            <Heart className="w-4 h-4" /> Send Interest
-                        </button>
-
-                        {isProfileLocked ? (
-                            <button
-                                type="button"
-                                onClick={handleUnlockProfile}
-                                className="w-full border border-red-200 hover:bg-red-50 text-red-600 py-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2 bg-red-50/30"
-                            >
-                                <Lock className="w-4 h-4" /> Unlock Contact Details (7 TK)
-                            </button>
-                        ) : (
-                            <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-xl text-center animate-fadeIn font-semibold text-sm flex items-center justify-center gap-1.5">
-                                <Unlock className="w-4 h-4 text-emerald-600" /> Contact Details Unlocked
-                            </div>
-                        )}
-                    </div> */}
-
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Verification Status</h3>
                         <div className="space-y-3">
                             <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
                                 {profileUser?.isActive === 'ACTIVE' ? (
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />
+                                    <CheckCircle2 className={`w-4 h-4 ${profileUser?.role === 'PREMIUM' ? 'text-red-600 fill-red-50' : 'text-emerald-600 fill-emerald-50'}`} />
                                 ) : (
                                     <X className="w-4 h-4 text-red-500" />
                                 )}
