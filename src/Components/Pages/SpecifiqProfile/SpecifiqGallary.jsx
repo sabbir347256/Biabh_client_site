@@ -1,10 +1,10 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import config from "../../utilies/envconfig";
+import config from "../utilies/envconfig";
 import toast from "react-hot-toast";
 import { ImageIcon, MoreVertical, Trash2, Upload, X } from "lucide-react";
 
-const PhotoGalleryView = ({ profileUser, token }) => {
+const SpecifiqGallary = ({ profileUser, token }) => {
     const [photos, setPhotos] = useState([]);
     const [uploading, setUploading] = useState(false);
     const [selectedPhoto, setSelectedPhoto] = useState(null);
@@ -82,7 +82,6 @@ const PhotoGalleryView = ({ profileUser, token }) => {
         e.stopPropagation();
         setActiveMenu(activeMenu === photoId ? null : photoId);
     };
-
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b">
@@ -91,10 +90,10 @@ const PhotoGalleryView = ({ profileUser, token }) => {
                         <ImageIcon className="w-5 h-5 text-emerald-600" /> Photo Gallery
                     </h2>
                 </div>
-                <label className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium cursor-pointer transition shadow-sm">
+                {/* <label className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium cursor-pointer transition shadow-sm">
                     <Upload className="w-4 h-4" /> Upload Photo
                     <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
-                </label>
+                </label> */}
             </div>
 
             {photos.length === 0 ? (
@@ -140,4 +139,4 @@ const PhotoGalleryView = ({ profileUser, token }) => {
     );
 };
 
-export default PhotoGalleryView;
+export default SpecifiqGallary;

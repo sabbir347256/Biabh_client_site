@@ -4,7 +4,7 @@ import { NavLink } from "react-router";
 
 const HeroSection = () => {
     return (
-        <section className="w-full min-h-[calc(90vh-88px)] flex items-center relative overflow-hidden">
+        <section className="w-full md:min-h-[calc(90vh-88px)] flex items-center relative overflow-hidden">
             <div className="absolute inset-0 z-0 pointer-events-none select-none">
                 <svg
                     className="absolute right-0 bottom-0 w-full h-full object-cover md:w-[65%] md:h-full lg:w-[55%]"

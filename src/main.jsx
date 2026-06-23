@@ -19,6 +19,8 @@ import Search from "./Components/Pages/Search/Search";
 import ForgotPass from "./Components/Pages/Authentication/ForgotPass/ForgotPass";
 import LoginSuccess from "./Components/Pages/Authentication/Login/LoginSuccess";
 import ContactUs from "./Components/Pages/Shared/ContactUs";
+import TermCondition from "./Components/Pages/Shared/TermCondition";
+import SuccessStory from "./Components/Pages/successStory/SuccessStory";
 
 
 const queryClient = new QueryClient();
@@ -63,6 +65,10 @@ const router = createBrowserRouter([
       {
         path: "/contact",
         element: <ContactUs></ContactUs>
+      },
+      {
+        path: "/term-condition",
+        element: <TermCondition></TermCondition>
       },
       // {
       //   path: "/success-stories",

@@ -1,5 +1,6 @@
 import { Heart, Share2 } from "lucide-react";
 import logo from '../../../assets/images/logo.jpeg'
+import { NavLink } from "react-router";
 
 const Footer = () => {
     return (
@@ -25,23 +26,23 @@ const Footer = () => {
                             Quick Links
                         </h4>
                         <ul className="space-y-2.5 text-sm">
-                            <li>
+                            {/* <li>
                                 <a href="#" className="text-white/60 hover:text-white transition-colors duration-200">
                                     Privacy Policy
                                 </a>
-                            </li>
+                            </li> */}
                             <li>
-                                <a href="#" className="text-white/60 hover:text-white transition-colors duration-200">
+                                <a href="/term-condition" className="text-white/60 hover:text-white transition-colors duration-200">
                                     Terms of Service
                                 </a>
                             </li>
-                            <li>
+                            {/* <li>
                                 <a href="#" className="text-white/60 hover:text-white transition-colors duration-200">
                                     Safety Tips
                                 </a>
-                            </li>
+                            </li> */}
                             <li>
-                                <a href="#" className="text-white/60 hover:text-white transition-colors duration-200">
+                                <a href="/contact" className="text-white/60 hover:text-white transition-colors duration-200">
                                     Contact Us
                                 </a>
                             </li>

@@ -6,12 +6,15 @@ import {
     Phone,
     Mail,
     Globe,
-    Sparkles
+    Sparkles,
+    FileText,
+    ImageIcon
 } from 'lucide-react';
 import config from '../utilies/envconfig';
 import { useParams } from 'react-router';
 import toast, { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './../../AuthProvider/CreateContext';
+import SpecifiqGallary from './SpecifiqGallary';
 
 
 const ProfileDetails = () => {
@@ -22,6 +25,8 @@ const ProfileDetails = () => {
     const [isPhoneLocked, setIsPhoneLocked] = useState(true);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [activeTab, setActiveTab] = useState('details');
+    const token = localStorage.getItem("accessToken");
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -132,6 +137,7 @@ const ProfileDetails = () => {
     if (loading) {
         return <div className="min-h-screen flex items-center justify-center text-lg font-semibold">Loading Profile Details...</div>;
     }
+
     return (
         <div className="app-container pb-8 min-h-screen bg-gray-50/50">
             <Toaster position="top-right" reverseOrder={false} />
@@ -141,6 +147,7 @@ const ProfileDetails = () => {
                 </div>
             )}
 
+            {/* Top Cover & Profile Image Section */}
             <div className="relative mb-6">
                 <div className={`h-64 md:h-[24rem] w-full rounded-b-2xl overflow-hidden relative ${profileUser?.role === 'PREMIUM' ? 'bg-gradient-to-br from-neutral-950 via-red-950 to-neutral-950 ring-4 ring-red-600 ring-offset-4 ring-offset-neutral-950 shadow-2xl shadow-red-600/30' : 'bg-emerald-950'}`}>
                     <img src={profileUser?.coverImage} className={`w-full h-full object-cover ${profileUser?.role === 'PREMIUM' ? 'opacity-30' : 'opacity-40'}`} alt="Cover" />
@@ -178,158 +185,196 @@ const ProfileDetails = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-16">
-                <div className="lg:col-span-2 space-y-6">
-                    <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${profileUser?.role === 'PREMIUM' ? 'border-l-red-600' : 'border-l-emerald-600'}`}>
-                        <div className="flex justify-between items-center mb-4 border-b pb-2">
-                            <h2 className={`text-lg font-bold flex items-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
-                                <User className="w-5 h-5" /> Personal Information
-                            </h2>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label className="text-xs font-semibold text-gray-400 uppercase">Age</label>
-                                <p className="text-gray-800 font-medium mt-0.5">{profileUser?.age || 'Not Set'} Years</p>
-                            </div>
-                            <div>
-                                <label className="text-xs font-semibold text-gray-400 uppercase">Birth Date</label>
-                                <p className="text-gray-800 font-medium mt-0.5">{profileUser?.birth || 'Not Set'}</p>
-                            </div>
-                            <div>
-                                <label className="text-xs font-semibold text-gray-400 uppercase">Home District</label>
-                                <p className="text-gray-800 font-medium mt-0.5">{profileUser?.
-                                    homeDistrict || 'Not Set'}</p>
-                            </div>
-                            <div>
-                                <label className="text-xs font-semibold text-gray-400 uppercase">Gender</label>
-                                <p className="text-gray-800 font-medium mt-0.5">{profileUser?.gender || 'Not Set'}</p>
-                            </div>
-                        </div>
-                    </div>
+            {/* Facebook Style Tab Navigation Section */}
+            <div className="pt-14 px-8 border-b border-gray-200 bg-white shadow-sm rounded-t-xl mt-2 mx-auto max-w-7xl">
+                <div className="flex space-x-6">
+                    <button
+                        onClick={() => setActiveTab('details')}
+                        className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${activeTab === 'details'
+                            ? (profileUser?.role === 'PREMIUM' ? 'border-red-600 text-red-600' : 'border-emerald-600 text-emerald-600')
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                            }`}
+                    >
+                        <FileText className="w-4 h-4" /> Details
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('photos')}
+                        className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${activeTab === 'photos'
+                            ? (profileUser?.role === 'PREMIUM' ? 'border-red-600 text-red-600' : 'border-emerald-600 text-emerald-600')
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                            }`}
+                    >
+                        <ImageIcon className="w-4 h-4" /> Photos
+                    </button>
+                </div>
+            </div>
 
-                    <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${profileUser?.role === 'PREMIUM' ? 'border-l-red-600' : 'border-l-emerald-600'}`}>
-                        <div className="flex justify-between items-center mb-4 border-b pb-2">
-                            <h2 className={`text-lg font-bold flex items-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
-                                <Briefcase className="w-5 h-5" /> Professional & Education
-                            </h2>
-                        </div>
-                        <div className="space-y-4">
-                            <div className="flex gap-3 items-start">
-                                <div className={`p-2 rounded-xl mt-1 ${profileUser?.role === 'PREMIUM' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
-                                    <Briefcase className="w-5 h-5" />
+            {/* Tab Content Display */}
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-6">
+                {activeTab === 'details' ? (
+                    /* Existing Details Layout */
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn">
+                        <div className="lg:col-span-2 space-y-6">
+                            {/* Personal Info */}
+                            <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${profileUser?.role === 'PREMIUM' ? 'border-l-red-600' : 'border-l-emerald-600'}`}>
+                                <div className="flex justify-between items-center mb-4 border-b pb-2">
+                                    <h2 className={`text-lg font-bold flex items-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
+                                        <User className="w-5 h-5" /> Personal Information
+                                    </h2>
                                 </div>
-                                <div className="flex-1">
-                                    <p className="text-gray-800 font-semibold">{profileUser?.profession || 'Not Set'}</p>
-                                    <p className="text-gray-500 text-sm">Working Status</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${profileUser?.role === 'PREMIUM' ? 'border-l-red-600' : 'border-l-emerald-600'}`}>
-                        <div className="flex justify-between items-center mb-4 border-b pb-2">
-                            <h2 className={`text-lg font-bold flex items-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
-                                <Phone className="w-5 h-5" /> Contact Information
-                            </h2>
-                        </div>
-                        {isProfileLocked ? (
-                            <div className="flex flex-col items-center justify-center py-6 border border-dashed border-gray-200 rounded-xl bg-gray-50/50 px-4 text-center">
-                                <Lock className={`w-8 h-8 mb-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-400' : 'text-emerald-400'}`} />
-                                <p className="text-sm font-semibold text-gray-700 mb-1">Contact Details are Locked</p>
-                                <p className="text-xs text-gray-500 mb-4">Please unlock to view Phone, Email, Current and Permanent address.</p>
-                                <button
-                                    type="button"
-                                    onClick={handleUnlockProfile}
-                                    className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-semibold text-sm transition shadow-md flex items-center justify-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-100' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100'}`}
-                                >
-                                    <Lock className="w-4 h-4" /> Unlock Contact Details <br /> (Paid 7 TK)
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="space-y-4 animate-fadeIn">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className={`border p-4 rounded-xl flex flex-col justify-between min-h-[95px] ${profileUser?.role === 'PREMIUM' ? 'border-red-100 bg-red-50/10' : 'border-emerald-100 bg-emerald-50/20'}`}>
-                                        <div>
-                                            <span className={`text-xs font-bold flex items-center gap-1 uppercase mb-1 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
-                                                <Phone className="w-3.5 h-3.5" /> Phone Number
-                                            </span>
-                                            {!isPhoneLocked && (
-                                                <p className="text-gray-800 text-sm font-semibold animate-fadeIn">{profileUser?.contactNo || 'Not Set'}</p>
-                                            )}
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-400 uppercase">Age</label>
+                                        <p className="text-gray-800 font-medium mt-0.5">{profileUser?.age || 'Not Set'} Years</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-400 uppercase">Birth Date</label>
+                                        <p className="text-gray-800 font-medium mt-0.5">{profileUser?.birth || 'Not Set'}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-400 uppercase">Home District</label>
+                                        <p className="text-gray-800 font-medium mt-0.5">{profileUser?.homeDistrict || 'Not Set'}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-400 uppercase">Gender</label>
+                                        <p className="text-gray-800 font-medium mt-0.5">{profileUser?.gender || 'Not Set'}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Professional & Education */}
+                            <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${profileUser?.role === 'PREMIUM' ? 'border-l-red-600' : 'border-l-emerald-600'}`}>
+                                <div className="flex justify-between items-center mb-4 border-b pb-2">
+                                    <h2 className={`text-lg font-bold flex items-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
+                                        <Briefcase className="w-5 h-5" /> Professional & Education
+                                    </h2>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="flex gap-3 items-start">
+                                        <div className={`p-2 rounded-xl mt-1 ${profileUser?.role === 'PREMIUM' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                                            <Briefcase className="w-5 h-5" />
                                         </div>
-                                        {isPhoneLocked && (
-                                            <button
-                                                type="button"
-                                                onClick={handleUnlockPhone}
-                                                className={`mt-2 w-full text-center text-white py-2 px-4 rounded-xl font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-sm ${profileUser?.role === 'PREMIUM' ? 'bg-red-500 hover:bg-red-600 shadow-red-100' : 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-100'}`}
-                                            >
-                                                <Lock className="w-3 h-3" /> Pay 77 TK to Unlock Phone Number
-                                            </button>
+                                        <div className="flex-1">
+                                            <p className="text-gray-800 font-semibold">{profileUser?.profession || 'Not Set'}</p>
+                                            <p className="text-gray-500 text-sm">Working Status</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Contact Info */}
+                            <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${profileUser?.role === 'PREMIUM' ? 'border-l-red-600' : 'border-l-emerald-600'}`}>
+                                <div className="flex justify-between items-center mb-4 border-b pb-2">
+                                    <h2 className={`text-lg font-bold flex items-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
+                                        <Phone className="w-5 h-5" /> Contact Information
+                                    </h2>
+                                </div>
+                                {isProfileLocked ? (
+                                    <div className="flex flex-col items-center justify-center py-6 border border-dashed border-gray-200 rounded-xl bg-gray-50/50 px-4 text-center">
+                                        <Lock className={`w-8 h-8 mb-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-400' : 'text-emerald-400'}`} />
+                                        <p className="text-sm font-semibold text-gray-700 mb-1">Contact Details are Locked</p>
+                                        <p className="text-xs text-gray-500 mb-4">Please unlock to view Phone, Email, Current and Permanent address.</p>
+                                        <button
+                                            type="button"
+                                            onClick={handleUnlockProfile}
+                                            className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-semibold text-sm transition shadow-md flex items-center justify-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-100' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100'}`}
+                                        >
+                                            <Lock className="w-4 h-4" /> Unlock Contact Details <br /> (Paid 7 TK)
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4 animate-fadeIn">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className={`border p-4 rounded-xl flex flex-col justify-between min-h-[95px] ${profileUser?.role === 'PREMIUM' ? 'border-red-100 bg-red-50/10' : 'border-emerald-100 bg-emerald-50/20'}`}>
+                                                <div>
+                                                    <span className={`text-xs font-bold flex items-center gap-1 uppercase mb-1 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
+                                                        <Phone className="w-3.5 h-3.5" /> Phone Number
+                                                    </span>
+                                                    {!isPhoneLocked && (
+                                                        <p className="text-gray-800 text-sm font-semibold animate-fadeIn">{profileUser?.contactNo || 'Not Set'}</p>
+                                                    )}
+                                                </div>
+                                                {isPhoneLocked && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleUnlockPhone}
+                                                        className={`mt-2 w-full text-center text-white py-2 px-4 rounded-xl font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-sm ${profileUser?.role === 'PREMIUM' ? 'bg-red-500 hover:bg-red-600 shadow-red-100' : 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-100'}`}
+                                                    >
+                                                        <Lock className="w-3 h-3" /> Pay 77 TK to Unlock Phone Number
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div className={`border p-4 rounded-xl ${profileUser?.role === 'PREMIUM' ? 'border-red-100 bg-red-50/10' : 'border-emerald-100 bg-emerald-50/20'}`}>
+                                                <span className={`text-xs font-bold flex items-center gap-1 uppercase mb-1 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
+                                                    <Mail className="w-3.5 h-3.5" /> Email Address
+                                                </span>
+                                                <p className="text-gray-800 text-sm font-semibold">{profileUser?.email || 'Not Set'}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                                            <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                                <span className={`text-xs font-bold flex items-center gap-1 uppercase mb-1 ${profileUser?.role === 'PREMIUM' ? 'text-red-500' : 'text-emerald-600'}`}>
+                                                    <MapPin className="w-3.5 h-3.5" /> Current Address
+                                                </span>
+                                                <p className="text-gray-700 text-sm font-medium">
+                                                    {profileUser?.currentThana ? `${profileUser.currentThana}, ${profileUser.currentDistrict}, ${profileUser.currentDivision}, ${profileUser.currentCountry}` : 'Not Set'}
+                                                </p>
+                                            </div>
+                                            <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                                <span className={`text-xs font-bold flex items-center gap-1 uppercase mb-1 ${profileUser?.role === 'PREMIUM' ? 'text-red-500' : 'text-emerald-600'}`}>
+                                                    <Globe className="w-3.5 h-3.5" /> Permanent Address
+                                                </span>
+                                                <p className="text-gray-700 text-sm font-medium">
+                                                    {profileUser?.permanentThana ? `${profileUser.permanentThana}, ${profileUser.permanentDistrict}, ${profileUser.permanentDivision}, ${profileUser.permanentCountry}` : 'Not Set'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Right Sidebar Status */}
+                        <div className="space-y-6">
+                            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Verification Status</h3>
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                                        {profileUser?.isActive === 'ACTIVE' ? (
+                                            <CheckCircle2 className={`w-4 h-4 ${profileUser?.role === 'PREMIUM' ? 'text-red-600 fill-red-50' : 'text-emerald-600 fill-emerald-50'}`} />
+                                        ) : (
+                                            <X className="w-4 h-4 text-red-500" />
                                         )}
+                                        <span>Profile Verified</span>
                                     </div>
-
-                                    <div className={`border p-4 rounded-xl ${profileUser?.role === 'PREMIUM' ? 'border-red-100 bg-red-50/10' : 'border-emerald-100 bg-emerald-50/20'}`}>
-                                        <span className={`text-xs font-bold flex items-center gap-1 uppercase mb-1 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
-                                            <Mail className="w-3.5 h-3.5" /> Email Address
-                                        </span>
-                                        <p className="text-gray-800 text-sm font-semibold">{profileUser?.email || 'Not Set'}</p>
+                                    <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                                        {profileUser?.isDocumentVerification === true ? (
+                                            <CheckCircle2 className={`w-4 h-4 ${profileUser?.role === 'PREMIUM' ? 'text-red-600 fill-red-50' : 'text-emerald-600 fill-emerald-50'}`} />
+                                        ) : (
+                                            <X className="w-4 h-4 text-red-500" />
+                                        )}
+                                        <span>Document Verified</span>
                                     </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                                    <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                        <span className={`text-xs font-bold flex items-center gap-1 uppercase mb-1 ${profileUser?.role === 'PREMIUM' ? 'text-red-500' : 'text-emerald-600'}`}>
-                                            <MapPin className="w-3.5 h-3.5" /> Current Address
-                                        </span>
-                                        <p className="text-gray-700 text-sm font-medium">
-                                            {profileUser?.currentThana ? `${profileUser.currentThana}, ${profileUser.currentDistrict}, ${profileUser.currentDivision}, ${profileUser.currentCountry}` : 'Not Set'}
-                                        </p>
-                                    </div>
-                                    <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                        <span className={`text-xs font-bold flex items-center gap-1 uppercase mb-1 ${profileUser?.role === 'PREMIUM' ? 'text-red-500' : 'text-emerald-600'}`}>
-                                            <Globe className="w-3.5 h-3.5" /> Permanent Address
-                                        </span>
-                                        <p className="text-gray-700 text-sm font-medium">
-                                            {profileUser?.permanentThana ? `${profileUser.permanentThana}, ${profileUser.permanentDistrict}, ${profileUser.permanentDivision}, ${profileUser.permanentCountry}` : 'Not Set'}
-                                        </p>
+                                    <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                                        {profileUser?.isFieldVerification === true ? (
+                                            <CheckCircle2 className={`w-4 h-4 ${profileUser?.role === 'PREMIUM' ? 'text-red-600 fill-red-50' : 'text-emerald-600 fill-emerald-50'}`} />
+                                        ) : (
+                                            <X className="w-4 h-4 text-red-500" />
+                                        )}
+                                        <span>Field Verified</span>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Verification Status</h3>
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
-                                {profileUser?.isActive === 'ACTIVE' ? (
-                                    <CheckCircle2 className={`w-4 h-4 ${profileUser?.role === 'PREMIUM' ? 'text-red-600 fill-red-50' : 'text-emerald-600 fill-emerald-50'}`} />
-                                ) : (
-                                    <X className="w-4 h-4 text-red-500" />
-                                )}
-                                <span>Profile Verified</span>
-                            </div>
-                            <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
-                                {profileUser?.isDocumentVerification === true ? (
-                                    <CheckCircle2 className={`w-4 h-4 ${profileUser?.role === 'PREMIUM' ? 'text-red-600 fill-red-50' : 'text-emerald-600 fill-emerald-50'}`} />
-                                ) : (
-                                    <X className="w-4 h-4 text-red-500" />
-                                )}
-                                <span>Document Verified</span>
-                            </div>
-                            <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
-                                {profileUser?.isFieldVerification === true ? (
-                                    <CheckCircle2 className={`w-4 h-4 ${profileUser?.role === 'PREMIUM' ? 'text-red-600 fill-red-50' : 'text-emerald-600 fill-emerald-50'}`} />
-                                ) : (
-                                    <X className="w-4 h-4 text-red-500" />
-                                )}
-                                <span>Field Verified</span>
                             </div>
                         </div>
                     </div>
-                </div>
+                ) : (
+                    /* Photos Gallery Layout Container */
+                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm min-h-[300px] animate-fadeIn">
+                        <SpecifiqGallary profileUser={profileUser} token={token} config={config} />
+                    </div>
+                )}
             </div>
         </div>
     );
