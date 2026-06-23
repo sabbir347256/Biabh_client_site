@@ -18,6 +18,7 @@ import Search from "./Components/Pages/Search/Search";
 // import Contact from "./Components/Pages/Contact/Contact";
 import ForgotPass from "./Components/Pages/Authentication/ForgotPass/ForgotPass";
 import LoginSuccess from "./Components/Pages/Authentication/Login/LoginSuccess";
+import ContactUs from "./Components/Pages/Shared/ContactUs";
 
 
 const queryClient = new QueryClient();
@@ -58,6 +59,10 @@ const router = createBrowserRouter([
       {
         path: "/login-success",
         element: <LoginSuccess></LoginSuccess>
+      },
+      {
+        path: "/contact",
+        element: <ContactUs></ContactUs>
       },
       // {
       //   path: "/success-stories",

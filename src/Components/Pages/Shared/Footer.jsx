@@ -16,7 +16,7 @@ const Footer = () => {
                             </span>
                         </div>
                         <p className="text-sm text-white/60 leading-relaxed max-w-sm">
-                            The world&apos;s most trusted Bangladeshi Muslim matchmaking service. Combining heritage with modern technology to help you find your lifelong partner.
+                            The world&apos;s most trusted Bangladeshi matchmaking service. Combining heritage with modern technology to help you find your lifelong partner.
                         </p>
                     </div>
 

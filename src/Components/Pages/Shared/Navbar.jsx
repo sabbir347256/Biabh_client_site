@@ -223,7 +223,7 @@ const Navbar = () => {
                         <button
                             type="button"
                             onClick={() => setpremiumon(true)}
-                            className="bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-bold text-sm py-2.5 px-2 mr-2 rounded-xl transition all duration-300 flex items-center gap-2 shadow-md shadow-red-100"
+                            className="bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-bold text-sm py-2.5 px-2 mr-2 rounded-xl transition all duration-300 hidden  md:flex items-center gap-2 shadow-md shadow-red-100"
                         >
                             <Sparkles className="w-4 h-4 hidden md:flex" /> Get Premium Feature
                         </button>
@@ -415,10 +415,10 @@ const Navbar = () => {
                                         <span className="text-gray-500">Bonus</span>
                                         <span className="font-semibold text-emerald-600">৳{bonusAmount}</span>
                                     </div>
-                                    <div className="flex justify-between items-center text-xs py-1">
+                                    {/* <div className="flex justify-between items-center text-xs py-1">
                                         <span className="text-gray-500">Refer</span>
                                         <span className="font-semibold text-indigo-600">৳{referralAmount}</span>
-                                    </div>
+                                    </div> */}
                                 </div>
                                 <button
                                     onClick={() => setIsRechargeOpen(true)}
@@ -499,6 +499,20 @@ const Navbar = () => {
                             Login / Sign Up
                         </NavLink>
                     )}
+                    {
+                        userProfile?.role !== 'PREMIUM' && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setpremiumon(true);
+                                    setIsOpen(false);
+                                }}
+                                className="bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-bold text-sm py-2.5 px-2 mr-2 rounded-xl transition all duration-300 md:hidden flex items-center gap-2 shadow-md shadow-red-100"
+                            >
+                                <Sparkles className="w-4 h-4 hidden md:flex" /> Get Premium Feature
+                            </button>
+                        )
+                    }
                     {navLinks.map((link) => {
                         const isActive = location.pathname === link.path;
                         return (
