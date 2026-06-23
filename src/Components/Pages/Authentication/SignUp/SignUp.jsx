@@ -648,7 +648,7 @@ const SignUp = () => {
 
                         <div className="relative z-10 text-center space-y-6">
                             <div>
-                                <h3 className="text-2xl font-bold text-gray-900 mb-2">Verify Email OTP</h3>
+                                <h3 className="text-2xl font-bold text-gray-900 mb-2">Verify Mobile & Email OTP</h3>
                                 <p className="text-sm text-gray-500 font-medium">We have sent a verification code to your phone number.</p>
                             </div>
 

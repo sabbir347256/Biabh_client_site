@@ -197,7 +197,8 @@ const ProfileDetails = () => {
                             </div>
                             <div>
                                 <label className="text-xs font-semibold text-gray-400 uppercase">Home District</label>
-                                <p className="text-gray-800 font-medium mt-0.5">{profileUser?.currentDistrict || 'Not Set'}</p>
+                                <p className="text-gray-800 font-medium mt-0.5">{profileUser?.
+                                    homeDistrict || 'Not Set'}</p>
                             </div>
                             <div>
                                 <label className="text-xs font-semibold text-gray-400 uppercase">Gender</label>
@@ -241,7 +242,7 @@ const ProfileDetails = () => {
                                     onClick={handleUnlockProfile}
                                     className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-semibold text-sm transition shadow-md flex items-center justify-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-100' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100'}`}
                                 >
-                                    <Lock className="w-4 h-4" /> Unlock Contact Details (Paid 7 TK)
+                                    <Lock className="w-4 h-4" /> Unlock Contact Details <br /> (Paid 7 TK)
                                 </button>
                             </div>
                         ) : (
@@ -309,6 +310,22 @@ const ProfileDetails = () => {
                                     <X className="w-4 h-4 text-red-500" />
                                 )}
                                 <span>Profile Verified</span>
+                            </div>
+                            <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                                {profileUser?.isDocumentVerification === true ? (
+                                    <CheckCircle2 className={`w-4 h-4 ${profileUser?.role === 'PREMIUM' ? 'text-red-600 fill-red-50' : 'text-emerald-600 fill-emerald-50'}`} />
+                                ) : (
+                                    <X className="w-4 h-4 text-red-500" />
+                                )}
+                                <span>Document Verified</span>
+                            </div>
+                            <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                                {profileUser?.isFieldVerification === true ? (
+                                    <CheckCircle2 className={`w-4 h-4 ${profileUser?.role === 'PREMIUM' ? 'text-red-600 fill-red-50' : 'text-emerald-600 fill-emerald-50'}`} />
+                                ) : (
+                                    <X className="w-4 h-4 text-red-500" />
+                                )}
+                                <span>Field Verified</span>
                             </div>
                         </div>
                     </div>

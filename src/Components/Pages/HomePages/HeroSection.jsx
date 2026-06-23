@@ -49,7 +49,7 @@ const HeroSection = () => {
                         Bibah is a trusted matrimonial platform dedicated to helping you find a life partner who matches your values and dreams.
                     </p>
 
-                    <div className="flex flex-wrap items-center gap-4 pt-2 w-full sm:w-auto">
+                    {/* <div className="flex flex-wrap items-center gap-4 pt-2 w-full sm:w-auto">
                         <NavLink className="bg-red-600 text-center hover:bg-red-700 text-white font-medium px-8 py-3.5 rounded-xl transition-all duration-200 active:scale-95 shadow-lg shadow-red-600/20 w-full sm:w-auto" to='/create-account'>
                             Get Started
                         </NavLink>
@@ -59,7 +59,7 @@ const HeroSection = () => {
                             </span>
                             How It Works
                         </button>
-                    </div>
+                    </div> */}
                 </div>
 
                 <div className="hidden md:flex justify-center md:justify-end lg:pr-12">

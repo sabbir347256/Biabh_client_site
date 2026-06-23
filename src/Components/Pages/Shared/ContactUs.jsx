@@ -37,7 +37,7 @@ const ContactUs = () => {
                             <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Hotline & Support</h3>
                             <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100">
                                 <span className="text-xs font-semibold text-gray-400 block uppercase">Central Hotline</span>
-                                <p className="text-xl font-black text-gray-800 tracking-wide mt-0.5">+880 96 1700 1700</p>
+                                <p className="text-xl font-black text-gray-800 tracking-wide mt-0.5">+88 09644 840 940</p>
                                 <span className="inline-block mt-1 px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded">Extension: 111</span>
                             </div>
                             <div className="mt-3 px-3">

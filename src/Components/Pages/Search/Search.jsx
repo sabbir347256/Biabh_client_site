@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, RotateCcw, SlidersHorizontal, X } from "luci
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import config from "../utilies/envconfig";
+import { NavLink } from "react-router";
 
 const Search = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -14,6 +15,7 @@ const Search = () => {
 
     const defaultFormValues = {
         religion: '',
+        gender: '',
         currentDivision: '',
         customDivision: '',
         occupation: '',
@@ -42,6 +44,7 @@ const Search = () => {
             const params = {};
 
             if (filters.religion) params.religion = filters.religion;
+            if (filters.gender) params.gender = filters.gender;
             if (filters.occupation) params.profession = filters.occupation;
             if (filters.familyStatus) params.familyStatus = filters.familyStatus;
 
@@ -63,7 +66,6 @@ const Search = () => {
             params.limit = 12;
 
             const response = await axios.get(`${config.backendUrl}/user/search-profiles`, { params });
-            console.log(response)
             if (response.data?.success) {
                 setProfiles(response.data.data);
                 setMeta({
@@ -79,8 +81,6 @@ const Search = () => {
             setLoading(false);
         }
     }, []);
-
-    console.log(profiles)
 
     useEffect(() => {
         fetchProfiles(defaultFormValues);
@@ -126,16 +126,6 @@ const Search = () => {
         })();
     };
 
-    // const handleSortChange = (e) => {
-    //     const sortValue = e.target.value;
-    //     setValue("sort", sortValue);
-    //     setValue("page", 1);
-    //     handleSubmit((data) => {
-    //         data.page = 1;
-    //         fetchProfiles(data);
-    //     })();
-    // };
-
     return (
         <div className="min-h-screen py-4 px-4">
             <div className="app-container flex flex-col lg:flex-row gap-8">
@@ -150,6 +140,18 @@ const Search = () => {
                                 <X className="w-6 h-6" />
                             </button>
                             <SlidersHorizontal className="w-5 h-5 text-red-500 hidden lg:block" />
+                        </div>
+
+                        <div className="mb-5">
+                            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Gender</label>
+                            <select
+                                {...register('gender')}
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-red-500"
+                            >
+                                <option value="">All Genders</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
                         </div>
 
                         <div className="mb-5">
@@ -207,25 +209,6 @@ const Search = () => {
                                 ))}
                             </select>
                         </div>
-                        {/* 
-                        <div className="mb-6">
-                            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Family Status</label>
-                            <div className="grid grid-cols-2 gap-2">
-                                {['Upper Class', 'Middle Class'].map((status) => (
-                                    <label key={status} className="cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            value={status}
-                                            {...register('familyStatus')}
-                                            className="peer sr-only"
-                                        />
-                                        <div className="border border-gray-200 text-center py-2 text-xs font-bold rounded-xl transition-all peer-checked:bg-red-600 peer-checked:border-red-600 peer-checked:text-white text-gray-600 bg-white uppercase tracking-wider">
-                                            {status}
-                                        </div>
-                                    </label>
-                                ))}
-                            </div>
-                        </div> */}
 
                         <div className="flex flex-col gap-2">
                             <button
@@ -259,18 +242,6 @@ const Search = () => {
                                 <SlidersHorizontal className="w-4 h-4 text-red-500" />
                                 Filters
                             </button>
-                            {/* <div className="flex items-center gap-2">
-                                <span className="text-xs text-gray-400 font-medium">Sort by:</span>
-                                <select
-                                    value={watch('sort')}
-                                    onChange={handleSortChange}
-                                    className="text-sm font-bold text-red-600 bg-transparent focus:outline-none cursor-pointer"
-                                >
-                                    <option value="Most Relevant">Most Relevant</option>
-                                    <option value="Newest">Newest</option>
-                                    <option value="Active Recently">Active Recently</option>
-                                </select>
-                            </div> */}
                         </div>
                     </div>
 
@@ -293,63 +264,65 @@ const Search = () => {
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-rows-4 gap-4 sm:gap-6">
                                     {profiles.map((profile) => (
-                                        <div key={profile._id} className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-row h-[140px] sm:h-[160px] w-full">
-                                            <div className="relative w-28 sm:w-36 h-full shrink-0 bg-gray-100 overflow-hidden">
-                                                <img
-                                                    src={profile.profileImage || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400'}
-                                                    alt={profile.fullName}
-                                                    className="absolute inset-0 w-full h-full object-cover object-top"
-                                                />
-                                                <div className="absolute top-2 left-2 flex flex-col gap-1">
-                                                    {profile.isActive === 'ACTIVE' && (
-                                                        <span className="bg-red-600 text-white text-[7px] sm:text-[9px] font-extrabold uppercase tracking-widest px-1.5 py-0.5 rounded flex items-center gap-1 w-fit">
-                                                            <span className="w-1 h-1 bg-white rounded-full"></span> <span>Verified</span>
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            <div className="p-3 sm:p-4 flex flex-col justify-between flex-1 min-w-0">
-                                                <div>
-                                                    <div className="flex justify-between items-start gap-2">
-                                                        <div className="min-w-0 flex-1">
-                                                            <h3 className="text-sm sm:text-base font-bold text-gray-800 truncate">
-                                                                {profile.fullName}
-                                                            </h3>
-                                                            <h3 className="text-sm  text-gray-500 truncate">
-                                                                Age : {profile.age}
-                                                            </h3>
-                                                            <p className="text-xs sm:text-sm text-gray-500 font-medium mt-0.5 truncate">
-                                                                {profile.profession}
-                                                            </p>
-                                                        </div>
-                                                        <div className="text-right shrink-0">
-                                                            <p className="text-xs sm:text-sm font-bold text-red-600 truncate">
-                                                                {profile.currentDivision}
-                                                            </p>
-                                                            {profile.institute && (
-                                                                <p className="text-[10px] sm:text-xs text-gray-400 font-medium mt-0.5 truncate max-w-[100px] sm:max-w-[130px]">
-                                                                    {profile.institute}
-                                                                </p>
-                                                            )}
-                                                        </div>
+                                        <NavLink to={`/${profile?.fullName}/${profile?._id}`}>
+                                            <div key={profile._id} className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-row h-[140px] sm:h-[160px] w-full">
+                                                <div className="relative w-28 sm:w-36 h-full shrink-0 bg-gray-100 overflow-hidden">
+                                                    <img
+                                                        src={profile.profileImage || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400'}
+                                                        alt={profile.fullName}
+                                                        className="absolute inset-0 w-full h-full object-cover object-top"
+                                                    />
+                                                    <div className="absolute top-2 left-2 flex flex-col gap-1">
+                                                        {profile.isActive === 'ACTIVE' && (
+                                                            <span className="bg-red-600 text-white text-[7px] sm:text-[9px] font-extrabold uppercase tracking-widest px-1.5 py-0.5 rounded flex items-center gap-1 w-fit">
+                                                                <span className="w-1 h-1 bg-white rounded-full"></span> <span>Verified</span>
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
 
-                                                <div className="flex flex-wrap gap-1 sm:gap-1.5 mt-2">
-                                                    <span className="bg-gray-50 text-gray-500 border border-gray-100 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap">
-                                                        {profile.maritalStatus || 'N/A'}
-                                                    </span>
-                                                    <span className="bg-gray-50 text-gray-500 border border-gray-100 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap">
-                                                        {profile.religion || "N/A"}
-                                                    </span>
-                                                    <span className="bg-gray-50 text-gray-500 border border-gray-100 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap">
-                                                        {profile.Height || "N/A"}
-                                                    </span>
-                                                </div>
-                                            </div>
+                                                <div className="p-3 sm:p-4 flex flex-col justify-between flex-1 min-w-0">
+                                                    <div>
+                                                        <div className="flex justify-between items-start gap-2">
+                                                            <div className="min-w-0 flex-1">
+                                                                <h3 className="text-sm sm:text-base font-bold text-gray-800 truncate">
+                                                                    {profile.fullName}
+                                                                </h3>
+                                                                <h3 className="text-sm  text-gray-500 truncate">
+                                                                    Age : {profile.age}
+                                                                </h3>
+                                                                <p className="text-xs sm:text-sm text-gray-500 font-medium mt-0.5 truncate">
+                                                                    {profile.profession}
+                                                                </p>
+                                                            </div>
+                                                            <div className="text-right shrink-0">
+                                                                <p className="text-xs sm:text-sm font-bold text-red-600 truncate">
+                                                                    {profile.currentDivision}
+                                                                </p>
+                                                                {profile.institute && (
+                                                                    <p className="text-[10px] sm:text-xs text-gray-400 font-medium mt-0.5 truncate max-w-[100px] sm:max-w-[130px]">
+                                                                        {profile.institute}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-                                        </div>
+                                                    <div className="flex flex-wrap gap-1 sm:gap-1.5 mt-2">
+                                                        <span className="bg-gray-50 text-gray-500 border border-gray-100 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap">
+                                                            {profile.maritalStatus || 'N/A'}
+                                                        </span>
+                                                        <span className="bg-gray-50 text-gray-500 border border-gray-100 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap">
+                                                            {profile.religion || "N/A"}
+                                                        </span>
+                                                        <span className="bg-gray-50 text-gray-500 border border-gray-100 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap">
+                                                            {profile.Height || "N/A"}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </NavLink>
                                     ))}
                                 </div>
                             )}
