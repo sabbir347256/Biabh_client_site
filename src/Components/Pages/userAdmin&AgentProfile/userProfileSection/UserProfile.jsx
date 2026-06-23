@@ -20,6 +20,9 @@ import config from '../../utilies/envconfig';
 import toast, { Toaster } from 'react-hot-toast';
 import { useSearchParams } from 'react-router';
 import PhotoGalleryView from './PhotoGalleryView';
+import divisionsData from "../../../data/bd-divisions.json";
+import districtsData from "../../../data/bd-districts.json";
+import upazilasData from "../../../data/bd-upazilas.json";
 
 const UserProfile = () => {
     const { data: authContextData, token, refetch, isLoading } = useContext(AuthProvider);
@@ -42,6 +45,10 @@ const UserProfile = () => {
         avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400"
     });
 
+    const divisions = divisionsData?.data || divisionsData || [];
+    const allDistricts = districtsData?.data || districtsData || [];
+    const allUpazilas = upazilasData?.data || upazilasData || [];
+
     const [nidUploaded, setNidUploaded] = useState(false);
     const [nidSubmittedDb, setNidSubmittedDb] = useState(false);
     const [nidDbStatus, setNidDbStatus] = useState(null);
@@ -54,7 +61,6 @@ const UserProfile = () => {
     const [previewImages, setPreviewImages] = useState([]);
     const [isSubmittingNid, setIsSubmittingNid] = useState(false);
 
-    const [divisions, setDivisions] = useState([]);
     const [currentDistricts, setCurrentDistricts] = useState([]);
     const [currentUpazilas, setCurrentUpazilas] = useState([]);
     const [permanentDistricts, setPermanentDistricts] = useState([]);
@@ -167,11 +173,8 @@ const UserProfile = () => {
         fetchProfileData();
     }, [profileUser, token, config]);
 
-    const isInitialLoad = useRef(true);
-
-    // ১. যখনই এডিট মোড অন হবে (Cancel করার পর আবার Edit এ ক্লিক করলে), ডাটা রি-পপুলেট করার জন্য এই ইফেক্ট
     useEffect(() => {
-        if ((editSections.personal || editSections.contact) && profileUser) {
+        if (profileUser) {
             setValue("birth", profileUser.birth || "");
             setValue("Height", profileUser.Height || "");
             setValue("homeDistrict", profileUser.homeDistrict || "");
@@ -181,207 +184,104 @@ const UserProfile = () => {
             setValue("email", profileUser.email || "");
             setValue("currentCountry", profileUser.currentCountry || "Bangladesh");
             setValue("permanentCountry", profileUser.permanentCountry || "Bangladesh");
-
-            // জিও ডাটা সিঙ্ক করার জন্য ইনিশিয়াল লোড ফ্ল্যাগ ট্রু করে দেওয়া যাতে ড্রপডাউনগুলো আবার পপুলেট হতে পারে
-            isInitialLoad.current = true;
         }
-    }, [editSections.personal, editSections.contact, profileUser, setValue]);
+    }, [profileUser, editSections.personal, editSections.contact, setValue]);
 
     useEffect(() => {
-        const fetchDivisions = async () => {
-            try {
-                const response = await axios.get(`${config.geoApiUrl}/divisions`);
-                const divisionsData = response.data?.data || response.data;
-                if (Array.isArray(divisionsData)) {
-                    setDivisions(divisionsData);
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        };
-        fetchDivisions();
-    }, [config.geoApiUrl]);
+        if (!profileUser || divisions.length === 0) return;
 
-    // ২. জিওগ্রাফিক ডেটা (Division, District, Thana) সিঙ্ক করার মেইন লজিক
-    useEffect(() => {
-        if (!isInitialLoad.current || divisions.length === 0 || !profileUser) return;
+        if (profileUser.currentDivision) {
+            const matchedDiv = divisions.find(d => String(d.name).toLowerCase() === String(profileUser.currentDivision).toLowerCase());
+            if (matchedDiv) {
+                const curDivId = matchedDiv.id;
+                setValue("currentDivision", curDivId);
 
-        const syncGeoData = async () => {
-            try {
-                let currentDivId = "";
-                if (profileUser.currentDivision) {
-                    const matchedDiv = divisions.find(d => String(d.name).toLowerCase() === String(profileUser.currentDivision).toLowerCase());
-                    if (matchedDiv) {
-                        currentDivId = matchedDiv.id || matchedDiv._id;
-                        setValue("currentDivision", currentDivId);
-                    }
-                }
+                const filteredDistricts = allDistricts.filter(d => String(d.division_id) === String(curDivId));
+                setCurrentDistricts(filteredDistricts);
 
-                let permanentDivId = "";
-                if (profileUser.permanentDivision) {
-                    const matchedDiv = divisions.find(d => String(d.name).toLowerCase() === String(profileUser.permanentDivision).toLowerCase());
-                    if (matchedDiv) {
-                        permanentDivId = matchedDiv.id || matchedDiv._id;
-                        setValue("permanentDivision", permanentDivId);
-                    }
-                }
+                if (profileUser.currentDistrict) {
+                    const matchedDist = filteredDistricts.find(d => String(d.name).toLowerCase() === String(profileUser.currentDistrict).toLowerCase());
+                    if (matchedDist) {
+                        const curDistId = matchedDist.id;
+                        setValue("currentDistrict", curDistId);
 
-                if (currentDivId) {
-                    const resDist = await axios.get(`${config.geoApiUrl}/districts/${currentDivId}`);
-                    const distData = resDist.data?.data || resDist.data;
-                    const distArray = Array.isArray(distData) ? distData : [];
-                    setCurrentDistricts(distArray);
+                        const filteredUpz = allUpazilas.filter(u => String(u.district_id) === String(curDistId));
+                        setCurrentUpazilas(filteredUpz);
 
-                    if (profileUser.currentDistrict && distArray.length > 0) {
-                        const matchedDist = distArray.find(d => String(d.name).toLowerCase() === String(profileUser.currentDistrict).toLowerCase());
-                        if (matchedDist) {
-                            const currentDistId = matchedDist.id || matchedDist._id;
-                            setValue("currentDistrict", currentDistId);
-
-                            const resUpz = await axios.get(`${config.geoApiUrl}/upazilas/${currentDistId}`);
-                            const upzData = resUpz.data?.data || resUpz.data;
-                            const upzArray = Array.isArray(upzData) ? upzData : [];
-                            setCurrentUpazilas(upzArray);
-
-                            if (profileUser.currentThana && upzArray.length > 0) {
-                                const matchedUpz = upzArray.find(u => String(u.name).toLowerCase() === String(profileUser.currentThana).toLowerCase());
-                                if (matchedUpz) setValue("currentThana", matchedUpz.name);
-                            }
+                        if (profileUser.currentThana) {
+                            const matchedUpz = filteredUpz.find(u => String(u.name).toLowerCase() === String(profileUser.currentThana).toLowerCase());
+                            if (matchedUpz) setValue("currentThana", matchedUpz.name);
                         }
                     }
                 }
+            }
+        }
 
-                if (permanentDivId) {
-                    const resDist = await axios.get(`${config.geoApiUrl}/districts/${permanentDivId}`);
-                    const distData = resDist.data?.data || resDist.data;
-                    const distArray = Array.isArray(distData) ? distData : [];
-                    setPermanentDistricts(distArray);
+        if (profileUser.permanentDivision) {
+            const matchedDiv = divisions.find(d => String(d.name).toLowerCase() === String(profileUser.permanentDivision).toLowerCase());
+            if (matchedDiv) {
+                const permDivId = matchedDiv.id;
+                setValue("permanentDivision", permDivId);
 
-                    if (profileUser.permanentDistrict && distArray.length > 0) {
-                        const matchedDist = distArray.find(d => String(d.name).toLowerCase() === String(profileUser.permanentDistrict).toLowerCase());
-                        if (matchedDist) {
-                            const permanentDistId = matchedDist.id || matchedDist._id;
-                            setValue("permanentDistrict", permanentDistId);
+                const filteredDistricts = allDistricts.filter(d => String(d.division_id) === String(permDivId));
+                setPermanentDistricts(filteredDistricts);
 
-                            const resUpz = await axios.get(`${config.geoApiUrl}/upazilas/${permanentDistId}`);
-                            const upzData = resUpz.data?.data || resUpz.data;
-                            const upzArray = Array.isArray(upzData) ? upzData : [];
-                            setPermanentUpazilas(upzArray);
+                if (profileUser.permanentDistrict) {
+                    const matchedDist = filteredDistricts.find(d => String(d.name).toLowerCase() === String(profileUser.permanentDistrict).toLowerCase());
+                    if (matchedDist) {
+                        const permDistId = matchedDist.id;
+                        setValue("permanentDistrict", permDistId);
 
-                            if (profileUser.permanentThana && upzArray.length > 0) {
-                                const matchedUpz = upzArray.find(u => String(u.name).toLowerCase() === String(profileUser.permanentThana).toLowerCase());
-                                if (matchedUpz) setValue("permanentThana", matchedUpz.name);
-                            }
+                        const filteredUpz = allUpazilas.filter(u => String(u.district_id) === String(permDistId));
+                        setPermanentUpazilas(filteredUpz);
+
+                        if (profileUser.permanentThana) {
+                            const matchedUpz = filteredUpz.find(u => String(u.name).toLowerCase() === String(profileUser.permanentThana).toLowerCase());
+                            if (matchedUpz) setValue("permanentThana", matchedUpz.name);
                         }
                     }
                 }
-
-                isInitialLoad.current = false;
-            } catch (error) {
-                console.error(error);
-                isInitialLoad.current = false;
             }
-        };
-
-        syncGeoData();
-    }, [divisions, profileUser, setValue, config.geoApiUrl, editSections.contact]);
-    // ^ এখানে editSections.contact ডিপেন্ডেন্সি দেওয়া হয়েছে যাতে ক্যানসেল করে আবার ঢুকলে ড্রপডাউনগুলো রি-ট্রিগার হয়।
+        }
+    }, [profileUser, editSections.contact, divisions, allDistricts, allUpazilas, setValue]);
 
     useEffect(() => {
-        if (isInitialLoad.current) return;
-
         if (!watchedCurrentDivision) {
             setCurrentDistricts([]);
             setCurrentUpazilas([]);
-            setValue("currentDistrict", "");
-            setValue("currentThana", "");
             return;
         }
-
-        const fetchCurrentDistricts = async () => {
-            try {
-                const response = await axios.get(`${config.geoApiUrl}/districts/${watchedCurrentDivision}`);
-                const districtsData = response.data?.data || response.data;
-                setCurrentDistricts(Array.isArray(districtsData) ? districtsData : []);
-                setCurrentUpazilas([]);
-                setValue("currentDistrict", "");
-                setValue("currentThana", "");
-            } catch (error) {
-                console.error(error);
-            }
-        };
-        fetchCurrentDistricts();
-    }, [watchedCurrentDivision, config.geoApiUrl, setValue]);
+        const filtered = allDistricts.filter(d => String(d.division_id) === String(watchedCurrentDivision));
+        setCurrentDistricts(filtered);
+    }, [watchedCurrentDivision, allDistricts]);
 
     useEffect(() => {
-        if (isInitialLoad.current) return;
-
         if (!watchedCurrentDistrict) {
             setCurrentUpazilas([]);
-            setValue("currentThana", "");
             return;
         }
-
-        const fetchCurrentUpazilas = async () => {
-            try {
-                const response = await axios.get(`${config.geoApiUrl}/upazilas/${watchedCurrentDistrict}`);
-                const upazilasData = response.data?.data || response.data;
-                setCurrentUpazilas(Array.isArray(upazilasData) ? upazilasData : []);
-                setValue("currentThana", "");
-            } catch (error) {
-                console.error(error);
-            }
-        };
-        fetchCurrentUpazilas();
-    }, [watchedCurrentDistrict, config.geoApiUrl, setValue]);
+        const filtered = allUpazilas.filter(u => String(u.district_id) === String(watchedCurrentDistrict));
+        setCurrentUpazilas(filtered);
+    }, [watchedCurrentDistrict, allUpazilas]);
 
     useEffect(() => {
-        if (isInitialLoad.current) return;
-
         if (!watchedPermanentDivision) {
             setPermanentDistricts([]);
             setPermanentUpazilas([]);
-            setValue("permanentDistrict", "");
-            setValue("permanentThana", "");
             return;
         }
-
-        const fetchPermanentDistricts = async () => {
-            try {
-                const response = await axios.get(`${config.geoApiUrl}/districts/${watchedPermanentDivision}`);
-                const districtsData = response.data?.data || response.data;
-                setPermanentDistricts(Array.isArray(districtsData) ? districtsData : []);
-                setPermanentUpazilas([]);
-                setValue("permanentDistrict", "");
-                setValue("permanentThana", "");
-            } catch (error) {
-                console.error(error);
-            }
-        };
-        fetchPermanentDistricts();
-    }, [watchedPermanentDivision, config.geoApiUrl, setValue]);
+        const filtered = allDistricts.filter(d => String(d.division_id) === String(watchedPermanentDivision));
+        setPermanentDistricts(filtered);
+    }, [watchedPermanentDivision, allDistricts]);
 
     useEffect(() => {
-        if (isInitialLoad.current) return;
-
         if (!watchedPermanentDistrict) {
             setPermanentUpazilas([]);
-            setValue("permanentThana", "");
             return;
         }
-
-        const fetchPermanentUpazilas = async () => {
-            try {
-                const response = await axios.get(`${config.geoApiUrl}/upazilas/${watchedPermanentDistrict}`);
-                const upazilasData = response.data?.data || response.data;
-                setPermanentUpazilas(Array.isArray(upazilasData) ? upazilasData : []);
-                setValue("permanentThana", "");
-            } catch (error) {
-                console.error(error);
-            }
-        };
-        fetchPermanentUpazilas();
-    }, [watchedPermanentDistrict, config.geoApiUrl, setValue]);
+        const filtered = allUpazilas.filter(u => String(u.district_id) === String(watchedPermanentDistrict));
+        setPermanentUpazilas(filtered);
+    }, [watchedPermanentDistrict, allUpazilas]);
 
     const handleImageChange = async (e, type) => {
         const file = e.target.files[0];
