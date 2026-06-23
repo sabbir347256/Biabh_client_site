@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import {
@@ -167,12 +167,34 @@ const UserProfile = () => {
         fetchProfileData();
     }, [profileUser, token, config]);
 
+    const isInitialLoad = useRef(true);
+
+    // ১. যখনই এডিট মোড অন হবে (Cancel করার পর আবার Edit এ ক্লিক করলে), ডাটা রি-পপুলেট করার জন্য এই ইফেক্ট
+    useEffect(() => {
+        if ((editSections.personal || editSections.contact) && profileUser) {
+            setValue("birth", profileUser.birth || "");
+            setValue("Height", profileUser.Height || "");
+            setValue("homeDistrict", profileUser.homeDistrict || "");
+            setValue("maritalStatus", profileUser.maritalStatus || "");
+            setValue("religion", profileUser.religion || "");
+            setValue("contactNo", profileUser.contactNo || "");
+            setValue("email", profileUser.email || "");
+            setValue("currentCountry", profileUser.currentCountry || "Bangladesh");
+            setValue("permanentCountry", profileUser.permanentCountry || "Bangladesh");
+
+            // জিও ডাটা সিঙ্ক করার জন্য ইনিশিয়াল লোড ফ্ল্যাগ ট্রু করে দেওয়া যাতে ড্রপডাউনগুলো আবার পপুলেট হতে পারে
+            isInitialLoad.current = true;
+        }
+    }, [editSections.personal, editSections.contact, profileUser, setValue]);
+
     useEffect(() => {
         const fetchDivisions = async () => {
             try {
                 const response = await axios.get(`${config.geoApiUrl}/divisions`);
                 const divisionsData = response.data?.data || response.data;
-                if (Array.isArray(divisionsData)) setDivisions(divisionsData);
+                if (Array.isArray(divisionsData)) {
+                    setDivisions(divisionsData);
+                }
             } catch (error) {
                 console.error(error);
             }
@@ -180,113 +202,186 @@ const UserProfile = () => {
         fetchDivisions();
     }, [config.geoApiUrl]);
 
+    // ২. জিওগ্রাফিক ডেটা (Division, District, Thana) সিঙ্ক করার মেইন লজিক
     useEffect(() => {
-        if (profileUser?.currentDivision && divisions.length > 0) {
-            const matchedDiv = divisions.find(d => String(d.name).toLowerCase() === String(profileUser.currentDivision).toLowerCase());
-            if (matchedDiv) setValue("currentDivision", matchedDiv.id || matchedDiv._id);
-        }
-    }, [profileUser, divisions, setValue]);
+        if (!isInitialLoad.current || divisions.length === 0 || !profileUser) return;
+
+        const syncGeoData = async () => {
+            try {
+                let currentDivId = "";
+                if (profileUser.currentDivision) {
+                    const matchedDiv = divisions.find(d => String(d.name).toLowerCase() === String(profileUser.currentDivision).toLowerCase());
+                    if (matchedDiv) {
+                        currentDivId = matchedDiv.id || matchedDiv._id;
+                        setValue("currentDivision", currentDivId);
+                    }
+                }
+
+                let permanentDivId = "";
+                if (profileUser.permanentDivision) {
+                    const matchedDiv = divisions.find(d => String(d.name).toLowerCase() === String(profileUser.permanentDivision).toLowerCase());
+                    if (matchedDiv) {
+                        permanentDivId = matchedDiv.id || matchedDiv._id;
+                        setValue("permanentDivision", permanentDivId);
+                    }
+                }
+
+                if (currentDivId) {
+                    const resDist = await axios.get(`${config.geoApiUrl}/districts/${currentDivId}`);
+                    const distData = resDist.data?.data || resDist.data;
+                    const distArray = Array.isArray(distData) ? distData : [];
+                    setCurrentDistricts(distArray);
+
+                    if (profileUser.currentDistrict && distArray.length > 0) {
+                        const matchedDist = distArray.find(d => String(d.name).toLowerCase() === String(profileUser.currentDistrict).toLowerCase());
+                        if (matchedDist) {
+                            const currentDistId = matchedDist.id || matchedDist._id;
+                            setValue("currentDistrict", currentDistId);
+
+                            const resUpz = await axios.get(`${config.geoApiUrl}/upazilas/${currentDistId}`);
+                            const upzData = resUpz.data?.data || resUpz.data;
+                            const upzArray = Array.isArray(upzData) ? upzData : [];
+                            setCurrentUpazilas(upzArray);
+
+                            if (profileUser.currentThana && upzArray.length > 0) {
+                                const matchedUpz = upzArray.find(u => String(u.name).toLowerCase() === String(profileUser.currentThana).toLowerCase());
+                                if (matchedUpz) setValue("currentThana", matchedUpz.name);
+                            }
+                        }
+                    }
+                }
+
+                if (permanentDivId) {
+                    const resDist = await axios.get(`${config.geoApiUrl}/districts/${permanentDivId}`);
+                    const distData = resDist.data?.data || resDist.data;
+                    const distArray = Array.isArray(distData) ? distData : [];
+                    setPermanentDistricts(distArray);
+
+                    if (profileUser.permanentDistrict && distArray.length > 0) {
+                        const matchedDist = distArray.find(d => String(d.name).toLowerCase() === String(profileUser.permanentDistrict).toLowerCase());
+                        if (matchedDist) {
+                            const permanentDistId = matchedDist.id || matchedDist._id;
+                            setValue("permanentDistrict", permanentDistId);
+
+                            const resUpz = await axios.get(`${config.geoApiUrl}/upazilas/${permanentDistId}`);
+                            const upzData = resUpz.data?.data || resUpz.data;
+                            const upzArray = Array.isArray(upzData) ? upzData : [];
+                            setPermanentUpazilas(upzArray);
+
+                            if (profileUser.permanentThana && upzArray.length > 0) {
+                                const matchedUpz = upzArray.find(u => String(u.name).toLowerCase() === String(profileUser.permanentThana).toLowerCase());
+                                if (matchedUpz) setValue("permanentThana", matchedUpz.name);
+                            }
+                        }
+                    }
+                }
+
+                isInitialLoad.current = false;
+            } catch (error) {
+                console.error(error);
+                isInitialLoad.current = false;
+            }
+        };
+
+        syncGeoData();
+    }, [divisions, profileUser, setValue, config.geoApiUrl, editSections.contact]);
+    // ^ এখানে editSections.contact ডিপেন্ডেন্সি দেওয়া হয়েছে যাতে ক্যানসেল করে আবার ঢুকলে ড্রপডাউনগুলো রি-ট্রিগার হয়।
 
     useEffect(() => {
-        if (profileUser?.permanentDivision && divisions.length > 0) {
-            const matchedDiv = divisions.find(d => String(d.name).toLowerCase() === String(profileUser.permanentDivision).toLowerCase());
-            if (matchedDiv) setValue("permanentDivision", matchedDiv.id || matchedDiv._id);
-        }
-    }, [profileUser, divisions, setValue]);
+        if (isInitialLoad.current) return;
 
-    useEffect(() => {
         if (!watchedCurrentDivision) {
             setCurrentDistricts([]);
             setCurrentUpazilas([]);
+            setValue("currentDistrict", "");
+            setValue("currentThana", "");
             return;
         }
+
         const fetchCurrentDistricts = async () => {
             try {
                 const response = await axios.get(`${config.geoApiUrl}/districts/${watchedCurrentDivision}`);
                 const districtsData = response.data?.data || response.data;
-                const districtsArray = Array.isArray(districtsData) ? districtsData : [];
-                setCurrentDistricts(districtsArray);
-
-                if (profileUser?.currentDistrict && districtsArray.length > 0) {
-                    const matchedDist = districtsArray.find(d => String(d.name).toLowerCase() === String(profileUser.currentDistrict).toLowerCase());
-                    if (matchedDist) setValue("currentDistrict", matchedDist.id || matchedDist._id);
-                }
+                setCurrentDistricts(Array.isArray(districtsData) ? districtsData : []);
+                setCurrentUpazilas([]);
+                setValue("currentDistrict", "");
+                setValue("currentThana", "");
             } catch (error) {
                 console.error(error);
             }
         };
         fetchCurrentDistricts();
-    }, [watchedCurrentDivision, setValue, profileUser, config.geoApiUrl]);
+    }, [watchedCurrentDivision, config.geoApiUrl, setValue]);
 
     useEffect(() => {
+        if (isInitialLoad.current) return;
+
         if (!watchedCurrentDistrict) {
             setCurrentUpazilas([]);
+            setValue("currentThana", "");
             return;
         }
+
         const fetchCurrentUpazilas = async () => {
             try {
                 const response = await axios.get(`${config.geoApiUrl}/upazilas/${watchedCurrentDistrict}`);
                 const upazilasData = response.data?.data || response.data;
-                const upazilasArray = Array.isArray(upazilasData) ? upazilasData : [];
-                setCurrentUpazilas(upazilasArray);
-
-                if (profileUser?.currentThana && upazilasArray.length > 0) {
-                    const matchedUpz = upazilasArray.find(u => String(u.name).toLowerCase() === String(profileUser.currentThana).toLowerCase());
-                    if (matchedUpz) setValue("currentThana", matchedUpz.name);
-                }
+                setCurrentUpazilas(Array.isArray(upazilasData) ? upazilasData : []);
+                setValue("currentThana", "");
             } catch (error) {
                 console.error(error);
             }
         };
         fetchCurrentUpazilas();
-    }, [watchedCurrentDistrict, setValue, profileUser, config.geoApiUrl]);
+    }, [watchedCurrentDistrict, config.geoApiUrl, setValue]);
 
     useEffect(() => {
+        if (isInitialLoad.current) return;
+
         if (!watchedPermanentDivision) {
             setPermanentDistricts([]);
             setPermanentUpazilas([]);
+            setValue("permanentDistrict", "");
+            setValue("permanentThana", "");
             return;
         }
+
         const fetchPermanentDistricts = async () => {
             try {
                 const response = await axios.get(`${config.geoApiUrl}/districts/${watchedPermanentDivision}`);
                 const districtsData = response.data?.data || response.data;
-                const districtsArray = Array.isArray(districtsData) ? districtsData : [];
-                setPermanentDistricts(districtsArray);
-
-                if (profileUser?.permanentDistrict && districtsArray.length > 0) {
-                    const matchedDist = districtsArray.find(d => String(d.name).toLowerCase() === String(profileUser.permanentDistrict).toLowerCase());
-                    if (matchedDist) setValue("permanentDistrict", matchedDist.id || matchedDist._id);
-                }
+                setPermanentDistricts(Array.isArray(districtsData) ? districtsData : []);
+                setPermanentUpazilas([]);
+                setValue("permanentDistrict", "");
+                setValue("permanentThana", "");
             } catch (error) {
                 console.error(error);
             }
         };
         fetchPermanentDistricts();
-    }, [watchedPermanentDivision, setValue, profileUser, config.geoApiUrl]);
+    }, [watchedPermanentDivision, config.geoApiUrl, setValue]);
 
     useEffect(() => {
+        if (isInitialLoad.current) return;
+
         if (!watchedPermanentDistrict) {
             setPermanentUpazilas([]);
+            setValue("permanentThana", "");
             return;
         }
+
         const fetchPermanentUpazilas = async () => {
             try {
                 const response = await axios.get(`${config.geoApiUrl}/upazilas/${watchedPermanentDistrict}`);
                 const upazilasData = response.data?.data || response.data;
-                const upazilasArray = Array.isArray(upazilasData) ? upazilasData : [];
-                setPermanentUpazilas(upazilasArray);
-
-                if (profileUser?.permanentThana && upazilasArray.length > 0) {
-                    const matchedUpz = upazilasArray.find(u => String(u.name).toLowerCase() === String(profileUser.permanentThana).toLowerCase());
-                    if (matchedUpz) setValue("permanentThana", matchedUpz.name);
-                }
+                setPermanentUpazilas(Array.isArray(upazilasData) ? upazilasData : []);
+                setValue("permanentThana", "");
             } catch (error) {
                 console.error(error);
             }
         };
         fetchPermanentUpazilas();
-    }, [watchedPermanentDistrict, setValue, profileUser, config.geoApiUrl]);
+    }, [watchedPermanentDistrict, config.geoApiUrl, setValue]);
 
     const handleImageChange = async (e, type) => {
         const file = e.target.files[0];
@@ -573,9 +668,17 @@ const UserProfile = () => {
 
                             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4 relative group">
                                 <div className="flex justify-between items-center mb-4 border-b pb-2">
-                                    <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><User className="w-5 h-5" /> Personal Information</h2>
+                                    <h2 className="text-lg font-bold text-red-600 flex items-center gap-2">
+                                        <User className="w-5 h-5" /> Personal Information
+                                    </h2>
                                     {!editSections.personal && (
-                                        <button type="button" onClick={() => toggleSection('personal', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleSection('personal', true)}
+                                            className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"
+                                        >
+                                            <Edit2 className="w-4 h-4" />
+                                        </button>
                                     )}
                                 </div>
 
@@ -591,44 +694,32 @@ const UserProfile = () => {
                                                     maxLength={10}
                                                     {...register("birth", {
                                                         required: "Date of birth is required",
-                                                        validate: value => {
-                                                            const regex = /^\d{4}-\d{2}-\d{2}$/;
-                                                            return regex.test(value) || "Please enter a valid date (YYYY-MM-DD)";
-                                                        }
+                                                        validate: value => /^\d{4}-\d{2}-\d{2}$/.test(value) || "Please enter a valid date (YYYY-MM-DD)"
                                                     })}
                                                     onChange={(e) => {
                                                         let val = e.target.value.replace(/\D/g, "");
                                                         let formatted = "";
-
                                                         if (val.length > 0) {
                                                             formatted = val.substring(0, 4);
-
-                                                            if (val.length > 4) {
-                                                                formatted += "-" + val.substring(4, 6);
-                                                            }
-
-                                                            if (val.length > 6) {
-                                                                formatted += "-" + val.substring(6, 8);
-                                                            }
+                                                            if (val.length > 4) formatted += "-" + val.substring(4, 6);
+                                                            if (val.length > 6) formatted += "-" + val.substring(6, 8);
                                                         }
                                                         e.target.value = formatted;
-                                                        const { onChange } = register("birth");
-                                                        onChange(e);
+                                                        register("birth").onChange(e);
                                                     }}
                                                     className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white text-gray-700"
-                                                />                                    </div>
+                                                />
+                                            </div>
                                             <div>
                                                 <label className="text-xs font-semibold text-gray-400 uppercase">Height</label>
                                                 <input {...register('Height')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                             </div>
                                             <div>
                                                 <label className="text-xs font-semibold text-gray-400 uppercase">Home District</label>
-                                                <input {...register('currentDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
+                                                <input {...register('homeDistrict')} className="w-full mt-1 p-2 border rounded-lg text-sm bg-white" />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">
-                                                    Marital Status
-                                                </label>
+                                                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Marital Status</label>
                                                 <select
                                                     {...register('maritalStatus')}
                                                     className="w-full mt-1 p-2 border rounded-lg text-sm bg-white text-gray-700 outline-none cursor-pointer focus:border-[#C20E0E]"
@@ -661,7 +752,7 @@ const UserProfile = () => {
                                         </div>
                                         <div>
                                             <label className="text-xs font-semibold text-gray-400 uppercase">Home District</label>
-                                            <p className="text-gray-800 font-medium mt-0.5">{profileUser?.currentDistrict || 'Not Set'}</p>
+                                            <p className="text-gray-800 font-medium mt-0.5">{profileUser?.homeDistrict || 'Not Set'}</p>
                                         </div>
                                         <div>
                                             <label className="text-xs font-semibold text-gray-400 uppercase">Marital Status</label>
@@ -674,7 +765,6 @@ const UserProfile = () => {
                                     </div>
                                 )}
                             </div>
-
                             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4 relative group">
                                 <div className="flex justify-between items-center mb-4 border-b pb-2">
                                     <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><Briefcase className="w-5 h-5" /> Professional & Education</h2>
@@ -724,68 +814,50 @@ const UserProfile = () => {
 
                             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-red-600 border-l-4 relative group">
                                 <div className="flex justify-between items-center mb-4 border-b pb-2">
-                                    <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><MapPin className="w-5 h-5" /> Contact & Address</h2>
+                                    <h2 className="text-lg font-bold text-red-600 flex items-center gap-2">
+                                        <MapPin className="w-5 h-5" /> Contact & Address
+                                    </h2>
                                     {!editSections.contact && (
-                                        <button type="button" onClick={() => toggleSection('contact', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleSection('contact', true)}
+                                            className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"
+                                        >
+                                            <Edit2 className="w-4 h-4" />
+                                        </button>
                                     )}
                                 </div>
 
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                            <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Phone className="w-3.5 h-3.5" /> Contact No</span>
-                                            <p className="text-gray-700 text-sm font-medium">{profileUser?.contactNo || 'Not Set'}</p>
+                                {!editSections.contact ? (
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                                <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Phone className="w-3.5 h-3.5" /> Contact No</span>
+                                                <p className="text-gray-700 text-sm font-medium">{profileUser?.contactNo || 'Not Set'}</p>
+                                            </div>
+                                            <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                                <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Mail className="w-3.5 h-3.5" /> Email Address</span>
+                                                <p className="text-gray-700 text-sm font-medium">{profileUser?.email || 'Not Set'}</p>
+                                            </div>
                                         </div>
-                                        <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                            <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Mail className="w-3.5 h-3.5" /> Email Address</span>
-                                            <p className="text-gray-700 text-sm font-medium">{profileUser?.email || 'Not Set'}</p>
-                                        </div>
-                                    </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                            <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><MapPin className="w-3.5 h-3.5" /> Current Address</span>
-                                            <p className="text-gray-700 text-sm font-medium">
-                                                {
-                                                    (() => {
-                                                        const addressParts = [
-                                                            profileUser?.currentThana,
-                                                            profileUser?.currentDistrict,
-                                                            profileUser?.currentDivision,
-                                                            profileUser?.currentCountry
-                                                        ].filter(Boolean);
-
-                                                        return addressParts.length > 0
-                                                            ? addressParts.join(", ")
-                                                            : "No set text";
-                                                    })()
-                                                }
-                                            </p>
-                                        </div>
-                                        <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
-                                            <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Globe className="w-3.5 h-3.5" /> Permanent Address</span>
-                                            <p className="text-gray-700 text-sm font-medium">
-                                                {
-                                                    (() => {
-                                                        const addressParts = [
-                                                            profileUser?.permanentThana,
-                                                            profileUser?.permanentDistrict,
-                                                            profileUser?.permanentDivision,
-                                                            profileUser?.permanentCountry
-                                                        ].filter(Boolean);
-
-                                                        return addressParts.length > 0
-                                                            ? addressParts.join(", ")
-                                                            : "No set text";
-                                                    })()
-                                                }
-                                            </p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                                <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><MapPin className="w-3.5 h-3.5" /> Current Address</span>
+                                                <p className="text-gray-700 text-sm font-medium">
+                                                    {[profileUser?.currentThana, profileUser?.currentDistrict, profileUser?.currentDivision, profileUser?.currentCountry].filter(Boolean).join(", ") || "Not Set"}
+                                                </p>
+                                            </div>
+                                            <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                                <span className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase mb-1"><Globe className="w-3.5 h-3.5" /> Permanent Address</span>
+                                                <p className="text-gray-700 text-sm font-medium">
+                                                    {[profileUser?.permanentThana, profileUser?.permanentDistrict, profileUser?.permanentDivision, profileUser?.permanentCountry].filter(Boolean).join(", ") || "Not Set"}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-
-                                {editSections.contact && (
-                                    <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'contact'))} className="space-y-4 mt-6 border-t pt-4">
+                                ) : (
+                                    <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'contact'))} className="space-y-4 mt-6">
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div>
                                                 <label className="text-xs font-semibold text-gray-400 uppercase">Contact No</label>
@@ -798,6 +870,7 @@ const UserProfile = () => {
                                         </div>
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-4">
+                                            {/* Current Address Form */}
                                             <div className="space-y-4">
                                                 <h3 className="text-sm font-bold text-gray-700">Current Address</h3>
                                                 <div>
@@ -835,6 +908,7 @@ const UserProfile = () => {
                                                 </div>
                                             </div>
 
+                                            {/* Permanent Address Form */}
                                             <div className="space-y-4">
                                                 <h3 className="text-sm font-bold text-gray-700">Permanent Address</h3>
                                                 <div>
