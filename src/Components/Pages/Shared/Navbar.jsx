@@ -256,7 +256,7 @@ const Navbar = () => {
                     </div>
                 </NavLink>
 
-                <div className="relative static sm:relative" >
+                <div className="relative static sm:relative" ref={dropdownRef}>
                     <button
                         onClick={() => setrequestopen(!requestopen)}
                         className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-semibold text-gray-300 hover:text-white bg-neutral-900 border border-white/5 rounded-xl transition-all duration-200"
@@ -303,7 +303,7 @@ const Navbar = () => {
                     <div className="relative" ref={walletRef}>
                         <button
                             onClick={() => setIsWalletOpen(!isWalletOpen)}
-                            className="flex items-center gap-3 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-medium px-4 py-2 rounded-xl transition-all duration-300 active:scale-95 shadow-md shadow-red-100 border border-red-500/10"
+                            className="flex items-center gap-3 bg-[#F79B2D] hover:to-yellow-600 text-white font-medium px-4 py-2 rounded-xl transition-all duration-300 active:scale-95 shadow-md shadow-red-100 border border-red-500/10"
                         >
                             <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center backdrop-blur-sm">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-white">
@@ -683,55 +683,57 @@ const Navbar = () => {
                     </div>
                 </div>
             )}
-            
-            {requestopen && (
-                <div className="absolute top-20 right-0 sm:right-0 md:left-8  mt-2 w-[calc(100vw-2rem)] sm:w-96 bg-neutral-900 border border-white/10 shadow-2xl p-4 transform origin-top transition-all duration-200 overflow-hidden z-50 mx-4 sm:mx-0">
-                    <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
-                        <h4 className="font-bold text-gray-200 text-sm">Pending Connections</h4>
-                        <span className="text-xs text-gray-500">{requests.length} total</span>
-                    </div>
 
-                    {requests.length === 0 ? (
-                        <div className="text-center py-6 text-sm text-gray-500">
-                            No pending requests found
+
+            <div ref={dropdownRef}>
+                {requestopen && (
+                    <div className="absolute top-20 right-0 sm:right-0 md:left-8  mt-2 w-[calc(100vw-2rem)] sm:w-96 bg-neutral-900 border border-white/10 shadow-2xl p-4 transform origin-top transition-all duration-200 overflow-hidden z-50 mx-4 sm:mx-0">
+                        <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
+                            <h4 className="font-bold text-gray-200 text-sm">Pending Connections</h4>
+                            <span className="text-xs text-gray-500">{requests.length} total</span>
                         </div>
-                    ) : (
-                        <div className="max-h-64 sm:max-h-72 overflow-y-auto space-y-3 pr-1 scrollbar-thin scrollbar-thumb-neutral-800">
-                            {requests.map((req) => (
-                                <div key={req._id} className="flex items-center justify-between p-2 rounded-xl hover:bg-white/5 transition-colors gap-2 sm:gap-3">
-                                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                                        <img
-                                            src={req.senderId?.profileImage || 'https://via.placeholder.com/150'}
-                                            alt={req.senderId?.fullName}
-                                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border border-white/10 flex-shrink-0"
-                                        />
-                                        <div className="min-w-0">
-                                            <p className="font-bold text-xs sm:text-sm text-white truncate">{req.senderId?.fullName}</p>
-                                            <p className="text-[9px] sm:text-[10px] text-gray-500 mt-0.5">{req.senderId?.gender} • {req.senderId?.birth ? new Date().getFullYear() - new Date(req.senderId.birth).getFullYear() : 'N/A'} Yrs</p>
+
+                        {requests.length === 0 ? (
+                            <div className="text-center py-6 text-sm text-gray-500">
+                                No pending requests found
+                            </div>
+                        ) : (
+                            <div className="max-h-64 sm:max-h-72 overflow-y-auto space-y-3 pr-1 scrollbar-thin scrollbar-thumb-neutral-800">
+                                {requests.map((req) => (
+                                    <div key={req._id} className="flex items-center justify-between p-2 rounded-xl hover:bg-white/5 transition-colors gap-2 sm:gap-3">
+                                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                            <img
+                                                src={req.senderId?.profileImage || 'https://via.placeholder.com/150'}
+                                                alt={req.senderId?.fullName}
+                                                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border border-white/10 flex-shrink-0"
+                                            />
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-xs sm:text-sm text-white truncate">{req.senderId?.fullName}</p>
+                                                <p className="text-[9px] sm:text-[10px] text-gray-500 mt-0.5">{req.senderId?.gender} • {req.senderId?.birth ? new Date().getFullYear() - new Date(req.senderId.birth).getFullYear() : 'N/A'} Yrs</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                                            <button
+                                                onClick={() => handleAction(req._id, "ACCEPTED")}
+                                                className="p-1.5 sm:p-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-lg transition-all duration-150"
+                                            >
+                                                <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleAction(req._id, "REJECTED")}
+                                                className="p-1.5 sm:p-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white rounded-lg transition-all duration-150"
+                                            >
+                                                <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                            </button>
                                         </div>
                                     </div>
-
-                                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                                        <button
-                                            onClick={() => handleAction(req._id, "ACCEPTED")}
-                                            className="p-1.5 sm:p-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-lg transition-all duration-150"
-                                        >
-                                            <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleAction(req._id, "REJECTED")}
-                                            className="p-1.5 sm:p-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white rounded-lg transition-all duration-150"
-                                        >
-                                            <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
-
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
