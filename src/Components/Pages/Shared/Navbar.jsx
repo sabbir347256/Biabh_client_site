@@ -141,10 +141,12 @@ const Navbar = () => {
 
     console.log(data?.data)
 
-    const mainAmount = data?.data?.mainWalletBalance || 0;
-    const bonusAmount = data?.data?.isActive === 'INACTIVE' ? 0 : data?.data?.bonusWalletPoints;
-    const referralAmount = user?.wallet?.referralBalance || 0;
-    const totalAmount = user ? (mainAmount + bonusAmount + referralAmount) : 0;
+    const mainAmount = Number(data?.data?.mainWalletBalance) || 0;
+    const bonusAmount = data?.data?.isActive === 'INACTIVE' ? 0 : (Number(data?.data?.bonusWalletPoints) || 0);
+    const referralAmount = Number(user?.wallet?.referralBalance) || 0;
+
+    const calculatedTotal = mainAmount + bonusAmount + referralAmount;
+    const totalAmount = user ? (isNaN(calculatedTotal) ? 0 : calculatedTotal) : 0;
 
     // const mainAmount = data?.data?.mainWalletBalance || 0;
     // const bonusAmount = data?.data?.isActive === 'INACTIVE' ? 0 : data?.data?.bonusWalletPoints;
@@ -259,7 +261,7 @@ const Navbar = () => {
                 <div className="relative static sm:relative" ref={dropdownRef}>
                     <button
                         onClick={() => setrequestopen(!requestopen)}
-                        className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-semibold text-gray-300 hover:text-white bg-neutral-900 border border-white/5 rounded-xl transition-all duration-200"
+                        className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-semibold   border text-gray-600 border-white/5 rounded-xl transition-all duration-200"
                     >
                         <Bell className="w-4 h-4 text-red-500" />
                         <span className="hidden xs:inline">Connection Requests</span>

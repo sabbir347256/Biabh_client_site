@@ -18,6 +18,7 @@ import { useParams } from 'react-router';
 import toast, { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './../../AuthProvider/CreateContext';
 import SpecifiqGallary from './SpecifiqGallary';
+import Loading from '../Shared/Loading';
 
 
 const ProfileDetails = () => {
@@ -205,8 +206,8 @@ const ProfileDetails = () => {
 
 
     if (loading) {
-        return <div className="min-h-screen flex items-center justify-center text-lg font-semibold">Loading Profile Details...</div>;
-    }
+    return <Loading></Loading>
+}
 
     return (
         <div className="app-container pb-8 min-h-screen bg-gray-50/50">

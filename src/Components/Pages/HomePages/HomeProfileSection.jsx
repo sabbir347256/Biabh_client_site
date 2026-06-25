@@ -4,6 +4,7 @@ import Button from "../utilies/Button";
 import { useQuery } from "@tanstack/react-query";
 import config from "../utilies/envconfig";
 import { NavLink } from "react-router";
+import Loading from "../Shared/Loading";
 
 const HomeProfileSection = () => {
 
@@ -13,7 +14,7 @@ const HomeProfileSection = () => {
 
     const token = localStorage.getItem("accessToken");
 
-    const { data: profileData } = useQuery({
+    const { data: profileData, isLoading } = useQuery({
         queryKey: ['allUserData'],
         queryFn: async () => {
             const headers = {
@@ -53,6 +54,11 @@ const HomeProfileSection = () => {
             sliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
         }
     };
+
+
+    if (isLoading) return <Loading></Loading>;
+
+
     return (
         <section className="bg-[#3A0303] py-16 w-full overflow-hidden select-none">
             <div className="app-container">
