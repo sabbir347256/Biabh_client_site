@@ -505,11 +505,11 @@ const UserProfile = () => {
                     )}
                 </div>
 
-                <div className="absolute -bottom-12 left-8 flex items-end space-x-4 z-20 w-[calc(100%-4rem)]">
+                <div className="absolute -bottom-36 sm:-bottom-12 left-4 sm:left-8 flex flex-col sm:flex-row items-center gap-4 z-20 w-[calc(100%-2rem)] sm:w-[calc(100%-4rem)]">
                     <div className="relative group flex-shrink-0">
                         <div className={`w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden bg-neutral-800 relative shadow-xl ${profileUser?.role === 'PREMIUM' ? 'border-4 border-red-600 ring-4 ring-rose-500/40 ring-offset-2' : 'border-4 border-white'}`}>
                             {images.avatar && <img src={images.avatar} className="w-full h-full object-cover rounded-full" alt="Avatar" />}
-                            <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition cursor-pointer rounded-full">
+                            <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white  transition cursor-pointer rounded-full">
                                 <Camera className="w-5 h-5 mb-1" />
                                 <span className="text-[10px] font-medium">Change Photo</span>
                                 <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageChange(e, 'avatar')} />
@@ -522,7 +522,7 @@ const UserProfile = () => {
                         )}
                     </div>
 
-                    <div className="mb-4 flex-1 min-w-0 bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-lg max-w-xl">
+                    <div className="mb-4 flex-1 w-full min-w-0 bg-black/70 md:bg-black/40 backdrop-blur-md p-1 md:p-4 rounded-2xl border border-white/10 shadow-lg max-w-xl text-center sm:text-left">
                         {editSections.header ? (
                             <form onSubmit={handleSubmit((data) => onFormSubmit(data, 'header'))} className="space-y-2 min-w-[250px]">
                                 <input {...register('fullName')} className="w-full p-1.5 text-sm bg-white text-gray-800 rounded border" placeholder="Name" />
@@ -533,17 +533,17 @@ const UserProfile = () => {
                             </form>
                         ) : (
                             <div className="flex items-start justify-between gap-2 group">
-                                <div className="min-w-0">
+                                <div className="min-w-0 w-full">
                                     <h1 className={`text-2xl sm:text-3xl font-extrabold truncate drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${profileUser?.role === 'PREMIUM' ? 'text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-400 to-orange-400' : 'text-white'}`}>
                                         {profileUser?.fullName || 'No Name Set'}
                                     </h1>
-                                    <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2 text-xs sm:text-sm font-medium text-gray-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                    <div className="flex flex-wrap justify-center sm:justify-start gap-x-4 gap-y-1.5 mt-2 text-xs sm:text-sm font-medium text-gray-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                         <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-red-500" /> {profileUser?.currentThana || 'Not Set'}, Bangladesh</span>
                                         <span className="flex items-center gap-1.5"><User className="w-4 h-4 text-red-500" /> <span className="text-gray-400">ID:</span> {profileUser?.profileId || profileUser?.userID || 'N/A'}</span>
                                         <span className="flex items-center gap-1.5"><User className="w-4 h-4 text-red-500" /> <span className="text-gray-400">Referral:</span> {profileUser?.ownRefarelID || 'N/A'}</span>
                                     </div>
                                 </div>
-                                <button type="button" onClick={() => toggleSection('header', true)} className="p-1.5 bg-neutral-800/80 hover:bg-neutral-700 text-white rounded-xl shadow border border-white/10 opacity-0 group-hover:opacity-100 transition flex-shrink-0">
+                                <button type="button" onClick={() => toggleSection('header', true)} className="p-1.5 bg-neutral-800/80 hover:bg-neutral-700 text-white rounded-xl shadow border border-white/10  transition flex-shrink-0">
                                     <Edit2 className="w-3.5 h-3.5" />
                                 </button>
                             </div>
@@ -552,7 +552,7 @@ const UserProfile = () => {
                 </div>
             </div>
 
-            <div className="flex items-center gap-4 mt-16 border-b border-gray-200 px-8">
+            <div className="flex items-center gap-4 mt-40 border-b border-gray-200 px-8 md:mt-16">
                 <button type="button" onClick={() => setActiveTab("info")} className={`pb-3 text-sm font-semibold border-b-2 transition ${activeTab === "info" ? "border-emerald-600 text-emerald-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
                     Profile Info
                 </button>
@@ -575,7 +575,7 @@ const UserProfile = () => {
                                         <button
                                             type="button"
                                             onClick={() => toggleSection('personal', true)}
-                                            className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"
+                                            className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition "
                                         >
                                             <Edit2 className="w-4 h-4" />
                                         </button>
@@ -669,7 +669,7 @@ const UserProfile = () => {
                                 <div className="flex justify-between items-center mb-4 border-b pb-2">
                                     <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><Briefcase className="w-5 h-5" /> Professional & Education</h2>
                                     {!editSections.professional && (
-                                        <button type="button" onClick={() => toggleSection('professional', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
+                                        <button type="button" onClick={() => toggleSection('professional', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition "><Edit2 className="w-4 h-4" /></button>
                                     )}
                                 </div>
 
@@ -721,7 +721,7 @@ const UserProfile = () => {
                                         <button
                                             type="button"
                                             onClick={() => toggleSection('contact', true)}
-                                            className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"
+                                            className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition "
                                         >
                                             <Edit2 className="w-4 h-4" />
                                         </button>
@@ -859,7 +859,7 @@ const UserProfile = () => {
                                 <div className="flex justify-between items-center mb-4 border-b pb-2">
                                     <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><Home className="w-5 h-5" /> Family Background</h2>
                                     {!editSections.family && (
-                                        <button type="button" onClick={() => toggleSection('family', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
+                                        <button type="button" onClick={() => toggleSection('family', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition "><Edit2 className="w-4 h-4" /></button>
                                     )}
                                 </div>
 
@@ -914,7 +914,7 @@ const UserProfile = () => {
                                 <div className="flex justify-between items-center mb-4 border-b border-white/20 pb-2">
                                     <h2 className="text-lg font-bold flex items-center gap-2"><Heart className="w-5 h-5" /> Partner Expectations</h2>
                                     {!editSections.expectations && (
-                                        <button type="button" onClick={() => toggleSection('expectations', true)} className="p-1.5 bg-white/20 hover:bg-white/30 text-white rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
+                                        <button type="button" onClick={() => toggleSection('expectations', true)} className="p-1.5 bg-white/20 hover:bg-white/30 text-white rounded-full transition "><Edit2 className="w-4 h-4" /></button>
                                     )}
                                 </div>
 
