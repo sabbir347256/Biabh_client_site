@@ -224,6 +224,7 @@ const Navbar = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+
     const handleAction = async (requestId, action) => {
         try {
             const response = await axios.post(`${config.backendUrl}/connection/action`, {
@@ -255,7 +256,7 @@ const Navbar = () => {
                     </div>
                 </NavLink>
 
-                <div className="relative static sm:relative" ref={dropdownRef}>
+                <div className="relative static sm:relative" >
                     <button
                         onClick={() => setrequestopen(!requestopen)}
                         className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-semibold text-gray-300 hover:text-white bg-neutral-900 border border-white/5 rounded-xl transition-all duration-200"
@@ -682,6 +683,7 @@ const Navbar = () => {
                     </div>
                 </div>
             )}
+            
             {requestopen && (
                 <div className="absolute top-20 right-0 sm:right-0 md:left-8  mt-2 w-[calc(100vw-2rem)] sm:w-96 bg-neutral-900 border border-white/10 shadow-2xl p-4 transform origin-top transition-all duration-200 overflow-hidden z-50 mx-4 sm:mx-0">
                     <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
