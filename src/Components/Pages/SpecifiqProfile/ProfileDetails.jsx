@@ -8,7 +8,10 @@ import {
     Globe,
     Sparkles,
     FileText,
-    ImageIcon
+    ImageIcon,
+    CheckCircle,
+    Send,
+    Clock
 } from 'lucide-react';
 import config from '../utilies/envconfig';
 import { useParams } from 'react-router';
@@ -60,73 +63,140 @@ const ProfileDetails = () => {
         }
     }, [id]);
 
+    const [connectionData, setConnectionData] = useState({ status: "LOADING", isSender: false, requestId: null });
 
-    const handleUnlockProfile = async () => {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-            toast.error('প্রোফাইল আনলক করতে প্রথমে লগইন করুন।');
-            return;
-        }
 
+    const fetchConnectionStatus = async () => {
+        if (!token) return;
         try {
-            setMessage({ type: '', text: '' });
-            const response = await axios.post(
-                `${config.backendUrl}/user/unlock`,
-                { targetUserId: id },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
+            const response = await axios.get(`${config.backendUrl}/connection/status/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             if (response.data.success) {
-                setIsProfileLocked(false);
-                setProfileUser(prev => ({
-                    ...prev,
-                    email: response.data.data.email,
-                    currentThana: response.data.data.currentThana,
-                    currentDistrict: response.data.data.currentDistrict,
-                    currentDivision: response.data.data.currentDivision,
-                    currentCountry: response.data.data.currentCountry,
-                    permanentThana: response.data.data.permanentThana,
-                    permanentDistrict: response.data.data.permanentDistrict,
-                    permanentDivision: response.data.data.permanentDivision,
-                    permanentCountry: response.data.data.permanentCountry,
-                }));
-                toast.success(response.data.message);
+                setConnectionData(response.data.data);
             }
         } catch (error) {
-            toast.error(error.response?.data?.message);
+            console.error(error);
         }
     };
 
-    const handleUnlockPhone = async () => {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-            toast.error('ফোন নাম্বার আনলক করতে প্রথমে লগইন করুন।');
+    useEffect(() => {
+        fetchConnectionStatus();
+    }, [id]);
+
+
+    const handleSendRequest = async () => {
+        if (data?.data?.gender === profileUser?.gender) {
+            toast.error("You can only send requests to the opposite gender!");
             return;
         }
-
         try {
-            const response = await axios.post(
-                `${config.backendUrl}/phoneunlock/initiate-payment`,
-                {
-                    buyerUserObjectId: data?.data?._id,
-                    targetUserObjectId: id,
-                    name: data?.data?.fullName,
-                    email: data?.data?.email,
-                    phone: data?.data?.contactNo,
-                    originUrl: window.location.href
-                },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const response = await axios.post(`${config.backendUrl}/connection/send`, { receiverId: id }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.data.success) {
+                toast.success(response.data.message);
+                fetchConnectionStatus();
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Something went wrong");
+        }
+    };
+
+    const handleUnlockPhonePaystation = async () => {
+        try {
+            const response = await axios.post(`${config.backendUrl}/phoneunlock/initiate-payment`, {
+                buyerUserObjectId: data?.data?._id,
+                targetUserObjectId: id,
+                name: data?.data?.fullName,
+                email: data?.data?.email,
+                phone: data?.data?.contactNo,
+                originUrl: window.location.href
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
 
             if (response.data.success && response.data.payment_url) {
                 window.location.href = response.data.payment_url;
             } else {
-                toast.error("পেমেন্ট গেটওয়ে চালু করা যায়নি।");
+                toast.error("Failed to load gateway.");
             }
         } catch (error) {
             toast.error(error.response?.data?.message || "Failed to initiate payment");
         }
     };
+
+    // if (connectionData.status === "LOADING") {
+    //     return <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm text-center">Loading Content...</div>;
+    // }
+
+
+    // const handleUnlockProfile = async () => {
+    //     const token = localStorage.getItem("accessToken");
+    //     if (!token) {
+    //         toast.error('প্রোফাইল আনলক করতে প্রথমে লগইন করুন।');
+    //         return;
+    //     }
+
+    //     try {
+    //         setMessage({ type: '', text: '' });
+    //         const response = await axios.post(
+    //             `${config.backendUrl}/user/unlock`,
+    //             { targetUserId: id },
+    //             { headers: { Authorization: `Bearer ${token}` } }
+    //         );
+
+    //         if (response.data.success) {
+    //             setIsProfileLocked(false);
+    //             setProfileUser(prev => ({
+    //                 ...prev,
+    //                 email: response.data.data.email,
+    //                 currentThana: response.data.data.currentThana,
+    //                 currentDistrict: response.data.data.currentDistrict,
+    //                 currentDivision: response.data.data.currentDivision,
+    //                 currentCountry: response.data.data.currentCountry,
+    //                 permanentThana: response.data.data.permanentThana,
+    //                 permanentDistrict: response.data.data.permanentDistrict,
+    //                 permanentDivision: response.data.data.permanentDivision,
+    //                 permanentCountry: response.data.data.permanentCountry,
+    //             }));
+    //             toast.success(response.data.message);
+    //         }
+    //     } catch (error) {
+    //         toast.error(error.response?.data?.message);
+    //     }
+    // };
+
+    // const handleUnlockPhone = async () => {
+    //     const token = localStorage.getItem("accessToken");
+    //     if (!token) {
+    //         toast.error('ফোন নাম্বার আনলক করতে প্রথমে লগইন করুন।');
+    //         return;
+    //     }
+
+    //     try {
+    //         const response = await axios.post(
+    //             `${config.backendUrl}/phoneunlock/initiate-payment`,
+    //             {
+    //                 buyerUserObjectId: data?.data?._id,
+    //                 targetUserObjectId: id,
+    //                 name: data?.data?.fullName,
+    //                 email: data?.data?.email,
+    //                 phone: data?.data?.contactNo,
+    //                 originUrl: window.location.href
+    //             },
+    //             { headers: { Authorization: `Bearer ${token}` } }
+    //         );
+
+    //         if (response.data.success && response.data.payment_url) {
+    //             window.location.href = response.data.payment_url;
+    //         } else {
+    //             toast.error("পেমেন্ট গেটওয়ে চালু করা যায়নি।");
+    //         }
+    //     } catch (error) {
+    //         toast.error(error.response?.data?.message || "Failed to initiate payment");
+    //     }
+    // };
 
     // const handleSendInterest = () => {
     //     toast.error("This feature is currently under development. Please check back later!");
@@ -147,7 +217,6 @@ const ProfileDetails = () => {
                 </div>
             )}
 
-            {/* Top Cover & Profile Image Section */}
             <div className="relative mb-6">
                 <div className={`h-64 md:h-[24rem] w-full rounded-b-2xl overflow-hidden relative ${profileUser?.role === 'PREMIUM' ? 'bg-gradient-to-br from-neutral-950 via-red-950 to-neutral-950 ring-4 ring-red-600 ring-offset-4 ring-offset-neutral-950 shadow-2xl shadow-red-600/30' : 'bg-emerald-950'}`}>
                     <img src={profileUser?.coverImage} className={`w-full h-full object-cover ${profileUser?.role === 'PREMIUM' ? 'opacity-30' : 'opacity-40'}`} alt="Cover" />
@@ -185,7 +254,6 @@ const ProfileDetails = () => {
                 </div>
             </div>
 
-            {/* Facebook Style Tab Navigation Section */}
             <div className="pt-14 px-8 border-b border-gray-200 bg-white shadow-sm rounded-t-xl mt-2 mx-auto max-w-7xl">
                 <div className="flex space-x-6">
                     <button
@@ -209,10 +277,8 @@ const ProfileDetails = () => {
                 </div>
             </div>
 
-            {/* Tab Content Display */}
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-6">
                 {activeTab === 'details' ? (
-                    /* Existing Details Layout */
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn">
                         <div className="lg:col-span-2 space-y-6">
                             {/* Personal Info */}
@@ -242,7 +308,6 @@ const ProfileDetails = () => {
                                 </div>
                             </div>
 
-                            {/* Professional & Education */}
                             <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${profileUser?.role === 'PREMIUM' ? 'border-l-red-600' : 'border-l-emerald-600'}`}>
                                 <div className="flex justify-between items-center mb-4 border-b pb-2">
                                     <h2 className={`text-lg font-bold flex items-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
@@ -262,8 +327,7 @@ const ProfileDetails = () => {
                                 </div>
                             </div>
 
-                            {/* Contact Info */}
-                            <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${profileUser?.role === 'PREMIUM' ? 'border-l-red-600' : 'border-l-emerald-600'}`}>
+                            {/* <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${profileUser?.role === 'PREMIUM' ? 'border-l-red-600' : 'border-l-emerald-600'}`}>
                                 <div className="flex justify-between items-center mb-4 border-b pb-2">
                                     <h2 className={`text-lg font-bold flex items-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
                                         <Phone className="w-5 h-5" /> Contact Information
@@ -333,10 +397,111 @@ const ProfileDetails = () => {
                                         </div>
                                     </div>
                                 )}
+                            </div> */}
+
+                            <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${profileUser?.role === 'PREMIUM' ? 'border-l-red-600' : 'border-l-emerald-600'}`}>
+                                <div className="flex justify-between items-center mb-4 border-b pb-2">
+                                    <h2 className={`text-lg font-bold flex items-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
+                                        <Phone className="w-5 h-5" /> Contact Information
+                                    </h2>
+                                </div>
+
+                                {connectionData.status === "NONE" && (
+                                    <div className="flex flex-col items-center justify-center py-6 border border-dashed border-gray-200 rounded-xl bg-gray-50/50 px-4 text-center">
+                                        <Lock className={`w-8 h-8 mb-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-400' : 'text-emerald-400'}`} />
+                                        <p className="text-sm font-semibold text-gray-700 mb-1">Contact Details are Locked</p>
+                                        <p className="text-xs text-gray-500 mb-4">Send a request to gain connection access.</p>
+                                        <button
+                                            type="button"
+                                            onClick={handleSendRequest}
+                                            className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-semibold text-sm transition shadow-md flex items-center justify-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-100' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100'}`}
+                                        >
+                                            <Send className="w-4 h-4" /> Request Contact Details (Paid 7 TK)
+                                        </button>
+                                    </div>
+                                )}
+
+                                {connectionData.status === "PENDING" && (
+                                    <div className="flex flex-col items-center justify-center py-6 border border-dashed border-gray-200 rounded-xl bg-gray-50/50 px-4 text-center">
+                                        <Clock className="w-8 h-8 mb-2 text-amber-500 animate-pulse" />
+                                        <p className="text-sm font-semibold text-gray-700 mb-1">
+                                            {connectionData.isSender ? "Request is Pending Approval" : "This user sent you a request"}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                            {connectionData.isSender
+                                                ? "Please wait until they accept your request to unlock payment options."
+                                                : "Check your dropdown requests in the navbar to accept."
+                                            }
+                                        </p>
+                                    </div>
+                                )}
+
+                                {connectionData.status === "REJECTED" && (
+                                    <div className="flex flex-col items-center justify-center py-6 border border-dashed border-gray-200 rounded-xl bg-gray-50/50 px-4 text-center">
+                                        <X className="w-8 h-8 mb-2 text-red-500" />
+                                        <p className="text-sm font-semibold text-gray-700 mb-1">Request Declined</p>
+                                        <p className="text-xs text-gray-500">The connection request between you two was rejected.</p>
+                                    </div>
+                                )}
+
+                                {connectionData.status === "ACCEPTED" && (
+                                    <div className="flex flex-col items-center justify-center py-6 border border-dashed border-gray-200 rounded-xl bg-gray-50/50 px-4 text-center">
+                                        <CheckCircle className="w-8 h-8 mb-2 text-emerald-500" />
+                                        <p className="text-sm font-semibold text-gray-700 mb-1">Request Accepted!</p>
+                                        <p className="text-xs text-gray-500 mb-4">Pay 77 TK now to instantly view full profile credentials.</p>
+                                        <button
+                                            type="button"
+                                            onClick={handleUnlockPhonePaystation}
+                                            className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-semibold text-sm transition shadow-md flex items-center justify-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-100' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100'}`}
+                                        >
+                                            <Lock className="w-4 h-4" /> Pay 77 TK to Unlock Full Profile Information
+                                        </button>
+                                    </div>
+                                )}
+
+                                {connectionData.status === "FULL_ACCESS" && (
+                                    <div className="space-y-4 animate-fadeIn">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className={`border p-4 rounded-xl flex flex-col justify-between min-h-[95px] ${profileUser?.role === 'PREMIUM' ? 'border-red-100 bg-red-50/10' : 'border-emerald-100 bg-emerald-50/20'}`}>
+                                                <div>
+                                                    <span className={`text-xs font-bold flex items-center gap-1 uppercase mb-1 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
+                                                        <Phone className="w-3.5 h-3.5" /> Phone Number
+                                                    </span>
+                                                    <p className="text-gray-800 text-sm font-semibold animate-fadeIn">{connectionData?.contactNo || 'Not Set'}</p>
+                                                </div>
+                                            </div>
+
+                                            <div className={`border p-4 rounded-xl ${profileUser?.role === 'PREMIUM' ? 'border-red-100 bg-red-50/10' : 'border-emerald-100 bg-emerald-50/20'}`}>
+                                                <span className={`text-xs font-bold flex items-center gap-1 uppercase mb-1 ${profileUser?.role === 'PREMIUM' ? 'text-red-600' : 'text-emerald-600'}`}>
+                                                    <Mail className="w-3.5 h-3.5" /> Email Address
+                                                </span>
+                                                <p className="text-gray-800 text-sm font-semibold">{connectionData?.email || 'Not Set'}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                                            <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                                <span className={`text-xs font-bold flex items-center gap-1 uppercase mb-1 ${profileUser?.role === 'PREMIUM' ? 'text-red-500' : 'text-emerald-600'}`}>
+                                                    <MapPin className="w-3.5 h-3.5" /> Current Address
+                                                </span>
+                                                <p className="text-gray-700 text-sm font-medium">
+                                                    {connectionData?.currentThana ? `${connectionData.currentThana}, ${connectionData.currentDistrict}, ${connectionData.currentDivision}, ${connectionData.currentCountry}` : 'Not Set'}
+                                                </p>
+                                            </div>
+                                            <div className="border border-gray-100 p-4 rounded-xl bg-gray-50/50">
+                                                <span className={`text-xs font-bold flex items-center gap-1 uppercase mb-1 ${profileUser?.role === 'PREMIUM' ? 'text-red-500' : 'text-emerald-600'}`}>
+                                                    <Globe className="w-3.5 h-3.5" /> Permanent Address
+                                                </span>
+                                                <p className="text-gray-700 text-sm font-medium">
+                                                    {connectionData?.permanentThana ? `${connectionData.permanentThana}, ${connectionData.permanentDistrict}, ${connectionData.permanentDivision}, ${connectionData.permanentCountry}` : 'Not Set'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* Right Sidebar Status */}
                         <div className="space-y-6">
                             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Verification Status</h3>
@@ -370,7 +535,6 @@ const ProfileDetails = () => {
                         </div>
                     </div>
                 ) : (
-                    /* Photos Gallery Layout Container */
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm min-h-[300px] animate-fadeIn">
                         <SpecifiqGallary profileUser={profileUser} token={token} config={config} />
                     </div>

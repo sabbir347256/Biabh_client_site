@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import logo from '../../../assets/images/logo.jpeg'
-import { LogOut, Menu, ShieldCheck, Sparkles, UserIcon, X } from "lucide-react";
+import { Bell, Check, LogOut, Menu, ShieldCheck, Sparkles, UserIcon, X } from "lucide-react";
 import Button from "../utilies/Button";
 import { NavLink, useLocation, useNavigate } from "react-router";
 import { AuthProvider } from "../../AuthProvider/CreateContext";
@@ -10,7 +10,7 @@ import toast, { Toaster } from "react-hot-toast";
 import config from "../utilies/envconfig";
 
 const Navbar = () => {
-    const { user, data } = useContext(AuthProvider);
+    const { user, data, token } = useContext(AuthProvider);
     const userProfile = data?.data;
     console.log(userProfile);
     const [isOpen, setIsOpen] = useState(false);
@@ -139,6 +139,8 @@ const Navbar = () => {
     }, []);
 
 
+    console.log(data?.data)
+
     const mainAmount = data?.data?.mainWalletBalance || 0;
     const bonusAmount = data?.data?.isActive === 'INACTIVE' ? 0 : data?.data?.bonusWalletPoints;
     const referralAmount = user?.wallet?.referralBalance || 0;
@@ -164,7 +166,6 @@ const Navbar = () => {
 
         try {
             setLoading(true);
-            // ফ্রন্টেন্ডের অবজেক্টে শুধু window.location.origin পাঠান
             const response = await axios.post(
                 `${config.backendUrl}/premiumPayment/initiate-payment`,
                 {
@@ -172,7 +173,7 @@ const Navbar = () => {
                     name: data?.data?.fullName,
                     email: data?.data?.email,
                     phone: data?.data?.contactNo,
-                    originUrl: window.location.origin // এটি নিশ্চিত করুন (যেমন: http://localhost:5173)
+                    originUrl: window.location.origin
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -189,20 +190,88 @@ const Navbar = () => {
         }
     };
 
+    const [requestopen, setrequestopen] = useState(false);
+    const [requests, setRequests] = useState([]);
+    const dropdownRef = useRef(null);
+
+    const fetchRequests = async () => {
+        if (!token) return;
+        try {
+            const response = await axios.get(`${config.backendUrl}/connection/pending`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.data.success) {
+                setRequests(response.data.data);
+            }
+        } catch (error) {
+            console.error("Error fetching requests", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchRequests();
+        const interval = setInterval(fetchRequests, 30000);
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setrequestopen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleAction = async (requestId, action) => {
+        try {
+            const response = await axios.post(`${config.backendUrl}/connection/action`, {
+                requestId,
+                action
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (response.data.success) {
+                toast.success(response.data.message);
+                setRequests(prev => prev.filter(req => req._id !== requestId));
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Operation failed");
+        }
+    };
+
 
     return (
         <div className="border-b relative z-50 bg-white">
             <Toaster position="top-right" reverseOrder={false} />
-            <nav className="flex items-center justify-between app-container relative py-4">
+            <div className="flex items-center justify-between app-container relative py-4">
                 <NavLink to='/' className="flex items-center space-x-3 select-none">
                     <img className="size-14 object-contain rounded-xl" src={logo} alt="Logo" />
-                    <div>
+                    <div className="md:flex flex-col hidden">
                         <div className="text-red-600 font-bold text-2xl leading-none tracking-tight">Bibah</div>
                         <div className="text-gray-500 text-xs mt-1 tracking-wide">A Perfect Partner</div>
                     </div>
                 </NavLink>
 
+                <div className="relative static sm:relative" ref={dropdownRef}>
+                    <button
+                        onClick={() => setrequestopen(!requestopen)}
+                        className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-semibold text-gray-300 hover:text-white bg-neutral-900 border border-white/5 rounded-xl transition-all duration-200"
+                    >
+                        <Bell className="w-4 h-4 text-red-500" />
+                        <span className="hidden xs:inline">Connection Requests</span>
+                        <span className="xs:hidden">Requests</span>
+                        {requests.length > 0 && (
+                            <span className="bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse">
+                                {requests.length}
+                            </span>
+                        )}
+                    </button>
 
+
+                </div>
                 <div className="hidden md:flex items-center space-x-8">
                     {navLinks.map((link) => {
                         const isActive = location.pathname === link.path;
@@ -530,7 +599,7 @@ const Navbar = () => {
                     <hr className="border-gray-100 my-2" />
 
                 </div>
-            </nav>
+            </div>
 
             {isRechargeOpen && (
                 <div className="modal modal-open fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
@@ -565,7 +634,18 @@ const Navbar = () => {
                                         className={`input w-full pl-9 pr-4 py-6 bg-gray-50/80 text-gray-900 font-bold text-lg rounded-xl border border-gray-200 focus:outline-none focus:border-red-500 focus:bg-white transition-all duration-200 ${errors.amount ? 'border-red-500 bg-red-50/10 focus:border-red-500' : ''}`}
                                         {...register("amount", {
                                             required: "Amount is required",
-                                            // min: { value: 10, message: "Minimum recharge amount is ৳10" }
+                                            validate: {
+                                                positive: (val) => Number(val) > 0 || "Amount must be greater than 0",
+                                                firstRecharge: (val) => {
+                                                    if (totalAmount === 0 && Number(val) < 130) {
+                                                        return "প্রথম রিচার্জ সর্বনিম্ন ১৩০ টাকা হতে হবে";
+                                                    }
+                                                    if (Number(val) < 1) {
+                                                        return "Minimum recharge amount is ৳1";
+                                                    }
+                                                    return true;
+                                                }
+                                            }
                                         })}
                                     />
                                 </div>
@@ -602,6 +682,54 @@ const Navbar = () => {
                     </div>
                 </div>
             )}
+            {requestopen && (
+                <div className="absolute top-20 right-0 sm:right-0 md:left-8  mt-2 w-[calc(100vw-2rem)] sm:w-96 bg-neutral-900 border border-white/10 shadow-2xl p-4 transform origin-top transition-all duration-200 overflow-hidden z-50 mx-4 sm:mx-0">
+                    <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
+                        <h4 className="font-bold text-gray-200 text-sm">Pending Connections</h4>
+                        <span className="text-xs text-gray-500">{requests.length} total</span>
+                    </div>
+
+                    {requests.length === 0 ? (
+                        <div className="text-center py-6 text-sm text-gray-500">
+                            No pending requests found
+                        </div>
+                    ) : (
+                        <div className="max-h-64 sm:max-h-72 overflow-y-auto space-y-3 pr-1 scrollbar-thin scrollbar-thumb-neutral-800">
+                            {requests.map((req) => (
+                                <div key={req._id} className="flex items-center justify-between p-2 rounded-xl hover:bg-white/5 transition-colors gap-2 sm:gap-3">
+                                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                        <img
+                                            src={req.senderId?.profileImage || 'https://via.placeholder.com/150'}
+                                            alt={req.senderId?.fullName}
+                                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border border-white/10 flex-shrink-0"
+                                        />
+                                        <div className="min-w-0">
+                                            <p className="font-bold text-xs sm:text-sm text-white truncate">{req.senderId?.fullName}</p>
+                                            <p className="text-[9px] sm:text-[10px] text-gray-500 mt-0.5">{req.senderId?.gender} • {req.senderId?.birth ? new Date().getFullYear() - new Date(req.senderId.birth).getFullYear() : 'N/A'} Yrs</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                                        <button
+                                            onClick={() => handleAction(req._id, "ACCEPTED")}
+                                            className="p-1.5 sm:p-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-lg transition-all duration-150"
+                                        >
+                                            <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleAction(req._id, "REJECTED")}
+                                            className="p-1.5 sm:p-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white rounded-lg transition-all duration-150"
+                                        >
+                                            <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
         </div>
     );
 };

@@ -13,7 +13,8 @@ import {
     CheckCircle,
     AlertCircle,
     CreditCard,
-    Sparkles
+    Sparkles,
+    Wallet
 } from 'lucide-react';
 import { AuthProvider } from '../../../AuthProvider/CreateContext';
 import config from '../../utilies/envconfig';
@@ -509,7 +510,7 @@ const UserProfile = () => {
                     <div className="relative group flex-shrink-0">
                         <div className={`w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden bg-neutral-800 relative shadow-xl ${profileUser?.role === 'PREMIUM' ? 'border-4 border-red-600 ring-4 ring-rose-500/40 ring-offset-2' : 'border-4 border-white'}`}>
                             {images.avatar && <img src={images.avatar} className="w-full h-full object-cover rounded-full" alt="Avatar" />}
-                            <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white  transition cursor-pointer rounded-full">
+                            <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition cursor-pointer rounded-full">
                                 <Camera className="w-5 h-5 mb-1" />
                                 <span className="text-[10px] font-medium">Change Photo</span>
                                 <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageChange(e, 'avatar')} />
@@ -543,7 +544,7 @@ const UserProfile = () => {
                                         <span className="flex items-center gap-1.5"><User className="w-4 h-4 text-red-500" /> <span className="text-gray-400">Referral:</span> {profileUser?.ownRefarelID || 'N/A'}</span>
                                     </div>
                                 </div>
-                                <button type="button" onClick={() => toggleSection('header', true)} className="p-1.5 bg-neutral-800/80 hover:bg-neutral-700 text-white rounded-xl shadow border border-white/10  transition flex-shrink-0">
+                                <button type="button" onClick={() => toggleSection('header', true)} className="p-1.5 bg-neutral-800/80 hover:bg-neutral-700 text-white rounded-xl shadow border border-white/10 opacity-0 group-hover:opacity-100 transition flex-shrink-0">
                                     <Edit2 className="w-3.5 h-3.5" />
                                 </button>
                             </div>
@@ -575,7 +576,7 @@ const UserProfile = () => {
                                         <button
                                             type="button"
                                             onClick={() => toggleSection('personal', true)}
-                                            className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition "
+                                            className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"
                                         >
                                             <Edit2 className="w-4 h-4" />
                                         </button>
@@ -669,7 +670,7 @@ const UserProfile = () => {
                                 <div className="flex justify-between items-center mb-4 border-b pb-2">
                                     <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><Briefcase className="w-5 h-5" /> Professional & Education</h2>
                                     {!editSections.professional && (
-                                        <button type="button" onClick={() => toggleSection('professional', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition "><Edit2 className="w-4 h-4" /></button>
+                                        <button type="button" onClick={() => toggleSection('professional', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
                                     )}
                                 </div>
 
@@ -721,7 +722,7 @@ const UserProfile = () => {
                                         <button
                                             type="button"
                                             onClick={() => toggleSection('contact', true)}
-                                            className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition "
+                                            className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"
                                         >
                                             <Edit2 className="w-4 h-4" />
                                         </button>
@@ -859,7 +860,7 @@ const UserProfile = () => {
                                 <div className="flex justify-between items-center mb-4 border-b pb-2">
                                     <h2 className="text-lg font-bold text-red-600 flex items-center gap-2"><Home className="w-5 h-5" /> Family Background</h2>
                                     {!editSections.family && (
-                                        <button type="button" onClick={() => toggleSection('family', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition "><Edit2 className="w-4 h-4" /></button>
+                                        <button type="button" onClick={() => toggleSection('family', true)} className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
                                     )}
                                 </div>
 
@@ -914,7 +915,7 @@ const UserProfile = () => {
                                 <div className="flex justify-between items-center mb-4 border-b border-white/20 pb-2">
                                     <h2 className="text-lg font-bold flex items-center gap-2"><Heart className="w-5 h-5" /> Partner Expectations</h2>
                                     {!editSections.expectations && (
-                                        <button type="button" onClick={() => toggleSection('expectations', true)} className="p-1.5 bg-white/20 hover:bg-white/30 text-white rounded-full transition "><Edit2 className="w-4 h-4" /></button>
+                                        <button type="button" onClick={() => toggleSection('expectations', true)} className="p-1.5 bg-white/20 hover:bg-white/30 text-white rounded-full transition opacity-0 group-hover:opacity-100"><Edit2 className="w-4 h-4" /></button>
                                     )}
                                 </div>
 
@@ -1137,7 +1138,7 @@ const UserProfile = () => {
                                                         onClick={handleFieldPaymentProcess}
                                                         className="w-full py-2 px-4 rounded-lg bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 transition flex items-center justify-center gap-2"
                                                     >
-                                                        <CreditCard className="w-4 h-4" /> Pay 2340 TK
+                                                        <Wallet className="w-4 h-4" /> Pay 2340 TK
                                                     </button>
                                                 </div>
                                             ) : (
