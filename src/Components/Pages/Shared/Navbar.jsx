@@ -12,7 +12,6 @@ import config from "../utilies/envconfig";
 const Navbar = () => {
     const { user, data, token } = useContext(AuthProvider);
     const userProfile = data?.data;
-    console.log(userProfile);
     const [isOpen, setIsOpen] = useState(false);
     const [isWalletOpen, setIsWalletOpen] = useState(false);
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -138,9 +137,6 @@ const Navbar = () => {
         };
     }, []);
 
-
-    console.log(data?.data)
-
     const mainAmount = Number(data?.data?.mainWalletBalance) || 0;
     const bonusAmount = data?.data?.isActive === 'INACTIVE' ? 0 : (Number(data?.data?.bonusWalletPoints) || 0);
     const referralAmount = Number(user?.wallet?.referralBalance) || 0;
@@ -215,6 +211,9 @@ const Navbar = () => {
         const interval = setInterval(fetchRequests, 30000);
         return () => clearInterval(interval);
     }, []);
+
+    console.log(user)
+    console.log(requests)
 
     useEffect(() => {
         const handleClickOutside = (event) => {
