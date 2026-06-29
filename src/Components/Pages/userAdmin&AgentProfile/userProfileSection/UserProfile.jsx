@@ -24,6 +24,7 @@ import PhotoGalleryView from './PhotoGalleryView';
 import divisionsData from "../../../data/bd-divisions.json";
 import districtsData from "../../../data/bd-districts.json";
 import upazilasData from "../../../data/bd-upazilas.json";
+import MeetupModal from './MeetupModal';
 
 const UserProfile = () => {
     const { data: authContextData, token, refetch, isLoading } = useContext(AuthProvider);
@@ -476,6 +477,7 @@ const UserProfile = () => {
     };
 
     const [activeTab, setActiveTab] = useState("info");
+    const [isMeetupOpen, setIsMeetupOpen] = useState(false);
 
 
     if (isLoading) {
@@ -911,7 +913,7 @@ const UserProfile = () => {
                                 )}
                             </div>
 
-                            <div className="bg-red-600 text-white p-6 rounded-2xl shadow-sm relative group">
+                            {/* <div className="bg-red-600 text-white p-6 rounded-2xl shadow-sm relative group">
                                 <div className="flex justify-between items-center mb-4 border-b border-white/20 pb-2">
                                     <h2 className="text-lg font-bold flex items-center gap-2"><Heart className="w-5 h-5" /> Partner Expectations</h2>
                                     {!editSections.expectations && (
@@ -944,7 +946,7 @@ const UserProfile = () => {
                                         ))}
                                     </div>
                                 )}
-                            </div>
+                            </div> */}
 
                         </div>
 
@@ -970,6 +972,14 @@ const UserProfile = () => {
                             </div>
                         )}
                     </div> */}
+                            <div className="flex justify-start">
+                                <button
+                                    onClick={() => setIsMeetupOpen(true)}
+                                    className="px-6 py-3 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-rose-950/50 transition flex items-center gap-2 border border-rose-500/20"
+                                >
+                                    Fill Up Meet Up Form
+                                </button>
+                            </div>
 
                             <div className="space-y-6">
                                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
@@ -1024,6 +1034,7 @@ const UserProfile = () => {
                                         </div>
                                     </div>
                                 </div>
+
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="bg-gradient-to-br from-emerald-900 to-teal-950 text-white p-6 rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[280px]">
@@ -1166,6 +1177,7 @@ const UserProfile = () => {
                                         </div>
                                     </div>
                                 </div>
+                                <MeetupModal isOpen={isMeetupOpen} onClose={() => setIsMeetupOpen(false)} />
                             </div>
                         </div>
                     </div>

@@ -220,7 +220,7 @@ const ProfileDetails = () => {
 
             <div className="relative mb-6">
                 <div className={`h-64 md:h-[24rem] w-full rounded-b-2xl overflow-hidden relative ${profileUser?.role === 'PREMIUM' ? 'bg-gradient-to-br from-neutral-950 via-red-950 to-neutral-950 ring-4 ring-red-600 ring-offset-4 ring-offset-neutral-950 shadow-2xl shadow-red-600/30' : 'bg-emerald-950'}`}>
-                    <img src={profileUser?.coverImage} className={`w-full h-full object-cover ${profileUser?.role === 'PREMIUM' ? 'opacity-30' : 'opacity-40'}`} alt="Cover" />
+                    <img src={profileUser?.coverImage} className={`w-full h-full object-cover`} alt="Cover" />
                     <div className={`absolute inset-0 ${profileUser?.role === 'PREMIUM' ? 'bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent' : 'bg-gradient-to-t from-black/60 via-transparent to-transparent'}`} />
                     {profileUser?.role === 'PREMIUM' && (
                         <div className="absolute top-4 left-4 bg-gradient-to-r from-red-600 to-rose-500 text-white font-black text-[11px] uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-lg shadow-red-600/40 flex items-center gap-1.5 border border-red-500/30 z-10">

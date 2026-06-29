@@ -248,7 +248,7 @@ const Navbar = () => {
     return (
         <div className="border-b relative z-50 bg-white">
             <Toaster position="top-right" reverseOrder={false} />
-            <div className="flex items-center justify-between app-container relative py-4">
+            <div className="flex items-center justify-between app-container relative py-2">
                 <NavLink to='/' className="flex items-center space-x-3 select-none">
                     <img className="size-14 object-contain rounded-xl" src={logo} alt="Logo" />
                     <div className="md:flex flex-col hidden">
@@ -294,7 +294,7 @@ const Navbar = () => {
                         <button
                             type="button"
                             onClick={() => setpremiumon(true)}
-                            className="bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-bold text-sm py-2.5 px-2 mr-2 rounded-xl transition all duration-300 hidden  md:flex items-center gap-2 shadow-md shadow-red-100"
+                            className="bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-bold text-sm p-2 rounded-xl transition all duration-300 hidden  md:flex items-center  shadow-md shadow-red-100"
                         >
                             <Sparkles className="w-4 h-4 hidden md:flex" /> Get Premium Feature
                         </button>
@@ -304,7 +304,7 @@ const Navbar = () => {
                     <div className="relative" ref={walletRef}>
                         <button
                             onClick={() => setIsWalletOpen(!isWalletOpen)}
-                            className="flex items-center gap-3 bg-[#F79B2D] hover:to-yellow-600 text-white font-medium px-4 py-2 rounded-xl transition-all duration-300 active:scale-95 shadow-md shadow-red-100 border border-red-500/10"
+                            className="flex items-center gap-3 bg-[#F79B2D] hover:to-yellow-600 text-white font-medium p-2 rounded-xl transition-all duration-300 active:scale-95 shadow-md shadow-red-100 border border-red-500/10"
                         >
                             <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center backdrop-blur-sm">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-white">
@@ -475,7 +475,7 @@ const Navbar = () => {
                             <span className="text-xs font-bold pr-0.5">৳{totalAmount}</span>
                         </button>
 
-                        {isWalletOpen && (
+                        {user && isWalletOpen && (
                             <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 px-4 z-50">
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center text-xs py-1 border-b border-gray-50">
@@ -688,7 +688,7 @@ const Navbar = () => {
 
             <div ref={dropdownRef}>
                 {requestopen && (
-                    <div className="absolute top-20 right-0 sm:right-0 md:left-8  mt-2 w-[calc(100vw-2rem)] sm:w-96 bg-neutral-900 border border-white/10 shadow-2xl p-4 transform origin-top transition-all duration-200 overflow-hidden z-50 mx-4 sm:mx-0">
+                    <div className="absolute top-[65px] right-0 sm:right-0 md:left-8  mt-2 w-[calc(100vw-2rem)] sm:w-96 bg-neutral-900 border border-white/10 shadow-2xl p-4 transform origin-top transition-all duration-200 overflow-hidden z-50 mx-4 sm:mx-0">
                         <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
                             <h4 className="font-bold text-gray-200 text-sm">Pending Connections</h4>
                             <span className="text-xs text-gray-500">{requests.length} total</span>
