@@ -1040,7 +1040,7 @@ const UserProfile = () => {
                                     <div className="bg-gradient-to-br from-emerald-900 to-teal-950 text-white p-6 rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[280px]">
                                         <div>
                                             <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
-                                                <ShieldCheck className="w-5 h-5 text-emerald-400" /> Identity Verification
+                                                <ShieldCheck className="w-5 h-5 text-emerald-400" /> Document Verification
                                             </h3>
                                             <p className="text-xs text-emerald-200/80 mb-4 leading-relaxed">Attach your National ID Card (NID) to unlock verified badge.</p>
                                         </div>
