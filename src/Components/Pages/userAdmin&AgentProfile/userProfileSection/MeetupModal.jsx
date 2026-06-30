@@ -9,6 +9,7 @@ import config from "../../utilies/envconfig";
 const MeetupModal = ({ isOpen, onClose }) => {
     const { user } = useContext(AuthProvider);
     const [loading, setLoading] = useState(false);
+    console.log(user)
 
     const { register, handleSubmit, reset } = useForm({
         defaultValues: {
@@ -23,7 +24,8 @@ const MeetupModal = ({ isOpen, onClose }) => {
         setLoading(true);
         try {
             await axios.post(`${config?.backendUrl}/meetup/postMeetup`, {
-                userId: user?.userId,
+                userId: user?.userProfileId,
+                applicantName: user?.name,
                 targetUserId: data.targetUserId,
                 mobileNumber: data.mobileNumber
             });

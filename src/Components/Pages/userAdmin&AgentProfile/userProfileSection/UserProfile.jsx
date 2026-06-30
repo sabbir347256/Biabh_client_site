@@ -983,17 +983,17 @@ const UserProfile = () => {
 
                             <div className="space-y-6">
                                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                                    <div className="flex justify-between items-center mb-4">
+                                    <div className="flex flex-col md:flex-row justify-between items-center mb-4">
                                         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Verification Status</h3>
                                         <div className="flex items-center gap-2">
                                             <span className="text-xs font-semibold text-gray-500">Profile Progress:</span>
                                             <div className="w-24 bg-gray-200 h-2 rounded-full overflow-hidden">
                                                 <div
-                                                    className="bg-emerald-500 h-full transition-all duration-500"
+                                                    className="bg-yellow-500 h-full transition-all duration-500"
                                                     style={{ width: `${getProfileCompletion()}%` }}
                                                 ></div>
                                             </div>
-                                            <span className="text-xs font-bold text-emerald-600">{getProfileCompletion()}%</span>
+                                            <span className="text-xs font-bold text-yellow-600">{getProfileCompletion()}%</span>
                                         </div>
                                     </div>
 
