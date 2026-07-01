@@ -417,7 +417,7 @@ const ProfileDetails = () => {
                                             onClick={handleSendRequest}
                                             className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-semibold text-sm transition shadow-md flex items-center justify-center gap-2 ${profileUser?.role === 'PREMIUM' ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-100' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100'}`}
                                         >
-                                            <Send className="w-4 h-4" /> Request Contact Details (Paid 7 TK)
+                                            <Send className="w-4 h-4" /> Request to Contact (Paid 7 TK)
                                         </button>
                                     </div>
                                 )}

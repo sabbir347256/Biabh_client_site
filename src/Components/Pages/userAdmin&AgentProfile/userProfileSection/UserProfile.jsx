@@ -987,9 +987,9 @@ const UserProfile = () => {
                                         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Verification Status</h3>
                                         <div className="flex items-center gap-2">
                                             <span className="text-xs font-semibold text-gray-500">Profile Progress:</span>
-                                            <div className="w-24 bg-gray-200 h-2 rounded-full overflow-hidden">
+                                            <div className="w-24 bg-yellow-400 h-2 rounded-full overflow-hidden">
                                                 <div
-                                                    className="bg-yellow-500 h-full transition-all duration-500"
+                                                    className="bg-green-700 h-full transition-all duration-500"
                                                     style={{ width: `${getProfileCompletion()}%` }}
                                                 ></div>
                                             </div>
