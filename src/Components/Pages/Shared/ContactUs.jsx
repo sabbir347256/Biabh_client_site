@@ -6,7 +6,7 @@ const ContactUs = () => {
             <div className="max-w-4xl w-full mx-auto">
                 <div className="text-left mb-12">
                     <h1 className="text-3xl sm:text-5xl font-extrabold text-red-600 tracking-tight flex items-center justify-start gap-2">
-                        Bibah App
+                        Bibah.App
                     </h1>
                     <p className="mt-3 text-base sm:text-lg text-gray-500 ">
                         Find your perfect match with trust and safety. Feel free to connect or visit our corporate center.
@@ -24,7 +24,13 @@ const ContactUs = () => {
                                 Suvastu Nazar Valley Shopping Complex
                             </p>
                             <p className="mt-1 text-sm font-medium text-gray-600 leading-relaxed">
-                                Flat -7F1, Tower-7, Progoti Shoroni, Gulshan, Dhaka-1212.
+                                Flat -7F1, Tower-7, Progoti Shoroni, Gulshan, Dhaka-1212. <span className="font-bold">Phone</span> : +88 01711994474
+                            </p>
+                        </div>
+                        <div>
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400">Qatar Office</h3>
+                            <p className="mt-2 text-md font-semibold text-gray-800 leading-snug">
+                                Building No -262, State-23, Zone-57, Doha Industrial Area,  Doha, Qatar. <span className="font-bold">Mobile/Whatsapp</span> : +974 3367 4088
                             </p>
                         </div>
                     </div>
@@ -34,16 +40,21 @@ const ContactUs = () => {
                             <Phone className="w-6 h-6" />
                         </div>
                         <div className="w-full">
-                            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Hotline & Support</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">For any Support </h3>
                             <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100">
-                                <span className="text-xs font-semibold text-gray-400 block uppercase">Central Hotline</span>
-                                <p className="text-xl font-black text-gray-800 tracking-wide mt-0.5">+88 09644 840 940</p>
+                                <span className="text-xs text-gray-600 block uppercase font-bold">Call Centre 24/7</span>
+                                <p className="text-xl font-semibold text-gray-800 tracking-wide mt-0.5">+88 096 1700 1700</p>
                                 <span className="inline-block mt-1 px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded">Extension: 111</span>
                             </div>
-                            <div className="mt-3 px-3">
+                            <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100">
+                                <span className="text-xs font-semibold text-gray-400 block uppercase">Corporate Contact</span>
+                                <p className="text-xl font-semibold text-gray-800 tracking-wide mt-0.5">+88 09644 840 940</p>
+                                <span className="inline-block mt-1 px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded">Extension: 111</span>
+                            </div>
+                            {/* <div className="mt-3 px-3">
                                 <span className="text-xs font-semibold text-gray-400 block uppercase">Direct Mobile</span>
                                 <p className="text-base font-bold text-gray-700 mt-0.5">+88 01711994474</p>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 
