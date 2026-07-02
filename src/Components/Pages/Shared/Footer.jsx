@@ -1,6 +1,8 @@
 import { Heart, Share2 } from "lucide-react";
 import logo from '../../../assets/images/logo.jpeg'
 import { NavLink } from "react-router";
+import { FaFacebook } from "react-icons/fa";
+import { BsTiktok } from "react-icons/bs";
 
 const Footer = () => {
     return (
@@ -19,6 +21,7 @@ const Footer = () => {
                         <p className="text-sm text-white/60 leading-relaxed max-w-sm">
                             The world&apos;s most trusted Bangladeshi matchmaking service. Combining heritage with modern technology to help you find your lifelong partner.
                         </p>
+
                     </div>
 
                     <div className="md:col-span-3 space-y-4">
@@ -55,16 +58,18 @@ const Footer = () => {
                         </h4>
                         <div className="flex items-center gap-3">
                             <a
-                                href="#"
+                                href="https://www.facebook.com/bibahdotapp"
+                                target="blank"
                                 className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:border-white/30 hover:bg-white/5 transition-all duration-200"
                             >
-                                <Share2 size={16} />
+                                <FaFacebook size={16} />
                             </a>
                             <a
-                                href="#"
+                                href="https://www.tiktok.com/@bibah.app?_r=1&_t=ZS-97U1mZxS1jx"
+                                target="blank"
                                 className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:border-white/30 hover:bg-white/5 transition-all duration-200"
                             >
-                                <Heart size={16} />
+                                <BsTiktok size={16} />
                             </a>
                         </div>
                     </div>
