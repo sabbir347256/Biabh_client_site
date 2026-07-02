@@ -45,7 +45,7 @@ const ContactUs = () => {
                             <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100">
                                 <span className="text-xs text-gray-600 block uppercase font-bold">Call Centre 24/7</span>
                                 <p className="text-xl font-semibold text-gray-800 tracking-wide mt-0.5">+88 096 1700 1700</p>
-                                <span className="inline-block mt-1 px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded">Extension: 111</span>
+                                {/* <span className="inline-block mt-1 px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded">Extension: 111</span> */}
                             </div>
                             {/* <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100">
                                 <span className="text-xs font-semibold text-gray-400 block uppercase">Corporate Contact</span>

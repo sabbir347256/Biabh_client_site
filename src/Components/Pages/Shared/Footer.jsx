@@ -15,7 +15,7 @@ const Footer = () => {
                                 <img className="rounded-md" src={logo} alt="" />
                             </div>
                             <span className="font-bold text-xl tracking-wider text-white uppercase">
-                                Bibah
+                                BIBAH DOT APP
                             </span>
                         </div>
                         <p className="text-sm text-white/60 leading-relaxed max-w-sm">
