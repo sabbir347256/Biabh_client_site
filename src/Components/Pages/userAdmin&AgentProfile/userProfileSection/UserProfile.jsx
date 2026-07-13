@@ -14,7 +14,8 @@ import {
     AlertCircle,
     CreditCard,
     Sparkles,
-    Wallet
+    Wallet,
+    Check
 } from 'lucide-react';
 import { AuthProvider } from '../../../AuthProvider/CreateContext';
 import config from '../../utilies/envconfig';
@@ -285,40 +286,40 @@ const UserProfile = () => {
         setPermanentUpazilas(filtered);
     }, [watchedPermanentDistrict, allUpazilas]);
 
-    const handleImageChange = async (e, type) => {
-        const file = e.target.files[0];
-        if (!file) return;
+    // const handleImageChange = async (e, type) => {
+    //     const file = e.target.files[0];
+    //     if (!file) return;
 
-        const localUrl = URL.createObjectURL(file);
-        setImages(prev => ({ ...prev, [type]: localUrl }));
-        const toastId = toast.loading(`Uploading ${type === 'cover' ? 'cover' : 'avatar'} photo...`);
-        const formData = new FormData();
-        formData.append('image', file);
+    //     const localUrl = URL.createObjectURL(file);
+    //     setImages(prev => ({ ...prev, [type]: localUrl }));
+    //     const toastId = toast.loading(`Uploading ${type === 'cover' ? 'cover' : 'avatar'} photo...`);
+    //     const formData = new FormData();
+    //     formData.append('image', file);
 
-        try {
-            const response = await axios.put(`${config?.backendUrl}/user/update-image/${type}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            if (response.data?.success && response.data?.data) {
-                const updatedUser = response.data.data;
-                setImages({
-                    avatar: updatedUser.avatarPhoto || '',
-                    cover: updatedUser.coverPhoto || ''
-                });
-                toast.success(response.data.message || `${type === 'cover' ? 'Cover' : 'Avatar'} photo updated!`, { id: toastId });
-                refetch();
-            }
-        } catch (error) {
-            toast.error("Failed to upload image", { id: toastId });
-            setImages(prev => ({
-                ...prev,
-                [type]: type === 'cover' ? profileUser?.coverPhoto : profileUser?.avatarPhoto
-            }));
-        }
-    };
+    //     try {
+    //         const response = await axios.put(`${config?.backendUrl}/user/update-image/${type}`, formData, {
+    //             headers: {
+    //                 'Content-Type': 'multipart/form-data',
+    //                 'Authorization': `Bearer ${token}`
+    //             }
+    //         });
+    //         if (response.data?.success && response.data?.data) {
+    //             const updatedUser = response.data.data;
+    //             setImages({
+    //                 avatar: updatedUser.avatarPhoto || '',
+    //                 cover: updatedUser.coverPhoto || ''
+    //             });
+    //             toast.success(response.data.message || `${type === 'cover' ? 'Cover' : 'Avatar'} photo updated!`, { id: toastId });
+    //             refetch();
+    //         }
+    //     } catch (error) {
+    //         toast.error("Failed to upload image", { id: toastId });
+    //         setImages(prev => ({
+    //             ...prev,
+    //             [type]: type === 'cover' ? profileUser?.coverPhoto : profileUser?.avatarPhoto
+    //         }));
+    //     }
+    // };
 
     const handleNidFileSelect = (e) => {
         const files = Array.from(e.target.files);
@@ -479,6 +480,130 @@ const UserProfile = () => {
     const [activeTab, setActiveTab] = useState("info");
     const [isMeetupOpen, setIsMeetupOpen] = useState(false);
 
+    const [isDragging, setIsDragging] = useState(false);
+    const [position, setPosition] = useState({ y: profileUser?.coverPosition || 0 });
+    const [startDrag, setStartDrag] = useState({ y: 0 });
+    const [tempImage, setTempImage] = useState(null);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const containerRef = useRef(null);
+    const imageRef = useRef(null);
+
+    console.log(profileUser)
+
+    useEffect(() => {
+        if (profileUser && profileUser.coverPosition !== undefined) {
+            setPosition({ y: Number(profileUser.coverPosition) });
+        }
+    }, [profileUser]);
+
+    const handleImageChange = async (e, type) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (type === 'cover') {
+            setSelectedFile(file);
+            const localUrl = URL.createObjectURL(file);
+            setTempImage(localUrl);
+            setPosition({ y: 0 });
+        } else {
+            const toastId = toast.loading('Uploading avatar photo...');
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const response = await axios.put(`${config?.backendUrl}/user/update-image/avatar`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (response.data?.success && response.data?.data) {
+                    const updatedUser = response.data.data;
+                    setImages({
+                        avatar: updatedUser.avatarPhoto || '',
+                        cover: updatedUser.coverPhoto || ''
+                    });
+                    toast.success(response.data.message || 'Avatar photo updated!', { id: toastId });
+                    refetch();
+                }
+            } catch (error) {
+                toast.error("Failed to upload image", { id: toastId });
+            }
+        }
+    };
+
+    const handleMouseDown = (e) => {
+        if (!tempImage) return;
+        setIsDragging(true);
+        setStartDrag({ y: e.clientY - position.y });
+    };
+
+    const handleMouseMove = (e) => {
+        if (!isDragging || !tempImage || !containerRef.current || !imageRef.current) return;
+
+        const containerHeight = containerRef.current.clientHeight;
+        const imageHeight = imageRef.current.clientHeight;
+        const maxDrag = containerHeight - imageHeight;
+
+        if (maxDrag >= 0) return;
+
+        let newY = e.clientY - startDrag.y;
+        if (newY > 0) newY = 0;
+        if (newY < maxDrag) newY = maxDrag;
+
+        setPosition({ y: newY });
+    };
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+    };
+
+    const handleSavePosition = async () => {
+        if (!selectedFile) return;
+        setIsSaving(true);
+        const toastId = toast.loading('Uploading and saving cover photo...');
+
+        const formData = new FormData();
+        formData.append('image', selectedFile);
+        formData.append('coverPosition', String(position.y));
+
+        try {
+            const response = await axios.put(`${config?.backendUrl}/user/update-image/cover`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.data?.success && response.data?.data) {
+                const updatedUser = response.data.data;
+                setImages({
+                    avatar: updatedUser.profileImage || updatedUser.avatarPhoto || '',
+                    cover: updatedUser.coverImage || updatedUser.coverPhoto || ''
+                });
+                if (updatedUser.coverPosition !== undefined) {
+                    setPosition({ y: Number(updatedUser.coverPosition) });
+                }
+
+                toast.success(response.data.message || 'Cover photo updated!', { id: toastId });
+                setTempImage(null);
+                setSelectedFile(null);
+                refetch();
+            }
+        } catch (error) {
+            toast.error("Failed to upload image", { id: toastId });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleCancel = () => {
+        setTempImage(null);
+        setSelectedFile(null);
+        setPosition({ y: profileUser?.coverPosition || 0 });
+    };
+
 
     if (isLoading) {
         return (
@@ -494,13 +619,63 @@ const UserProfile = () => {
             <Toaster position="top-right" reverseOrder={false} />
 
             <div className="relative mb-6">
-                <div className={`h-64 md:h-[32rem] w-full rounded-b-2xl overflow-hidden relative ${profileUser?.role === 'PREMIUM' ? 'bg-gradient-to-br from-neutral-950 via-red-950 to-neutral-950 ring-4 ring-red-600 ring-offset-4 ring-offset-neutral-950 shadow-2xl shadow-red-600/30' : 'bg-emerald-950'}`}>
-                    {images.cover && <img src={images.cover} className="w-full h-full object-cover" alt="Cover" />}
-                    <div className={`absolute inset-0 ${profileUser?.role === 'PREMIUM' ? 'bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent' : 'bg-gradient-to-t from-black/60 via-transparent to-transparent'}`} />
-                    <label className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 cursor-pointer transition backdrop-blur-sm z-10">
-                        <Camera className="w-4 h-4" /> Edit Cover Photo
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageChange(e, 'cover')} />
-                    </label>
+                <div
+                    ref={containerRef}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                    className={`h-64 md:h-[32rem] w-full rounded-b-2xl overflow-hidden relative select-none ${profileUser?.role === 'PREMIUM' ? 'bg-gradient-to-br from-neutral-950 via-red-950 to-neutral-950 ring-4 ring-red-600 ring-offset-4 ring-offset-neutral-950 shadow-2xl shadow-red-600/30' : 'bg-emerald-950'}`}
+                >
+                    {tempImage ? (
+                        <img
+                            ref={imageRef}
+                            src={tempImage}
+                            style={{ transform: `translateY(${position.y}px)` }}
+                            className={`w-full absolute top-0 left-0 object-cover ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                            alt="Reposition Cover"
+                            onMouseDown={handleMouseDown}
+                            draggable={false}
+                        />
+                    ) : (
+                        images.cover && (
+                            <img
+                                src={images.cover}
+                                // database coordinate validation transformation logic integration here
+                                style={{ transform: `translateY(${position.y}px)` }}
+                                className="w-full absolute top-0 left-0 object-cover"
+                                alt="Cover"
+                                draggable={false}
+                            />
+                        )
+                    )}
+
+                    <div className={`absolute inset-0 pointer-events-none ${profileUser?.role === 'PREMIUM' ? 'bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent' : 'bg-gradient-to-t from-black/60 via-transparent to-transparent'}`} />
+
+                    {tempImage ? (
+                        <div className="absolute top-4 right-4 flex items-center gap-2 z-10 bg-black/60 p-1.5 rounded-xl backdrop-blur-sm">
+                            <span className="text-xs text-white/90 px-2 font-medium hidden sm:inline">Drag to Position</span>
+                            <button
+                                onClick={handleSavePosition}
+                                disabled={isSaving}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg text-xs font-medium flex items-center gap-1 transition disabled:opacity-50"
+                            >
+                                <Check className="w-4 h-4" /> Save
+                            </button>
+                            <button
+                                onClick={handleCancel}
+                                disabled={isSaving}
+                                className="bg-neutral-800 hover:bg-neutral-700 text-white p-2 rounded-lg text-xs font-medium flex items-center gap-1 transition disabled:opacity-50"
+                            >
+                                <X className="w-4 h-4" /> Cancel
+                            </button>
+                        </div>
+                    ) : (
+                        <label className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 cursor-pointer transition backdrop-blur-sm z-10">
+                            <Camera className="w-4 h-4" /> Edit Cover Photo
+                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageChange(e, 'cover')} />
+                        </label>
+                    )}
+
                     {profileUser?.role === 'PREMIUM' && (
                         <div className="absolute top-4 left-4 bg-gradient-to-r from-red-600 to-rose-500 text-white font-black text-[11px] uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-lg shadow-red-600/40 flex items-center gap-1.5 border border-red-500/30 z-10">
                             <Sparkles className="w-3.5 h-3.5 text-white animate-spin" /> Premium Member

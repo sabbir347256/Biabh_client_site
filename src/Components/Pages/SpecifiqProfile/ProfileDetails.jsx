@@ -31,6 +31,7 @@ const ProfileDetails = () => {
     const [message, setMessage] = useState({ type: '', text: '' });
     const [activeTab, setActiveTab] = useState('details');
     const token = localStorage.getItem("accessToken");
+    const [selectedImage, setSelectedImage] = useState(null);
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -224,9 +225,17 @@ const ProfileDetails = () => {
             )}
 
             <div className="relative mb-6">
-                <div className={`h-64 md:h-[24rem] w-full rounded-b-2xl overflow-hidden relative ${profileUser?.role === 'PREMIUM' ? 'bg-gradient-to-br from-neutral-950 via-red-950 to-neutral-950 ring-4 ring-red-600 ring-offset-4 ring-offset-neutral-950 shadow-2xl shadow-red-600/30' : 'bg-emerald-950'}`}>
-                    <img src={profileUser?.coverImage} className={`w-full h-full object-cover`} alt="Cover" />
-                    <div className={`absolute inset-0 ${profileUser?.role === 'PREMIUM' ? 'bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent' : 'bg-gradient-to-t from-black/60 via-transparent to-transparent'}`} />
+                <div className={`h-64 md:h-[32rem] w-full rounded-b-2xl overflow-hidden relative ${profileUser?.role === 'PREMIUM' ? 'bg-gradient-to-br from-neutral-950 via-red-950 to-neutral-950 ring-4 ring-red-600 ring-offset-4 ring-offset-neutral-950 shadow-2xl shadow-red-600/30' : 'bg-emerald-950'}`}>
+                    <img
+                        src={profileUser?.coverImage}
+                        className="w-full absolute top-0 left-0 cursor-pointer transition hover:opacity-90"
+                        style={{ transform: `translateY(${profileUser?.coverPosition || 0}px)` }}
+                        alt="Cover"
+                        draggable={false}
+                        onClick={() => profileUser?.coverImage && setSelectedImage(profileUser.coverImage)}
+                    />
+                    <div className={`absolute inset-0 pointer-events-none ${profileUser?.role === 'PREMIUM' ? 'bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent' : 'bg-gradient-to-t from-black/60 via-transparent to-transparent'}`} />
+
                     {profileUser?.role === 'PREMIUM' && (
                         <div className="absolute top-4 left-4 bg-gradient-to-r from-red-600 to-rose-500 text-white font-black text-[11px] uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-lg shadow-red-600/40 flex items-center gap-1.5 border border-red-500/30 z-10">
                             <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" /> Premium Member
@@ -237,7 +246,12 @@ const ProfileDetails = () => {
                 <div className="absolute -bottom-12 left-8 flex items-end space-x-4 z-20 w-[calc(100%-4rem)]">
                     <div className="relative group flex-shrink-0">
                         <div className={`w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden bg-neutral-800 relative shadow-xl ${profileUser?.role === 'PREMIUM' ? 'border-4 border-red-600 ring-4 ring-rose-500/40 ring-offset-2' : 'border-4 border-white'}`}>
-                            <img src={profileUser?.profileImage} className="w-full h-full object-cover" alt="Avatar" />
+                            <img
+                                src={profileUser?.profileImage}
+                                className="w-full h-full object-cover cursor-pointer transition hover:opacity-90"
+                                alt="Avatar"
+                                onClick={() => profileUser?.profileImage && setSelectedImage(profileUser.profileImage)}
+                            />
                         </div>
                         {profileUser?.isVerified && (
                             <div className={`absolute bottom-2 right-2 border-2 text-white p-1.5 rounded-full shadow-lg ${profileUser?.role === 'PREMIUM' ? 'bg-red-600 border-neutral-950' : 'bg-emerald-600 border-white'}`}>
@@ -245,6 +259,25 @@ const ProfileDetails = () => {
                             </div>
                         )}
                     </div>
+                    {selectedImage && (
+                        <div
+                            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fadeIn"
+                            onClick={() => setSelectedImage(null)}
+                        >
+                            <button
+                                className="absolute top-4 right-4 text-white/70 hover:text-white bg-neutral-900/50 p-2 rounded-full transition"
+                                onClick={() => setSelectedImage(null)}
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                            <img
+                                src={selectedImage}
+                                className="max-w-full max-h-[90vh] rounded-lg object-contain shadow-2xl animate-scaleIn"
+                                alt="Enlarged view"
+                                onClick={(e) => e.stopPropagation()}
+                            />
+                        </div>
+                    )}
 
                     <div className="mb-4 flex-1 min-w-0 bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-lg max-w-xl">
                         <div className="min-w-0">
