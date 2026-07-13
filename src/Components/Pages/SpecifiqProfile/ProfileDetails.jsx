@@ -22,7 +22,7 @@ import Loading from '../Shared/Loading';
 
 
 const ProfileDetails = () => {
-    const { data } = useContext(AuthProvider);
+    const { data, user } = useContext(AuthProvider);
     const { id } = useParams();
     const [profileUser, setProfileUser] = useState(null);
     const [isProfileLocked, setIsProfileLocked] = useState(true);
@@ -85,8 +85,13 @@ const ProfileDetails = () => {
         fetchConnectionStatus();
     }, [id]);
 
+    console.log(connectionData)
 
     const handleSendRequest = async () => {
+        if (!user) {
+            toast.error("Please Login Your Profile, than request send !");
+            return;
+        }
         if (data?.data?.gender === profileUser?.gender) {
             toast.error("You can only send requests to the opposite gender!");
             return;
@@ -206,8 +211,8 @@ const ProfileDetails = () => {
 
 
     if (loading) {
-    return <Loading></Loading>
-}
+        return <Loading></Loading>
+    }
 
     return (
         <div className="app-container pb-8 min-h-screen bg-gray-50/50">
@@ -407,7 +412,7 @@ const ProfileDetails = () => {
                                     </h2>
                                 </div>
 
-                                {connectionData.status === "NONE" && (
+                                {(!user || connectionData.status === "NONE") && (
                                     <div className="flex flex-col items-center justify-center py-6 border border-dashed border-gray-200 rounded-xl bg-gray-50/50 px-4 text-center">
                                         <Lock className={`w-8 h-8 mb-2 ${profileUser?.role === 'PREMIUM' ? 'text-red-400' : 'text-emerald-400'}`} />
                                         <p className="text-sm font-semibold text-gray-700 mb-1">Contact Details are Locked</p>
