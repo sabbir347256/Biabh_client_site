@@ -150,6 +150,7 @@ const SignUp = () => {
             if (submissionData.profession === "Other") {
                 submissionData.profession = data.customProfession || "Other";
             }
+            
             delete submissionData.customProfession;
 
             if (submissionData.currentCountry === "Bangladesh") {
