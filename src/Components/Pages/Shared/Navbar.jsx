@@ -639,8 +639,8 @@ const Navbar = () => {
                                             validate: {
                                                 positive: (val) => Number(val) > 0 || "Amount must be greater than 0",
                                                 firstRecharge: (val) => {
-                                                    if (totalAmount === 0 && Number(val) < 130) {
-                                                        return "প্রথম রিচার্জ সর্বনিম্ন ১৩০ টাকা হতে হবে";
+                                                    if (totalAmount === 0 && Number(val) < 10) {
+                                                        return "প্রথম রিচার্জ সর্বনিম্ন 10 টাকা হতে হবে";
                                                     }
                                                     if (Number(val) < 1) {
                                                         return "Minimum recharge amount is ৳1";
