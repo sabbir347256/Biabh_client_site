@@ -150,7 +150,7 @@ const SignUp = () => {
             if (submissionData.profession === "Other") {
                 submissionData.profession = data.customProfession || "Other";
             }
-            
+
             delete submissionData.customProfession;
 
             if (submissionData.currentCountry === "Bangladesh") {
@@ -302,15 +302,47 @@ const SignUp = () => {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Date of Birth</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                        Date of Birth
+                                    </label>
                                     <input
-                                        required
                                         type="text"
                                         placeholder="DD/MM/YYYY"
                                         maxLength={10}
                                         {...register("birth", {
                                             required: "Date of birth is required",
-                                            validate: value => value.length === 10 || "Please enter valid date (DD/MM/YYYY)"
+                                            validate: (value) => {
+                                                if (value.length !== 10) {
+                                                    return "Please enter a valid date (DD/MM/YYYY)";
+                                                }
+
+                                                const [day, month, year] = value.split("/").map(Number);
+                                                const birthDate = new Date(year, month - 1, day);
+                                                const today = new Date();
+
+                                                if (
+                                                    birthDate.getFullYear() !== year ||
+                                                    birthDate.getMonth() !== month - 1 ||
+                                                    birthDate.getDate() !== day
+                                                ) {
+                                                    return "Please enter a valid date";
+                                                }
+
+                                                let age = today.getFullYear() - birthDate.getFullYear();
+                                                const monthDiff = today.getMonth() - birthDate.getMonth();
+                                                if (
+                                                    monthDiff < 0 ||
+                                                    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+                                                ) {
+                                                    age--;
+                                                }
+
+                                                if (age < 18) {
+                                                    return "You must be at least 18 years old to register";
+                                                }
+
+                                                return true;
+                                            },
                                         })}
                                         onChange={(e) => {
                                             let val = e.target.value.replace(/\D/g, "");
@@ -321,10 +353,21 @@ const SignUp = () => {
                                                 if (val.length > 2) formatted += "/" + val.substring(2, 4);
                                                 if (val.length > 4) formatted += "/" + val.substring(4, 8);
                                             }
-                                            e.target.value = formatted;
+
+                                            setValue("birth", formatted, { shouldValidate: true });
                                         }}
-                                        className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E] outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white text-gray-700"
+                                        className={`w-full px-4 py-3.5 rounded-xl border outline-none transition-all duration-200 text-sm font-medium bg-gray-50/50 focus:bg-white text-gray-700 ${errors.birth
+                                                ? "border-red-500 focus:ring-red-100 focus:border-red-500"
+                                                : "border-gray-200 focus:ring-[#C20E0E]/10 focus:border-[#C20E0E]"
+                                            }`}
                                     />
+
+                                    {/* Error Message UI */}
+                                    {errors.birth && (
+                                        <p className="text-xs text-red-500 mt-1 font-medium">
+                                            {errors.birth.message}
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="space-y-2 hidden">
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Age</label>
