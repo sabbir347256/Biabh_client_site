@@ -1180,7 +1180,7 @@ const UserProfile = () => {
                                                 ) : (
                                                     <X className="w-4 h-4 text-red-500" />
                                                 )}
-                                                <span>Profile Activation {profileUser?.isActive === 'ACTIVE' ? '' : <span className='text-red-500 font-bold'>(প্রোফাইল সক্রিয়করণ করার জন্য ১৩০টাকা রিচার্জ করুন ওয়ালেট অপশনে গিয়ে)</span> } </span>
+                                                <span>Profile Activation {profileUser?.isActive === 'ACTIVE' ? '' : <span className='text-red-500 font-bold'>(প্রোফাইল সক্রিয়করণ করার জন্য ১০টাকা রিচার্জ করুন ওয়ালেট অপশনে গিয়ে)</span> } </span>
                                             </div>
                                         </div>
                                         <div className="flex items-center justify-between border-b pb-2">
