@@ -27,11 +27,11 @@ const ContactUs = () => {
                 Confidence Shopping Mall
               </p>
               <p className="mt-1 text-sm font-medium text-gray-600 leading-relaxed">
-                237, 1st Floor Confidence Shopping Mall Progoti Shoroni,
+                237, 1st Floor Confidence Shopping Mall <br /> Progoti Shoroni,
                 Shahjadpur Bus-stand Gulshan, Dhaka-1212. <br />{" "}
-                <span className="font-bold">Phone</span> : +88 01711639556, <br />
-                <span className="font-bold">Phone</span> : +88 01711994474
-                <br /> <span className="font-bold">Telephone</span> : +8809617001700,
+                <span className="font-bold">Phone</span> : +88 01711-630556, <br />
+                <span className="font-bold">Phone</span> : +88 01711-994474
+                <br /> <span className="font-bold">Telephone</span> : +88 096 1700 1700,
               </p>
             </div>
             <div>
